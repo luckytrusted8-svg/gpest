@@ -9,6 +9,7 @@ use App\Http\Controllers\LocationTrackingController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\SurveyReportController;
 use App\Http\Controllers\TechnicianController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkReportController;
@@ -27,6 +28,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('work-reports', WorkReportController::class)->middleware('permission:work-reports.view');
     Route::post('work-reports/{workReport}/approve', [WorkReportController::class, 'approve'])->name('work-reports.approve')->middleware('permission:work-reports.approve');
     Route::post('work-reports/{workReport}/revision', [WorkReportController::class, 'requestRevision'])->name('work-reports.revision')->middleware('permission:work-reports.approve');
+
+    Route::resource('survey-reports', SurveyReportController::class);
+    Route::post('survey-reports/{surveyReport}/approve', [SurveyReportController::class, 'approve'])->name('survey-reports.approve');
 
     Route::resource('users', UserController::class)->middleware('role:super_admin');
 
