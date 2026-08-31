@@ -73,20 +73,25 @@ export default function AppLayout({ children }: AppLayoutProps) {
             items: [
                 { name: 'Laporan Kerja', href: '/work-reports', icon: ClipboardList, permission: 'work-reports.view' },
                 { name: 'Laporan Survey', href: '/survey-reports', icon: FileText, permission: 'work-reports.view' },
+                { name: 'Kehadiran', href: '/attendance', icon: MapPin, permission: 'attendance.view' },
             ],
         },
         {
-            label: 'FIELD',
+            label: 'PELACAKAN',
             items: [
-                { name: 'Kehadiran', href: '/attendance', icon: MapPin, permission: 'attendance.view' },
-                { name: 'Pelacakan', href: '/tracking', icon: Radar, permission: 'technicians.view' },
+                { name: 'Monitoring Lokasi', href: '/tracking', icon: Radar, permission: 'technicians.view' },
+            ],
+        },
+        {
+            label: 'CRM',
+            items: [
+                { name: 'Leads', href: '/crm', icon: Users, permission: 'customers.view' },
             ],
         },
         {
             label: 'KEUANGAN',
             items: [
                 { name: 'Penawaran', href: '/quotations', icon: DollarSign, permission: 'contracts.view' },
-                { name: 'Invoice', href: '/invoices', icon: DollarSign, permission: 'contracts.view' },
             ],
         },
         {

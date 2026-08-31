@@ -6,10 +6,12 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -41,5 +43,21 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return redirect()->route('login')
                 ->with('error', 'Anda tidak memiliki izin untuk mengakses halaman tersebut.');
+        });
+
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Halaman tidak ditemukan.'], 404);
+            }
+
+            return Inertia::render('Error/404');
+        });
+
+        $exceptions->render(function (Exception $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Terjadi kesalahan server.'], 500);
+            }
+
+            return Inertia::render('Error/500');
         });
     })->create();

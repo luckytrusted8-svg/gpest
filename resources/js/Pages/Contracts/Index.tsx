@@ -1,8 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Plus, Search, Eye, Edit, Trash2, FileText } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Trash2, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
 interface Customer {
@@ -28,7 +28,6 @@ interface Contract {
     attachment: string | null;
     is_expiring_soon?: boolean;
     created_at: string;
-    updated_at: string;
 }
 
 interface PaginationLink {
@@ -59,25 +58,25 @@ export const StatusBadge = ({ status }: { status: Contract['status'] }) => {
         case 'active':
             return (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#0070f3]/15 text-[#0070f3]">
-                    Active
+                    Aktif
                 </span>
             );
         case 'expiring_soon':
             return (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f5a623]/15 text-[#ab570a]">
-                    Expiring Soon
+                    Akan Berakhir
                 </span>
             );
         case 'expired':
             return (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#ee0000]/15 text-[#ee0000]">
-                    Expired
+                    Berakhir
                 </span>
             );
         case 'cancelled':
             return (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#ee0000]/15 text-[#ee0000]">
-                    Cancelled
+                    Dibatalkan
                 </span>
             );
         case 'draft':
@@ -91,6 +90,9 @@ export const StatusBadge = ({ status }: { status: Contract['status'] }) => {
 };
 
 export default function Index({ contracts, filters }: IndexProps) {
+    const { flash } = usePage().props as Record<string, unknown>;
+    const f = flash as { success?: string; error?: string } | undefined;
+
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
 
@@ -105,7 +107,7 @@ export default function Index({ contracts, filters }: IndexProps) {
     };
 
     const handleDelete = (id: number, contractNum: string) => {
-        if (confirm(`Are you sure you want to delete contract "${contractNum}"?`)) {
+        if (confirm(`Hapus kontrak "${contractNum}"?`)) {
             router.delete(`/contracts/${id}`);
         }
     };
@@ -117,19 +119,32 @@ export default function Index({ contracts, filters }: IndexProps) {
 
     return (
         <AppLayout>
-            <Head title="Contracts" />
+            <Head title="Kontrak" />
 
             <div className="max-w-7xl mx-auto space-y-6">
+                {f?.success && (
+                    <div className="bg-[#f0fdf4] border border-[#bbf7d0] text-[#166534] px-4 py-3 rounded-md text-body-sm flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 shrink-0" />
+                        {f.success}
+                    </div>
+                )}
+                {f?.error && (
+                    <div className="bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] px-4 py-3 rounded-md text-body-sm flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        {f.error}
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h1 className="text-display-sm font-semibold text-ink">Contract Management</h1>
-                        <p className="text-body-sm text-mute mt-1">Manage customer agreements, service schedules, and contract lifecycles.</p>
+                        <h1 className="text-display-sm font-semibold text-ink">Kontrak</h1>
+                        <p className="text-body-sm text-mute mt-1">Kelola perjanjian pelanggan, jadwal layanan, dan siklus hidup kontrak.</p>
                     </div>
                     <Link href="/contracts/create">
                         <Button className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2">
                             <Plus className="w-4 h-4" />
-                            Create Contract
+                            Buat Kontrak
                         </Button>
                     </Link>
                 </div>
@@ -141,7 +156,7 @@ export default function Index({ contracts, filters }: IndexProps) {
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
                             <Input
                                 type="text"
-                                placeholder="Search contract number, customer, location..."
+                                placeholder="Cari nomor kontrak, customer, lokasi..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="pl-9"
@@ -152,12 +167,12 @@ export default function Index({ contracts, filters }: IndexProps) {
                             onChange={(e) => handleStatusChange(e.target.value)}
                             className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-48"
                         >
-                            <option value="">All Status</option>
+                            <option value="">Semua Status</option>
                             <option value="draft">Draft</option>
-                            <option value="active">Active</option>
-                            <option value="expiring_soon">Expiring Soon</option>
-                            <option value="expired">Expired</option>
-                            <option value="cancelled">Cancelled</option>
+                            <option value="active">Aktif</option>
+                            <option value="expiring_soon">Akan Berakhir</option>
+                            <option value="expired">Berakhir</option>
+                            <option value="cancelled">Dibatalkan</option>
                         </select>
                         <Button type="submit" variant="outline" className="text-body-sm-strong w-full sm:w-auto">
                             Filter
@@ -171,14 +186,14 @@ export default function Index({ contracts, filters }: IndexProps) {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-hairline bg-canvas-soft text-caption-mono uppercase text-mute">
-                                    <th className="py-3 px-4 font-semibold">Contract Number</th>
+                                    <th className="py-3 px-4 font-semibold">Nomor Kontrak</th>
                                     <th className="py-3 px-4 font-semibold">Customer</th>
-                                    <th className="py-3 px-4 font-semibold">Type</th>
-                                    <th className="py-3 px-4 font-semibold">Start Date</th>
-                                    <th className="py-3 px-4 font-semibold">End Date</th>
-                                    <th className="py-3 px-4 font-semibold">Value</th>
+                                    <th className="py-3 px-4 font-semibold">Jenis</th>
+                                    <th className="py-3 px-4 font-semibold">Mulai</th>
+                                    <th className="py-3 px-4 font-semibold">Berakhir</th>
+                                    <th className="py-3 px-4 font-semibold">Nilai</th>
                                     <th className="py-3 px-4 font-semibold">Status</th>
-                                    <th className="py-3 px-4 font-semibold text-right">Actions</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-hairline text-body-sm text-ink">
@@ -216,7 +231,7 @@ export default function Index({ contracts, filters }: IndexProps) {
                                                     <Button
                                                         variant="outline"
                                                         size="icon"
-                                                        className="h-8 w-8 text-error hover:bg-error/10"
+                                                        className="h-8 w-8 text-[#ee0000] hover:bg-[#ee0000]/10"
                                                         onClick={() => handleDelete(contract.id, contract.contract_number)}
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -228,7 +243,7 @@ export default function Index({ contracts, filters }: IndexProps) {
                                 ) : (
                                     <tr>
                                         <td colSpan={8} className="py-8 text-center text-mute text-body-sm">
-                                            No contracts found.
+                                            Tidak ada data kontrak.
                                         </td>
                                     </tr>
                                 )}
@@ -240,7 +255,7 @@ export default function Index({ contracts, filters }: IndexProps) {
                     {contracts.links && contracts.links.length > 3 && (
                         <div className="p-4 border-t border-hairline flex flex-col sm:flex-row items-center justify-between gap-4 text-body-sm">
                             <div className="text-mute">
-                                Showing {contracts.data.length} of {contracts.total} contracts
+                                Menampilkan {contracts.data.length} dari {contracts.total} kontrak
                             </div>
                             <div className="flex items-center gap-1">
                                 {contracts.links.map((link, idx) => (

@@ -3,7 +3,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { Textarea } from '@/Components/ui/textarea';
 import { StatusBadge } from './Index';
-import { ArrowLeft, Edit, Trash2, CheckCircle, RotateCcw, FileText, User, MapPin, Calendar, Clock, Wrench, Camera, ClipboardList, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, CheckCircle, RotateCcw, FileText, User, MapPin, Calendar, Clock, Wrench, Camera, ClipboardList, AlertTriangle, Download } from 'lucide-react';
 import { useState } from 'react';
 
 interface Customer { id: number; customer_id: string; company_name: string; }
@@ -113,6 +113,11 @@ export default function Show({ workReport }: Props) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
+                        <a href={route('work-reports.pdf', workReport.id)} target="_blank" rel="noopener noreferrer">
+                            <Button variant="outline" className="text-body-sm-strong flex items-center gap-2">
+                                <Download className="w-4 h-4" /> Download PDF
+                            </Button>
+                        </a>
                         {(workReport.status === 'draft' || workReport.status === 'revisi') && (
                             <Link href={route('work-reports.edit', workReport.id)}>
                                 <Button variant="outline" className="text-body-sm-strong flex items-center gap-2">

@@ -5,9 +5,12 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GeofenceController;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LocationTrackingController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PdfController;
+use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SurveyReportController;
 use App\Http\Controllers\TechnicianController;
@@ -28,9 +31,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('work-reports', WorkReportController::class)->middleware('permission:work-reports.view');
     Route::post('work-reports/{workReport}/approve', [WorkReportController::class, 'approve'])->name('work-reports.approve')->middleware('permission:work-reports.approve');
     Route::post('work-reports/{workReport}/revision', [WorkReportController::class, 'requestRevision'])->name('work-reports.revision')->middleware('permission:work-reports.approve');
+    Route::get('work-reports/{workReport}/pdf', [PdfController::class, 'workReport'])->name('work-reports.pdf');
 
     Route::resource('survey-reports', SurveyReportController::class);
     Route::post('survey-reports/{surveyReport}/approve', [SurveyReportController::class, 'approve'])->name('survey-reports.approve');
+    Route::get('survey-reports/{surveyReport}/pdf', [PdfController::class, 'surveyReport'])->name('survey-reports.pdf');
+
+    Route::resource('crm', LeadController::class)->names('crm');
+    Route::post('crm/{lead}/convert', [LeadController::class, 'convertToCustomer'])->name('crm.convert');
+    Route::post('crm/{lead}/activity', [LeadController::class, 'addActivity'])->name('crm.activity');
+
+    Route::resource('quotations', QuotationController::class)->names('quotations');
+    Route::post('quotations/{quotation}/kirim', [QuotationController::class, 'kirim'])->name('quotations.kirim');
+    Route::post('quotations/{quotation}/terima', [QuotationController::class, 'terima'])->name('quotations.terima');
+    Route::post('quotations/{quotation}/tolak', [QuotationController::class, 'tolak'])->name('quotations.tolak');
+    Route::post('quotations/{quotation}/duplikat', [QuotationController::class, 'duplikat'])->name('quotations.duplikat');
+    Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'cetakPdf'])->name('quotations.pdf');
 
     Route::resource('users', UserController::class)->middleware('role:super_admin');
 

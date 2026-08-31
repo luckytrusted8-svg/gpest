@@ -96,7 +96,9 @@ export default function Show({ surveyReport, previousSurveys }: Props) {
                         {(roles.includes('super_admin') || roles.includes('supervisor')) && surveyReport.status === 'dikirim' && (
                             <Button onClick={handleApprove} disabled={approving} className="bg-[#0070f3] hover:bg-[#0060df] text-white text-body-sm-strong flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {approving ? 'Menyetujui...' : 'Setujui'}</Button>
                         )}
-                        <Button variant="outline" className="text-body-sm-strong flex items-center gap-2" disabled><Download className="w-4 h-4" /> Download PDF</Button>
+                        <a href={route('survey-reports.pdf', surveyReport.id)} target="_blank" rel="noopener noreferrer">
+                            <Button variant="outline" className="text-body-sm-strong flex items-center gap-2"><Download className="w-4 h-4" /> Download PDF</Button>
+                        </a>
                         <Button variant="outline" size="icon" className="h-9 w-9 text-error hover:bg-error/10" onClick={handleDelete}><Trash2 className="w-4 h-4" /></Button>
                     </div>
                 </div>
