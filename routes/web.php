@@ -16,9 +16,11 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SurveyReportController;
 use App\Http\Controllers\TechnicianController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WorkOrderController as WOController;
 use App\Http\Controllers\WorkReportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,8 +32,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::resource('customers', CustomerController::class)->middleware('permission:customers.view');
+    Route::resource('sites', SiteController::class);
     Route::resource('contracts', ContractController::class)->middleware('permission:contracts.view');
     Route::resource('schedules', ScheduleController::class)->middleware('permission:schedules.view');
+    Route::resource('work-orders', WOController::class)->names('work-orders');
+    Route::put('work-orders/{workOrder}/status', [WOController::class, 'updateStatus'])->name('work-orders.status');
     Route::resource('technicians', TechnicianController::class)->middleware('permission:technicians.view');
     Route::resource('work-reports', WorkReportController::class)->middleware('permission:work-reports.view');
     Route::post('work-reports/{workReport}/approve', [WorkReportController::class, 'approve'])->name('work-reports.approve')->middleware('permission:work-reports.approve');

@@ -72,34 +72,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     const rawNavItems = [
         {
-            label: 'UTAMA',
+            label: 'DASHBOARD',
             items: [
                 { name: 'Dashboard', href: '/dashboard', icon: Home, permission: 'dashboard.view' },
-            ],
-        },
-        {
-            label: 'OPERASIONAL',
-            items: [
-                { name: 'Pelanggan', href: '/customers', icon: Users, permission: 'customers.view' },
-                { name: 'Kontrak', href: '/contracts', icon: FileText, permission: 'contracts.view' },
-                { name: 'Jadwal', href: '/schedules', icon: Calendar, permission: 'schedules.view' },
-                { name: 'Request Klien', href: '/customer-requests', icon: MessageSquare, permission: 'customers.view' },
-                { name: 'Teknisi', href: '/technicians', icon: Shield, permission: 'technicians.view' },
-                { name: 'Cuti & Izin', href: '/leaves', icon: Shield },
-            ],
-        },
-        {
-            label: 'LAPANGAN',
-            items: [
-                { name: 'Laporan Kerja', href: '/work-reports', icon: ClipboardList, permission: 'work-reports.view' },
-                { name: 'Laporan Survey', href: '/survey-reports', icon: FileText, permission: 'work-reports.view' },
-                { name: 'Kehadiran', href: '/attendance', icon: MapPin, permission: 'attendance.view' },
-            ],
-        },
-        {
-            label: 'PELACAKAN',
-            items: [
-                { name: 'Monitoring Lokasi', href: '/tracking', icon: Radar, permission: 'technicians.view' },
             ],
         },
         {
@@ -109,19 +84,62 @@ export default function AppLayout({ children }: AppLayoutProps) {
             ],
         },
         {
-            label: 'KEUANGAN',
+            label: 'CUSTOMER',
             items: [
-                { name: 'Penawaran', href: '/quotations', icon: DollarSign, permission: 'contracts.view' },
-                { name: 'Invoice Tagihan', href: '/invoices', icon: CreditCard, permission: 'contracts.view' },
+                { name: 'Customer List', href: '/customers', icon: Users, permission: 'customers.view' },
+                { name: 'Sites (Lokasi)', href: '/sites', icon: MapPin, permission: 'customers.view' },
             ],
         },
         {
-            label: 'SISTEM',
+            label: 'REQUEST',
             items: [
-                { name: 'Audit Log', href: '/audit-logs', icon: ShieldCheck, permission: 'users.view' },
-                { name: 'App-Builder', href: '/app-builder', icon: Settings, permission: 'master-data.view' },
+                { name: 'Customer Request', href: '/customer-requests', icon: MessageSquare, permission: 'customers.view' },
+            ],
+        },
+        {
+            label: 'SERVICE',
+            items: [
+                { name: 'Work Orders', href: '/work-orders', icon: ClipboardList, permission: 'work-reports.view' },
+                { name: 'Scheduling', href: '/schedules', icon: Calendar, permission: 'schedules.view' },
+            ],
+        },
+        {
+            label: 'MONITORING',
+            items: [
+                { name: 'Live Tracking', href: '/tracking', icon: Radar, permission: 'technicians.view' },
+                { name: 'Geofences', href: '/geofences', icon: ShieldCheck, permission: 'technicians.view' },
+            ],
+        },
+        {
+            label: 'REPORTS',
+            items: [
+                { name: 'Work Report', href: '/work-reports', icon: ClipboardList, permission: 'work-reports.view' },
+                { name: 'Survey Report', href: '/survey-reports', icon: FileText, permission: 'work-reports.view' },
+            ],
+        },
+        {
+            label: 'FINANCE',
+            items: [
+                { name: 'Quotation', href: '/quotations', icon: DollarSign, permission: 'contracts.view' },
+                { name: 'Contract', href: '/contracts', icon: FileText, permission: 'contracts.view' },
+                { name: 'Invoice', href: '/invoices', icon: CreditCard, permission: 'contracts.view' },
+            ],
+        },
+        {
+            label: 'HR',
+            items: [
+                { name: 'Attendance', href: '/attendance', icon: MapPin, permission: 'attendance.view' },
+                { name: 'Leave', href: '/leaves', icon: Shield },
+                { name: 'Employee / Teknisi', href: '/technicians', icon: Users, permission: 'technicians.view' },
+            ],
+        },
+        {
+            label: 'SETTINGS',
+            items: [
+                { name: 'Form Builder', href: '/app-builder', icon: Settings, permission: 'master-data.view' },
                 { name: 'Data Master', href: '/master-data', icon: Settings, permission: 'master-data.view' },
-                { name: 'Pengguna', href: '/users', icon: Users, permission: 'users.view' },
+                { name: 'Users', href: '/users', icon: Users, permission: 'users.view' },
+                { name: 'Audit Log', href: '/audit-logs', icon: ShieldCheck, permission: 'users.view' },
             ],
         },
     ];
