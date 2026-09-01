@@ -32,11 +32,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::resource('customers', CustomerController::class)->middleware('permission:customers.view');
-    Route::resource('sites', SiteController::class);
+    Route::resource('sites', SiteController::class)->middleware('permission:sites.view');
     Route::resource('contracts', ContractController::class)->middleware('permission:contracts.view');
     Route::resource('schedules', ScheduleController::class)->middleware('permission:schedules.view');
-    Route::resource('work-orders', WOController::class)->names('work-orders');
-    Route::put('work-orders/{workOrder}/status', [WOController::class, 'updateStatus'])->name('work-orders.status');
+    Route::resource('work-orders', WOController::class)->names('work-orders')->middleware('permission:work-orders.view');
+    Route::put('work-orders/{workOrder}/status', [WOController::class, 'updateStatus'])->name('work-orders.status')->middleware('permission:work-orders.approve');
     Route::resource('technicians', TechnicianController::class)->middleware('permission:technicians.view');
     Route::resource('work-reports', WorkReportController::class)->middleware('permission:work-reports.view');
     Route::post('work-reports/{workReport}/approve', [WorkReportController::class, 'approve'])->name('work-reports.approve')->middleware('permission:work-reports.approve');

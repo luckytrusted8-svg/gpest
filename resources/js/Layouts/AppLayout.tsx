@@ -87,19 +87,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
             label: 'CUSTOMER',
             items: [
                 { name: 'Customer List', href: '/customers', icon: Users, permission: 'customers.view' },
-                { name: 'Sites (Lokasi)', href: '/sites', icon: MapPin, permission: 'customers.view' },
+                { name: 'Sites (Lokasi)', href: '/sites', icon: MapPin, permission: 'sites.view' },
             ],
         },
         {
             label: 'REQUEST',
             items: [
-                { name: 'Customer Request', href: '/customer-requests', icon: MessageSquare, permission: 'customers.view' },
+                { name: 'Customer Request', href: '/customer-requests', icon: MessageSquare, permission: 'customer-requests.view' },
             ],
         },
         {
             label: 'SERVICE',
             items: [
-                { name: 'Work Orders', href: '/work-orders', icon: ClipboardList, permission: 'work-reports.view' },
+                { name: 'Work Orders', href: '/work-orders', icon: ClipboardList, permission: 'work-orders.view' },
                 { name: 'Scheduling', href: '/schedules', icon: Calendar, permission: 'schedules.view' },
             ],
         },
@@ -114,15 +114,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
             label: 'REPORTS',
             items: [
                 { name: 'Work Report', href: '/work-reports', icon: ClipboardList, permission: 'work-reports.view' },
-                { name: 'Survey Report', href: '/survey-reports', icon: FileText, permission: 'work-reports.view' },
+                { name: 'Survey Report', href: '/survey-reports', icon: FileText, permission: 'survey-reports.view' },
             ],
         },
         {
             label: 'FINANCE',
             items: [
-                { name: 'Quotation', href: '/quotations', icon: DollarSign, permission: 'contracts.view' },
+                { name: 'Quotation', href: '/quotations', icon: DollarSign, permission: 'quotations.view' },
                 { name: 'Contract', href: '/contracts', icon: FileText, permission: 'contracts.view' },
-                { name: 'Invoice', href: '/invoices', icon: CreditCard, permission: 'contracts.view' },
+                { name: 'Invoice', href: '/invoices', icon: CreditCard, permission: 'invoices.view' },
             ],
         },
         {

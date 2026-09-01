@@ -23,6 +23,11 @@ class RolePermissionSeeder extends Seeder
             'customers.edit',
             'customers.delete',
 
+            'sites.view',
+            'sites.create',
+            'sites.edit',
+            'sites.delete',
+
             'contracts.view',
             'contracts.create',
             'contracts.edit',
@@ -32,6 +37,12 @@ class RolePermissionSeeder extends Seeder
             'schedules.create',
             'schedules.edit',
             'schedules.delete',
+
+            'work-orders.view',
+            'work-orders.create',
+            'work-orders.edit',
+            'work-orders.delete',
+            'work-orders.approve',
 
             'technicians.view',
             'technicians.create',
@@ -85,13 +96,15 @@ class RolePermissionSeeder extends Seeder
         $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $superAdminRole->syncPermissions(Permission::all());
 
-        // 2. Management: Read-only Dashboard, Reports, Analytics, Financials
+        // 2. Management: Read-only Analytics (Dashboard, Revenue, Customer, Job Performance, CRM, Audit Logs)
         $managementRole = Role::firstOrCreate(['name' => 'management', 'guard_name' => 'web']);
         $managementRole->syncPermissions([
             'dashboard.view',
             'customers.view',
+            'sites.view',
             'contracts.view',
             'schedules.view',
+            'work-orders.view',
             'technicians.view',
             'work-reports.view',
             'survey-reports.view',
@@ -103,13 +116,15 @@ class RolePermissionSeeder extends Seeder
             'audit-logs.view',
         ]);
 
-        // 3. Admin: CRUD Operasional Pelanggan, Kontrak, Quotation, Invoice, CRM, & Request Klien
+        // 3. Admin: CRUD Operasional Pelanggan, Sites, Kontrak, Quotation, Invoice, Work Orders, CRM, & Request
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $adminRole->syncPermissions([
             'dashboard.view',
             'customers.view', 'customers.create', 'customers.edit', 'customers.delete',
+            'sites.view', 'sites.create', 'sites.edit', 'sites.delete',
             'contracts.view', 'contracts.create', 'contracts.edit', 'contracts.delete',
             'schedules.view', 'schedules.create', 'schedules.edit', 'schedules.delete',
+            'work-orders.view', 'work-orders.create', 'work-orders.edit', 'work-orders.delete',
             'technicians.view',
             'work-reports.view', 'work-reports.approve',
             'survey-reports.view',
@@ -119,15 +134,18 @@ class RolePermissionSeeder extends Seeder
             'customer-requests.view', 'customer-requests.manage',
             'leaves.view', 'leaves.manage',
             'attendance.view',
+            'master-data.view', 'master-data.manage',
         ]);
 
-        // 4. Supervisor: Manajerial Penjadwalan, Laporan Pengerjaan, Absensi & Tracking Teknisi
+        // 4. Supervisor: Monitoring Teknisi, Work Order Review/Approve, Inspection & Attendance Approval
         $supervisorRole = Role::firstOrCreate(['name' => 'supervisor', 'guard_name' => 'web']);
         $supervisorRole->syncPermissions([
             'dashboard.view',
             'customers.view',
+            'sites.view',
             'contracts.view',
             'schedules.view', 'schedules.create', 'schedules.edit', 'schedules.delete',
+            'work-orders.view', 'work-orders.create', 'work-orders.edit', 'work-orders.approve',
             'technicians.view', 'technicians.create', 'technicians.edit',
             'work-reports.view', 'work-reports.create', 'work-reports.edit', 'work-reports.delete', 'work-reports.approve',
             'survey-reports.view', 'survey-reports.create', 'survey-reports.edit',
@@ -136,18 +154,19 @@ class RolePermissionSeeder extends Seeder
             'attendance.view', 'attendance.manage',
         ]);
 
-        // 5. Technician: Penugasan Pribadi, Absensi Check-In, Laporan Kerja, Cuti
+        // 5. Teknisi: Penugasan Lapangan, Work Order Saya, Check-In GPS, Form Inspeksi & Laporan Kerja
         $technicianRole = Role::firstOrCreate(['name' => 'technician', 'guard_name' => 'web']);
         $technicianRole->syncPermissions([
             'dashboard.view',
             'schedules.view',
+            'work-orders.view',
             'work-reports.view', 'work-reports.create', 'work-reports.edit',
             'survey-reports.view', 'survey-reports.create',
             'attendance.view', 'attendance.manage',
             'leaves.view',
         ]);
 
-        // 6. Customer: Menggunakan Customer Portal khusus (Guard customer)
+        // 6. Customer: Customer Portal
         Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);
     }
 }
