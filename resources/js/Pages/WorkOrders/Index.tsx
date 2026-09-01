@@ -25,16 +25,16 @@ interface Props {
 }
 
 const STATUS_BADGES: Record<string, { label: string; bg: string; text: string }> = {
-    DRAFT: { label: 'DRAFT', bg: 'bg-gray-100', text: 'text-gray-700' },
-    ASSIGNED: { label: 'ASSIGNED', bg: 'bg-blue-100', text: 'text-blue-800' },
-    ON_THE_WAY: { label: 'ON THE WAY', bg: 'bg-purple-100', text: 'text-purple-800' },
-    ARRIVED: { label: 'ARRIVED', bg: 'bg-indigo-100', text: 'text-indigo-800' },
-    IN_PROGRESS: { label: 'IN PROGRESS', bg: 'bg-amber-100', text: 'text-amber-800' },
-    COMPLETED: { label: 'COMPLETED', bg: 'bg-emerald-100', text: 'text-emerald-800' },
-    PENDING_REVIEW: { label: 'PENDING REVIEW', bg: 'bg-orange-100', text: 'text-orange-800' },
-    APPROVED: { label: 'APPROVED', bg: 'bg-emerald-600 text-white', text: 'text-white' },
-    REJECTED: { label: 'REJECTED', bg: 'bg-red-100', text: 'text-red-800' },
-    CANCELLED: { label: 'CANCELLED', bg: 'bg-gray-200', text: 'text-gray-600' },
+    DRAFT: { label: 'DRAF', bg: 'bg-gray-100', text: 'text-gray-700' },
+    ASSIGNED: { label: 'DITUGASKAN', bg: 'bg-blue-100', text: 'text-blue-800' },
+    ON_THE_WAY: { label: 'DALAM PERJALANAN', bg: 'bg-purple-100', text: 'text-purple-800' },
+    ARRIVED: { label: 'TIBA DI LOKASI', bg: 'bg-indigo-100', text: 'text-indigo-800' },
+    IN_PROGRESS: { label: 'SEDANG DIKERJAKAN', bg: 'bg-amber-100', text: 'text-amber-800' },
+    COMPLETED: { label: 'SELESAI DIKERJAKAN', bg: 'bg-emerald-100', text: 'text-emerald-800' },
+    PENDING_REVIEW: { label: 'MENUNGGU REVIEW', bg: 'bg-orange-100', text: 'text-orange-800' },
+    APPROVED: { label: 'DISETUJUI', bg: 'bg-emerald-600 text-white', text: 'text-white' },
+    REJECTED: { label: 'DITOLAK (PERLU REVISI)', bg: 'bg-red-100', text: 'text-red-800' },
+    CANCELLED: { label: 'DIBATALKAN', bg: 'bg-gray-200', text: 'text-gray-600' },
 };
 
 export default function WorkOrdersIndex({ workOrders, technicians, statuses, filters }: Props) {

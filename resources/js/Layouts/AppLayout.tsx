@@ -72,74 +72,74 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     const rawNavItems = [
         {
-            label: 'DASHBOARD',
+            label: 'DASHBOARD UTAMA',
             items: [
                 { name: 'Dashboard', href: '/dashboard', icon: Home, permission: 'dashboard.view' },
             ],
         },
         {
-            label: 'CRM',
+            label: 'CRM & PROSPEK',
             items: [
-                { name: 'Leads', href: '/crm', icon: Users, permission: 'customers.view' },
+                { name: 'Prospek (Leads)', href: '/crm', icon: Users, permission: 'customers.view' },
             ],
         },
         {
-            label: 'CUSTOMER',
+            label: 'PELANGGAN & LOKASI',
             items: [
-                { name: 'Customer List', href: '/customers', icon: Users, permission: 'customers.view' },
-                { name: 'Sites (Lokasi)', href: '/sites', icon: MapPin, permission: 'sites.view' },
+                { name: 'Daftar Pelanggan', href: '/customers', icon: Users, permission: 'customers.view' },
+                { name: 'Titik Lokasi (Site)', href: '/sites', icon: MapPin, permission: 'sites.view' },
             ],
         },
         {
-            label: 'REQUEST',
+            label: 'PERMINTAAN KLIEN',
             items: [
-                { name: 'Customer Request', href: '/customer-requests', icon: MessageSquare, permission: 'customer-requests.view' },
+                { name: 'Tiket Request Klien', href: '/customer-requests', icon: MessageSquare, permission: 'customer-requests.view' },
             ],
         },
         {
-            label: 'SERVICE',
+            label: 'LAYANAN & WORK ORDER',
             items: [
-                { name: 'Work Orders', href: '/work-orders', icon: ClipboardList, permission: 'work-orders.view' },
-                { name: 'Scheduling', href: '/schedules', icon: Calendar, permission: 'schedules.view' },
+                { name: 'Perintah Kerja (Work Order)', href: '/work-orders', icon: ClipboardList, permission: 'work-orders.view' },
+                { name: 'Jadwal Layanan', href: '/schedules', icon: Calendar, permission: 'schedules.view' },
             ],
         },
         {
-            label: 'MONITORING',
+            label: 'PEMANTAUAN LAPANGAN',
             items: [
-                { name: 'Live Tracking', href: '/tracking', icon: Radar, permission: 'technicians.view' },
-                { name: 'Geofences', href: '/geofences', icon: ShieldCheck, permission: 'technicians.view' },
+                { name: 'Lacak Teknisi Real-Time', href: '/tracking', icon: Radar, permission: 'technicians.view' },
+                { name: 'Batas Wilayah (Geofence)', href: '/geofences', icon: ShieldCheck, permission: 'technicians.view' },
             ],
         },
         {
-            label: 'REPORTS',
+            label: 'LAPORAN KERJA',
             items: [
-                { name: 'Work Report', href: '/work-reports', icon: ClipboardList, permission: 'work-reports.view' },
-                { name: 'Survey Report', href: '/survey-reports', icon: FileText, permission: 'survey-reports.view' },
+                { name: 'Laporan Hasil Kerja', href: '/work-reports', icon: ClipboardList, permission: 'work-reports.view' },
+                { name: 'Laporan Survey & Inspeksi', href: '/survey-reports', icon: FileText, permission: 'survey-reports.view' },
             ],
         },
         {
-            label: 'FINANCE',
+            label: 'KEUANGAN & TAGIHAN',
             items: [
-                { name: 'Quotation', href: '/quotations', icon: DollarSign, permission: 'quotations.view' },
-                { name: 'Contract', href: '/contracts', icon: FileText, permission: 'contracts.view' },
-                { name: 'Invoice', href: '/invoices', icon: CreditCard, permission: 'invoices.view' },
+                { name: 'Penawaran Harga (Quotation)', href: '/quotations', icon: DollarSign, permission: 'quotations.view' },
+                { name: 'Kontrak Kerja', href: '/contracts', icon: FileText, permission: 'contracts.view' },
+                { name: 'Tagihan (Invoice)', href: '/invoices', icon: CreditCard, permission: 'invoices.view' },
             ],
         },
         {
-            label: 'HR',
+            label: 'SUMBER DAYA MANUSIA',
             items: [
-                { name: 'Attendance', href: '/attendance', icon: MapPin, permission: 'attendance.view' },
-                { name: 'Leave', href: '/leaves', icon: Shield },
-                { name: 'Employee / Teknisi', href: '/technicians', icon: Users, permission: 'technicians.view' },
+                { name: 'Absensi Teknisi', href: '/attendance', icon: MapPin, permission: 'attendance.view' },
+                { name: 'Pengajuan Cuti & Izin', href: '/leaves', icon: Shield },
+                { name: 'Data Teknisi', href: '/technicians', icon: Users, permission: 'technicians.view' },
             ],
         },
         {
-            label: 'SETTINGS',
+            label: 'PENGATURAN SISTEM',
             items: [
-                { name: 'Form Builder', href: '/app-builder', icon: Settings, permission: 'master-data.view' },
+                { name: 'Pembuat Form (App-Builder)', href: '/app-builder', icon: Settings, permission: 'master-data.view' },
                 { name: 'Data Master', href: '/master-data', icon: Settings, permission: 'master-data.view' },
-                { name: 'Users', href: '/users', icon: Users, permission: 'users.view' },
-                { name: 'Audit Log', href: '/audit-logs', icon: ShieldCheck, permission: 'users.view' },
+                { name: 'Kelola Pengguna', href: '/users', icon: Users, permission: 'users.view' },
+                { name: 'Catatan Aktivitas (Audit Log)', href: '/audit-logs', icon: ShieldCheck, permission: 'users.view' },
             ],
         },
     ];
