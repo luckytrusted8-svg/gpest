@@ -31,13 +31,25 @@ class CustomerController extends Controller
 
     public function create()
     {
-        return Inertia::render('Customers/Create');
+        return Inertia::render('Customers/Create', [
+            'autoCustomerId' => Customer::generateCustomerId(),
+        ]);
     }
 
     public function store(Request $request)
     {
+        if ($request->filled('customer_id')) {
+            $request->validate([
+                'customer_id' => 'required|unique:customers,customer_id',
+            ]);
+        } else {
+            $request->merge([
+                'customer_id' => Customer::generateCustomerId(),
+            ]);
+        }
+
         $validated = $request->validate([
-            'customer_id' => 'required|unique:customers',
+            'customer_id' => 'required|unique:customers,customer_id',
             'company_name' => 'required',
             'pic_name' => 'required',
             'phone' => 'required',

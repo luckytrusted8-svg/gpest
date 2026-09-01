@@ -43,6 +43,26 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function checkInPage(Request $request)
+    {
+        $user = $request->user();
+        $today = now()->toDateString();
+
+        $todayAttendance = Attendance::where('technician_id', $user->id)
+            ->byDate($today)
+            ->first();
+
+        $recentAttendances = Attendance::where('technician_id', $user->id)
+            ->orderBy('tanggal', 'desc')
+            ->take(5)
+            ->get();
+
+        return Inertia::render('Attendance/CheckIn', [
+            'todayAttendance' => $todayAttendance,
+            'recentAttendances' => $recentAttendances,
+        ]);
+    }
+
     public function checkIn(Request $request)
     {
         $user = $request->user();

@@ -1,12 +1,13 @@
+import React, { useState, useEffect, Suspense } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Plus, Trash2, Edit, MapPin, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, CircleMarker, useMapEvents } from 'react-leaflet';
+import { Plus, Trash2, Edit, X } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
+
+const GeofenceModalMap = React.lazy(() => import('@/Components/GeofenceModalMap'));
 
 interface GeofenceData {
     id: number;
@@ -25,24 +26,51 @@ interface Customer {
 }
 
 interface Props {
-    geofences: GeofenceData[];
-    customers: Customer[];
+    geofences?: GeofenceData[];
+    customers?: Customer[];
 }
 
-function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
-    useMapEvents({
-        click(e) {
-            onClick(e.latlng.lat, e.latlng.lng);
-        },
-    });
-    return null;
+interface ModalMapErrorBoundaryState {
+    hasError: boolean;
 }
 
-export default function GeofencePage({ geofences, customers }: Props) {
+class ModalMapErrorBoundary extends React.Component<{ children: React.ReactNode }, ModalMapErrorBoundaryState> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: unknown, errorInfo: unknown) {
+        console.error('GeofenceModalMap render error:', error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="h-[300px] w-full flex flex-col items-center justify-center bg-canvas-soft border border-hairline rounded-md p-4 text-center">
+                    <p className="text-body-sm font-medium text-ink mb-1">Gagal memuat peta lokasi.</p>
+                    <p className="text-xs text-mute">Anda tetap dapat mengisi koordinat Latitude & Longitude secara manual di bawah ini.</p>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
+export default function GeofencePage({ geofences = [], customers = [] }: Props) {
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<GeofenceData | null>(null);
     const [formLat, setFormLat] = useState<number>(-6.2088);
     const [formLng, setFormLng] = useState<number>(106.8456);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const { data, setData, post, put, processing, reset } = useForm({
         nama: '',
@@ -55,26 +83,32 @@ export default function GeofencePage({ geofences, customers }: Props) {
     const openCreate = () => {
         setEditing(null);
         reset();
-        setFormLat(-6.2088);
-        setFormLng(106.8456);
-        setData('nama', '');
-        setData('customer_id', '');
-        setData('latitude_pusat', -6.2088);
-        setData('longitude_pusat', 106.8456);
-        setData('radius_meter', 100);
+        const defaultLat = -6.2088;
+        const defaultLng = 106.8456;
+        setFormLat(defaultLat);
+        setFormLng(defaultLng);
+        setData({
+            nama: '',
+            customer_id: '',
+            latitude_pusat: defaultLat,
+            longitude_pusat: defaultLng,
+            radius_meter: 100,
+        });
         setShowModal(true);
     };
 
     const openEdit = (gf: GeofenceData) => {
         setEditing(gf);
-        setFormLat(gf.latitude_pusat);
-        setFormLng(gf.longitude_pusat);
+        const lat = Number(gf.latitude_pusat) || -6.2088;
+        const lng = Number(gf.longitude_pusat) || 106.8456;
+        setFormLat(lat);
+        setFormLng(lng);
         setData({
             nama: gf.nama,
             customer_id: gf.customer_id ? String(gf.customer_id) : '',
-            latitude_pusat: gf.latitude_pusat,
-            longitude_pusat: gf.longitude_pusat,
-            radius_meter: gf.radius_meter,
+            latitude_pusat: lat,
+            longitude_pusat: lng,
+            radius_meter: gf.radius_meter || 100,
         });
         setShowModal(true);
     };
@@ -161,7 +195,7 @@ export default function GeofencePage({ geofences, customers }: Props) {
                                             <td className="py-3 px-4 font-medium">{gf.nama}</td>
                                             <td className="py-3 px-4 text-body-text">{gf.customer?.company_name ?? '-'}</td>
                                             <td className="py-3 px-4 text-xs font-mono text-body-text">
-                                                {gf.latitude_pusat.toFixed(5)}, {gf.longitude_pusat.toFixed(5)}
+                                                {Number(gf.latitude_pusat).toFixed(5)}, {Number(gf.longitude_pusat).toFixed(5)}
                                             </td>
                                             <td className="py-3 px-4 text-body-text">{gf.radius_meter}m</td>
                                             <td className="py-3 px-4">
@@ -248,34 +282,54 @@ export default function GeofencePage({ geofences, customers }: Props) {
                                         required
                                     />
                                 </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <Label htmlFor="latitude_pusat" className="text-xs">Latitude Pusat</Label>
+                                        <Input
+                                            id="latitude_pusat"
+                                            type="number"
+                                            step="any"
+                                            value={formLat}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value) || 0;
+                                                setFormLat(val);
+                                                setData('latitude_pusat', val);
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor="longitude_pusat" className="text-xs">Longitude Pusat</Label>
+                                        <Input
+                                            id="longitude_pusat"
+                                            type="number"
+                                            step="any"
+                                            value={formLng}
+                                            onChange={(e) => {
+                                                const val = parseFloat(e.target.value) || 0;
+                                                setFormLng(val);
+                                                setData('longitude_pusat', val);
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
-                                    <Label>Klik peta untuk set pusat geofence</Label>
-                                    <div className="h-[300px] rounded-md overflow-hidden border border-hairline">
-                                        <MapContainer
-                                            center={[formLat, formLng]}
-                                            zoom={14}
-                                            style={{ height: '100%', width: '100%' }}
-                                        >
-                                            <TileLayer
-                                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                            />
-                                            <MapClickHandler onClick={handleMapClick} />
-                                            <CircleMarker
-                                                center={[formLat, formLng]}
-                                                radius={Math.min(data.radius_meter / 10, 150)}
-                                                pathOptions={{
-                                                    color: '#0070f3',
-                                                    fillColor: '#0070f3',
-                                                    fillOpacity: 0.15,
-                                                    weight: 2,
-                                                }}
-                                            />
-                                        </MapContainer>
-                                    </div>
-                                    <div className="text-xs text-mute mt-1">
-                                        Pusat: {formLat.toFixed(6)}, {formLng.toFixed(6)}
-                                    </div>
+                                    <Label>Atau Klik Peta untuk Set Koordinat</Label>
+                                    <ModalMapErrorBoundary>
+                                        {isClient ? (
+                                            <Suspense fallback={<div className="h-[300px] w-full flex items-center justify-center bg-canvas-soft text-mute text-body-sm">Memuat peta...</div>}>
+                                                <GeofenceModalMap
+                                                    lat={formLat}
+                                                    lng={formLng}
+                                                    radius={data.radius_meter}
+                                                    onMapClick={handleMapClick}
+                                                />
+                                            </Suspense>
+                                        ) : (
+                                            <div className="h-[300px] w-full flex items-center justify-center bg-canvas-soft text-mute text-body-sm">Memuat peta...</div>
+                                        )}
+                                    </ModalMapErrorBoundary>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2 border-t border-hairline">
                                     <Button type="button" variant="outline" onClick={closeModal} className="text-body-sm-strong">

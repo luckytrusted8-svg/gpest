@@ -34,6 +34,7 @@ class LocationTrackingController extends Controller
             ->get()
             ->map(function ($tech) use ($latestTracks) {
                 $track = $latestTracks->firstWhere('technician_id', $tech->id);
+
                 return [
                     'id' => $tech->id,
                     'name' => $tech->name,

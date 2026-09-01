@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -45,8 +46,8 @@ class Attendance extends Model
             return null;
         }
 
-        $masuk = \Carbon\Carbon::parse($this->jam_masuk);
-        $keluar = \Carbon\Carbon::parse($this->jam_keluar);
+        $masuk = Carbon::parse($this->jam_masuk);
+        $keluar = Carbon::parse($this->jam_keluar);
         $diff = $masuk->diff($keluar);
 
         $hours = $diff->h + ($diff->days * 24);
@@ -61,8 +62,8 @@ class Attendance extends Model
             return null;
         }
 
-        $masuk = \Carbon\Carbon::parse($this->jam_masuk);
-        $keluar = \Carbon\Carbon::parse($this->jam_keluar);
+        $masuk = Carbon::parse($this->jam_masuk);
+        $keluar = Carbon::parse($this->jam_keluar);
 
         return round($masuk->diffInMinutes($keluar) / 60, 2);
     }

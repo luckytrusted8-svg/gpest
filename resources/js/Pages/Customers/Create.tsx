@@ -18,9 +18,13 @@ interface FormData {
     sales_pic: string;
 }
 
-export default function Create() {
+interface Props {
+    autoCustomerId?: string;
+}
+
+export default function Create({ autoCustomerId }: Props) {
     const { data, setData, post, processing, errors } = useForm<FormData>({
-        customer_id: '',
+        customer_id: autoCustomerId || '',
         company_name: '',
         pic_name: '',
         phone: '',
@@ -56,13 +60,17 @@ export default function Create() {
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
-                                <Label htmlFor="customer_id" className="text-body-sm-strong text-ink">ID Customer</Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="customer_id" className="text-body-sm-strong text-ink">ID Customer</Label>
+                                    <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded">Otomatis / Boleh Ubah</span>
+                                </div>
                                 <Input
                                     id="customer_id"
                                     type="text"
                                     value={data.customer_id}
                                     onChange={(e) => setData('customer_id', e.target.value)}
-                                    className="mt-1"
+                                    placeholder="Contoh: CUST-202609-0001"
+                                    className="mt-1 bg-blue-50/30 border-blue-200 focus:bg-white"
                                 />
                                 {errors.customer_id && <div className="text-[#ee0000] text-xs mt-1">{errors.customer_id}</div>}
                             </div>

@@ -10,11 +10,14 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'admin@gpest.com'],
+        // Hapus user lain jika ada untuk menyisakan 1 akun Super Admin
+        User::where('email', '!=', 'admin@gpest.id')->delete();
+
+        $superAdmin = User::updateOrCreate(
+            ['email' => 'admin@gpest.id'],
             [
-                'name' => 'Super Admin',
-                'password' => Hash::make('admin123'),
+                'name' => 'Super Admin G-PEST',
+                'password' => Hash::make('password'),
                 'status' => 'aktif',
             ]
         );

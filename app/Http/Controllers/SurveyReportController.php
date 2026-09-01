@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Contract;
 use App\Models\Customer;
-use App\Models\SurveyPhoto;
 use App\Models\SurveyReport;
 use App\Models\User;
 use Illuminate\Http\Request;

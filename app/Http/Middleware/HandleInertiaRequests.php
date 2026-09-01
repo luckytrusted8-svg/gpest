@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\CustomerRequest;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,12 +38,14 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
-                    'name' => $user->name,
+                    'name' => $user->name ?? $user->nama ?? 'User',
                     'email' => $user->email,
-                    'roles' => $user->getRoleNames(),
-                    'permissions' => $user->getAllPermissions()->pluck('name'),
+                    'roles' => method_exists($user, 'getRoleNames') ? $user->getRoleNames() : ['customer'],
+                    'permissions' => method_exists($user, 'getAllPermissions') ? $user->getAllPermissions()->pluck('name') : [],
                 ] : null,
             ],
+            'pending_requests_count' => fn () => CustomerRequest::whereIn('status', ['baru', 'ditinjau'])->count(),
+            'notifikasi_belum_dibaca' => fn () => Notification::whereNull('dibaca_pada')->count(),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

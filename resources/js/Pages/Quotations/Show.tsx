@@ -2,7 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { useState } from 'react';
-import { CheckCircle, AlertCircle, ArrowLeft, Send, Check, X, Copy, FileText, ExternalLink, ArrowRight, Trash2 } from 'lucide-react';
+import { CheckCircle, AlertCircle, ArrowLeft, Send, Check, X, Copy, ExternalLink, ArrowRight, Trash2 } from 'lucide-react';
 
 interface QuotationItem {
     id: number;
@@ -18,15 +18,15 @@ interface QuotationItem {
 interface QuotationData {
     id: number;
     nomor_quotation: string;
-    customer: { id: number; company_name: string; address: string | null; contact_person: string | null; phone: string | null; email: string | null };
+    customer?: { id: number; company_name: string; address?: string | null; contact_person?: string | null; phone?: string | null; email?: string | null } | null;
     berlaku_hingga: string;
-    syarat_ketentuan: string | null;
-    catatan: string | null;
+    syarat_ketentuan?: string | null;
+    catatan?: string | null;
     status: string;
-    dibuat_oleh: number;
-    creator: { id: number; name: string };
-    items: QuotationItem[];
-    total: number;
+    dibuat_oleh?: number;
+    creator?: { id: number; name: string } | null;
+    items?: QuotationItem[];
+    total?: number;
     created_at: string;
 }
 
@@ -47,7 +47,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     return <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>{label}</span>;
 };
 
-const fmt = (n: number) => 'Rp ' + n.toLocaleString('id-ID');
+const fmt = (n: number | null | undefined) => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
 
 export default function Show({ quotation }: Props) {
     const { flash } = usePage().props as Record<string, unknown>;
@@ -67,13 +67,13 @@ export default function Show({ quotation }: Props) {
 
     const pageProps = usePage().props as Record<string, unknown>;
     const auth = pageProps.auth as { user?: { id: number } } | undefined;
-    const isCreator = auth?.user?.id === quotation.dibuat_oleh;
 
     const quotationUrl = '/quotations/' + quotation.id;
+    const items = quotation?.items ?? [];
 
     return (
         <AppLayout>
-            <Head title={`Quotation ${quotation.nomor_quotation}`} />
+            <Head title={`Quotation ${quotation.nomor_quotation || ''}`} />
             <div className="max-w-4xl mx-auto space-y-6">
                 {f?.success && <div className="bg-[#f0fdf4] border border-[#bbf7d0] text-[#166534] px-4 py-3 rounded-md text-body-sm flex items-center gap-2"><CheckCircle className="w-4 h-4" />{f.success}</div>}
                 {f?.error && <div className="bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] px-4 py-3 rounded-md text-body-sm flex items-center gap-2"><AlertCircle className="w-4 h-4" />{f.error}</div>}
@@ -82,7 +82,7 @@ export default function Show({ quotation }: Props) {
                     <div className="flex items-center gap-3">
                         <Link href="/quotations"><Button variant="ghost" size="icon" className="h-8 w-8"><ArrowLeft className="w-4 h-4" /></Button></Link>
                         <div>
-                            <h1 className="text-display-sm font-semibold text-ink">{quotation.nomor_quotation}</h1>
+                            <h1 className="text-display-sm font-semibold text-ink">{quotation.nomor_quotation || 'Quotation'}</h1>
                             <p className="text-body-sm text-mute mt-0.5">Detail penawaran.</p>
                         </div>
                     </div>
@@ -130,20 +130,20 @@ export default function Show({ quotation }: Props) {
                             <div>
                                 <h3 className="text-xs font-semibold text-mute uppercase mb-2">Kepada Yth.</h3>
                                 <div className="p-3 bg-canvas-soft/50 rounded-md">
-                                    <div className="font-semibold text-ink">{quotation.customer.company_name}</div>
-                                    {quotation.customer.address && <div className="text-xs text-mute mt-1">{quotation.customer.address}</div>}
-                                    {quotation.customer.contact_person && <div className="text-xs text-mute">Attention: {quotation.customer.contact_person}</div>}
-                                    {quotation.customer.phone && <div className="text-xs text-mute">Telp: {quotation.customer.phone}</div>}
-                                    {quotation.customer.email && <div className="text-xs text-mute">Email: {quotation.customer.email}</div>}
+                                    <div className="font-semibold text-ink">{quotation.customer?.company_name ?? '-'}</div>
+                                    {quotation.customer?.address && <div className="text-xs text-mute mt-1">{quotation.customer.address}</div>}
+                                    {quotation.customer?.contact_person && <div className="text-xs text-mute">Attention: {quotation.customer.contact_person}</div>}
+                                    {quotation.customer?.phone && <div className="text-xs text-mute">Telp: {quotation.customer.phone}</div>}
+                                    {quotation.customer?.email && <div className="text-xs text-mute">Email: {quotation.customer.email}</div>}
                                 </div>
                             </div>
                             <div>
                                 <h3 className="text-xs font-semibold text-mute uppercase mb-2">Detail Quotation</h3>
                                 <div className="space-y-1 text-sm">
-                                    <div className="flex justify-between"><span className="text-mute">Nomor</span><span className="font-mono font-medium">{quotation.nomor_quotation}</span></div>
-                                    <div className="flex justify-between"><span className="text-mute">Tanggal</span><span>{new Date(quotation.created_at).toLocaleDateString('id-ID')}</span></div>
-                                    <div className="flex justify-between"><span className="text-mute">Berlaku Hingga</span><span>{new Date(quotation.berlaku_hingga).toLocaleDateString('id-ID')}</span></div>
-                                    <div className="flex justify-between"><span className="text-mute">Dibuat Oleh</span><span>{quotation.creator.name}</span></div>
+                                    <div className="flex justify-between"><span className="text-mute">Nomor</span><span className="font-mono font-medium">{quotation.nomor_quotation || '-'}</span></div>
+                                    <div className="flex justify-between"><span className="text-mute">Tanggal</span><span>{quotation.created_at ? new Date(quotation.created_at).toLocaleDateString('id-ID') : '-'}</span></div>
+                                    <div className="flex justify-between"><span className="text-mute">Berlaku Hingga</span><span>{quotation.berlaku_hingga ? new Date(quotation.berlaku_hingga).toLocaleDateString('id-ID') : '-'}</span></div>
+                                    <div className="flex justify-between"><span className="text-mute">Dibuat Oleh</span><span>{quotation.creator?.name ?? '-'}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -162,7 +162,7 @@ export default function Show({ quotation }: Props) {
                                         <th className="text-right py-2.5 px-3 text-xs font-medium text-mute">Subtotal</th>
                                     </tr></thead>
                                     <tbody>
-                                        {quotation.items.map((item, idx) => (
+                                        {items.map((item, idx) => (
                                             <tr key={item.id} className="border-b border-hairline last:border-0">
                                                 <td className="py-2.5 px-3 text-xs text-mute">{idx + 1}</td>
                                                 <td className="py-2.5 px-3 font-medium">{item.jenis_layanan}</td>
@@ -178,8 +178,8 @@ export default function Show({ quotation }: Props) {
                             </div>
                             <div className="flex justify-end mt-3">
                                 <div className="w-80 bg-primary/5 border border-primary/20 rounded-md p-4">
-                                    <div className="flex justify-between text-sm mb-1"><span className="text-mute">Subtotal</span><span>{fmt(quotation.items.reduce((s, i) => s + i.kuantitas * i.harga_satuan, 0))}</span></div>
-                                    <div className="flex justify-between text-sm mb-2"><span className="text-mute">Diskon</span><span className="text-[#ee0000]">- {fmt(quotation.items.reduce((s, i) => s + (i.kuantitas * i.harga_satuan - i.subtotal), 0))}</span></div>
+                                    <div className="flex justify-between text-sm mb-1"><span className="text-mute">Subtotal</span><span>{fmt(items.reduce((s, i) => s + (Number(i.kuantitas) || 0) * (Number(i.harga_satuan) || 0), 0))}</span></div>
+                                    <div className="flex justify-between text-sm mb-2"><span className="text-mute">Diskon</span><span className="text-[#ee0000]">- {fmt(items.reduce((s, i) => s + ((Number(i.kuantitas) || 0) * (Number(i.harga_satuan) || 0) - (Number(i.subtotal) || 0)), 0))}</span></div>
                                     <div className="flex justify-between text-lg font-bold border-t border-primary/20 pt-2"><span>Total</span><span className="text-primary">{fmt(quotation.total)}</span></div>
                                 </div>
                             </div>
@@ -206,7 +206,7 @@ export default function Show({ quotation }: Props) {
                             </div>
                             <div className="text-center">
                                 <div className="border-t border-ink w-40 mx-auto mt-16 pt-2 text-sm font-medium">Penerima,</div>
-                                <div className="text-xs text-mute mt-1">{quotation.customer.company_name}</div>
+                                <div className="text-xs text-mute mt-1">{quotation.customer?.company_name ?? '-'}</div>
                             </div>
                         </div>
                     </div>

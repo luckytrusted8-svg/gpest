@@ -1,5 +1,5 @@
 import { Link, usePage, router } from '@inertiajs/react';
-import { ShieldCheck, LogOut, LayoutDashboard, FileText, CalendarCheck, ClipboardList, User } from 'lucide-react';
+import { LogOut, LayoutDashboard, FileText, CalendarCheck, ClipboardList, User, CreditCard, MessageSquare } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 
 interface CustomerUser {
@@ -16,16 +16,21 @@ interface CustomerUser {
 interface Props {
     children: React.ReactNode;
     customerUser?: CustomerUser;
+    customerName?: string;
 }
 
-export default function CustomerPortalLayout({ children, customerUser }: Props) {
+export default function CustomerPortalLayout({ children, customerUser, customerName }: Props) {
     const { url } = usePage();
+
+    const displayCompanyName = customerName || customerUser?.customer?.company_name || 'Pelanggan';
 
     const navItems = [
         { name: 'Dashboard', href: '/portal/dashboard', icon: LayoutDashboard },
         { name: 'Kontrak Saya', href: '/portal/contracts', icon: FileText },
         { name: 'Jadwal Layanan', href: '/portal/schedules', icon: CalendarCheck },
         { name: 'Laporan Kerja', href: '/portal/work-reports', icon: ClipboardList },
+        { name: 'Tagihan Invoice', href: '/portal/invoices', icon: CreditCard },
+        { name: 'Request / Komplain', href: '/portal/requests', icon: MessageSquare },
     ];
 
     const handleLogout = () => {
@@ -40,18 +45,14 @@ export default function CustomerPortalLayout({ children, customerUser }: Props) 
                     <div className="flex items-center justify-between h-16">
                         {/* Logo & Brand */}
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-md bg-primary text-on-primary flex items-center justify-center font-bold font-mono text-sm shadow-sm">
-                                GP
-                            </div>
+                            <img src="/images/logo.png" alt="G-PEST Logo" className="h-9 w-auto object-contain bg-white p-1 rounded border border-hairline" />
                             <div>
                                 <div className="text-body-md-strong text-ink leading-tight flex items-center gap-1.5">
-                                    GPEST <span className="text-xs font-normal text-mute px-1.5 py-0.2 rounded bg-canvas-soft border border-hairline">Customer Portal</span>
+                                    <span className="text-xs font-semibold text-primary px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20">Customer Portal</span>
                                 </div>
-                                {customerUser?.customer?.company_name && (
-                                    <div className="text-xs text-mute font-medium truncate max-w-[200px] sm:max-w-xs">
-                                        {customerUser.customer.company_name}
-                                    </div>
-                                )}
+                                <div className="text-xs text-mute font-medium truncate max-w-[200px] sm:max-w-xs mt-0.5">
+                                    {displayCompanyName}
+                                </div>
                             </div>
                         </div>
 
@@ -84,7 +85,7 @@ export default function CustomerPortalLayout({ children, customerUser }: Props) 
                                     {customerUser?.nama ? customerUser.nama.slice(0, 2).toUpperCase() : <User className="w-3.5 h-3.5" />}
                                 </div>
                                 <div className="text-xs">
-                                    <div className="font-semibold text-ink">{customerUser?.nama || 'Pelanggan'}</div>
+                                    <div className="font-semibold text-ink">{customerUser?.nama || displayCompanyName}</div>
                                     <div className="text-mute">{customerUser?.email || ''}</div>
                                 </div>
                             </div>

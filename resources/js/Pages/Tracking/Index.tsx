@@ -1,36 +1,54 @@
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
-import { MapPin, Clock, RefreshCw, History, Layers } from 'lucide-react';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import TeknisiMarker from '@/Components/TeknisiMarker';
+import { Clock, RefreshCw, History, Layers } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
+import type { TeknisiData, GeofenceData } from '@/Components/TrackingMap';
 
-interface TeknisiData {
-    id: number;
-    name: string;
-    latitude: number | null;
-    longitude: number | null;
-    status_teknisi: string;
-    last_update: string | null;
-    schedule: { id: number; schedule_code: string; lokasi: string } | null;
-}
-
-interface GeofenceData {
-    id: number;
-    nama: string;
-    latitude_pusat: number;
-    longitude_pusat: number;
-    radius_meter: number;
-    aktif: boolean;
-}
+const TrackingMap = React.lazy(() => import('@/Components/TrackingMap'));
 
 interface Props {
-    technicians: TeknisiData[];
-    geofences: GeofenceData[];
-    selectedDate: string;
+    technicians?: TeknisiData[];
+    geofences?: GeofenceData[];
+    selectedDate?: string;
+}
+
+interface MapErrorBoundaryState {
+    hasError: boolean;
+}
+
+class MapErrorBoundary extends React.Component<{ children: React.ReactNode }, MapErrorBoundaryState> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: unknown, errorInfo: unknown) {
+        console.error('TrackingMap render error:', error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="h-[600px] w-full flex flex-col items-center justify-center bg-canvas-soft border border-hairline rounded-lg p-6 text-center">
+                    <p className="text-body-md font-medium text-ink mb-2">Gagal memuat peta interaktif.</p>
+                    <p className="text-body-sm text-mute mb-4">Silakan muat ulang atau periksa koneksi internet.</p>
+                    <button
+                        onClick={() => this.setState({ hasError: false })}
+                        className="px-4 py-2 bg-primary text-white rounded-md text-body-sm font-medium hover:bg-primary-hover transition-colors"
+                    >
+                        Coba Lagi
+                    </button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
 }
 
 const statusLabels: Record<string, string> = {
@@ -71,27 +89,24 @@ function timeAgo(dateStr: string | null): string {
     return '-';
 }
 
-function FitBounds({ technicians }: { technicians: TeknisiData[] }) {
-    const map = useMap();
-    useEffect(() => {
-        const valid = technicians.filter((t) => t.latitude && t.longitude);
-        if (valid.length === 0) return;
-
-        if (valid.length === 1) {
-            map.setView([valid[0].latitude!, valid[0].longitude!], 15);
-        } else {
-            const bounds = L.latLngBounds(valid.map((t) => [t.latitude!, t.longitude!] as [number, number]));
-            map.fitBounds(bounds, { padding: [50, 50] });
-        }
-    }, [technicians, map]);
-    return null;
-}
-
-export default function TrackingIndex({ technicians, geofences, selectedDate }: Props) {
+export default function TrackingIndex({
+    technicians = [],
+    geofences = [],
+    selectedDate = new Date().toISOString().split('T')[0],
+}: Props) {
     const [data, setData] = useState<TeknisiData[]>(technicians);
     const [filterDate, setFilterDate] = useState(selectedDate);
     const [loading, setLoading] = useState(false);
+    const [isClient, setIsClient] = useState(false);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+        setData(technicians);
+    }, [technicians]);
 
     const refreshData = useCallback(async () => {
         try {
@@ -191,41 +206,24 @@ export default function TrackingIndex({ technicians, geofences, selectedDate }: 
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-4">
-                    <div className="flex-1 h-[600px] rounded-lg overflow-hidden border border-hairline shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a]">
-                        <MapContainer
-                            center={[-6.2088, 106.8456]}
-                            zoom={12}
-                            style={{ height: '100%', width: '100%' }}
-                        >
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-                            <FitBounds technicians={data} />
-                            {data.map((tech) => (
-                                <TeknisiMarker key={tech.id} data={tech} />
-                            ))}
-                            {geofences.map((gf) => (
-                                <CircleMarker
-                                    key={gf.id}
-                                    center={[gf.latitude_pusat, gf.longitude_pusat]}
-                                    radius={Math.min(gf.radius_meter / 10, 200)}
-                                    pathOptions={{
-                                        color: '#0070f3',
-                                        fillColor: '#0070f3',
-                                        fillOpacity: 0.08,
-                                        weight: 1,
-                                    }}
-                                >
-                                    <Popup>
-                                        <div className="p-1" style={{ fontFamily: 'system-ui, sans-serif' }}>
-                                            <div className="font-semibold text-sm">{gf.nama}</div>
-                                            <div className="text-xs text-gray-500">Radius: {gf.radius_meter}m</div>
+                    <div className="flex-1 min-h-[600px] rounded-lg overflow-hidden border border-hairline shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] bg-canvas">
+                        <MapErrorBoundary>
+                            {isClient ? (
+                                <Suspense
+                                    fallback={
+                                        <div className="h-[600px] w-full flex items-center justify-center bg-canvas text-mute text-body-sm">
+                                            Memuat peta...
                                         </div>
-                                    </Popup>
-                                </CircleMarker>
-                            ))}
-                        </MapContainer>
+                                    }
+                                >
+                                    <TrackingMap data={data} geofences={geofences} />
+                                </Suspense>
+                            ) : (
+                                <div className="h-[600px] w-full flex items-center justify-center bg-canvas text-mute text-body-sm">
+                                    Memuat peta...
+                                </div>
+                            )}
+                        </MapErrorBoundary>
                     </div>
 
                     <div className="w-full lg:w-80 bg-canvas border border-hairline rounded-lg shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden shrink-0">

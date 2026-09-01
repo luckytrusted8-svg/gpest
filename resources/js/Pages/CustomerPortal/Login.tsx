@@ -2,7 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Lock, Mail, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ShieldCheck, Phone } from 'lucide-react';
 
 export default function Login() {
     const { data, setData, post, processing, errors } = useForm({
@@ -23,10 +23,10 @@ export default function Login() {
             <div className="w-full max-w-md space-y-6">
                 {/* Brand Header */}
                 <div className="text-center space-y-2">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-on-primary font-bold text-xl shadow-md font-mono mb-1">
-                        GP
+                    <div className="inline-block bg-white p-2.5 rounded-xl border border-hairline shadow-sm mb-1">
+                        <img src="/images/logo.png" alt="G-PEST Logo" className="h-10 w-auto max-w-[200px] object-contain" />
                     </div>
-                    <h1 className="text-display-sm font-semibold text-ink">GPEST Customer Portal</h1>
+                    <h1 className="text-display-sm font-semibold text-ink">Customer Portal</h1>
                     <p className="text-body-sm text-mute">
                         Masuk untuk memantau kontrak, jadwal, dan laporan kerja pest control Anda.
                     </p>
@@ -89,6 +89,18 @@ export default function Login() {
                         >
                             Masuk ke Portal Pelanggan
                         </Button>
+
+                        <div className="pt-4 border-t border-hairline text-center text-xs space-y-1.5">
+                            <p className="text-mute">Belum berlangganan atau ingin pesan jasa baru?</p>
+                            <a 
+                                href="https://wa.me/6281234567890?text=Halo%20G-PEST,%20saya%20ingin%20mengajukan%20survey%20lokasi%20bebas%20hama" 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-primary font-bold hover:underline inline-flex items-center gap-1"
+                            >
+                                <Phone className="w-3.5 h-3.5 text-primary" /> Hubungi Sales / Ajukan Survey Gratis →
+                            </a>
+                        </div>
                     </form>
                 </div>
 

@@ -16,5 +16,8 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/schedules', [CustomerPortalController::class, 'schedules'])->name('schedules');
         Route::get('/work-reports', [CustomerPortalController::class, 'workReports'])->name('work-reports');
         Route::get('/work-reports/{workReport}', [CustomerPortalController::class, 'showWorkReport'])->name('work-reports.show');
+        Route::get('/invoices', [CustomerPortalController::class, 'invoices'])->name('invoices');
+        Route::get('/requests', [CustomerPortalController::class, 'requests'])->name('requests');
+        Route::post('/requests', [CustomerPortalController::class, 'storeRequest'])->name('requests.store');
     });
 });

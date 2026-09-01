@@ -4,7 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { StatusBadge } from './Index';
 import { PriorityBadge, StatusBadge as ScheduleStatusBadge } from '../Schedules/Index';
-import { User, Phone, Mail, MapPin, Briefcase, Calendar, ShieldCheck, ArrowLeft, Edit, Clock } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Briefcase, Calendar, ShieldCheck, ArrowLeft, Edit, Clock, CheckCircle } from 'lucide-react';
 
 interface UserAccount {
     id: number;
@@ -201,8 +201,8 @@ export default function Show({ technician }: Props) {
                                 {technician.keahlian && technician.keahlian.length > 0 ? (
                                     <div className="flex flex-wrap gap-2">
                                         {technician.keahlian.map((skill, i) => (
-                                            <span key={i} className="px-3 py-1 bg-canvas-soft border border-hairline rounded-md text-body-sm font-medium text-ink">
-                                                ✓ {skill}
+                                            <span key={i} className="px-3 py-1 bg-canvas-soft border border-hairline rounded-md text-body-sm font-medium text-ink inline-flex items-center gap-1.5">
+                                                <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> {skill}
                                             </span>
                                         ))}
                                     </div>

@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerRequestController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GeofenceController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LeadController;
+use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LocationTrackingController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\NotificationController;
@@ -17,6 +21,7 @@ use App\Http\Controllers\TechnicianController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkReportController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:dashboard.view');
@@ -37,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('survey-reports/{surveyReport}/approve', [SurveyReportController::class, 'approve'])->name('survey-reports.approve');
     Route::get('survey-reports/{surveyReport}/pdf', [PdfController::class, 'surveyReport'])->name('survey-reports.pdf');
 
-    Route::resource('crm', LeadController::class)->names('crm');
+    Route::resource('crm', LeadController::class)->parameters(['crm' => 'lead'])->names('crm');
     Route::post('crm/{lead}/convert', [LeadController::class, 'convertToCustomer'])->name('crm.convert');
     Route::post('crm/{lead}/activity', [LeadController::class, 'addActivity'])->name('crm.activity');
 
@@ -48,17 +53,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('quotations/{quotation}/duplikat', [QuotationController::class, 'duplikat'])->name('quotations.duplikat');
     Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'cetakPdf'])->name('quotations.pdf');
 
+    Route::get('invoices/export-csv', [InvoiceController::class, 'exportCsv'])->name('invoices.export-csv');
+    Route::resource('invoices', InvoiceController::class)->names('invoices');
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'cetakPdf'])->name('invoices.pdf');
+
+    Route::resource('customer-requests', CustomerRequestController::class)->only(['index', 'show', 'destroy'])->names('customer-requests');
+    Route::put('customer-requests/{customerRequest}/status', [CustomerRequestController::class, 'updateStatus'])->name('customer-requests.status');
+
+    Route::get('leaves', [LeaveController::class, 'index'])->name('leaves.index');
+    Route::post('leaves', [LeaveController::class, 'store'])->name('leaves.store');
+    Route::post('leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
+
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index')->middleware('role:super_admin|admin');
+
     Route::resource('users', UserController::class)->middleware('role:super_admin');
 
     Route::get('master-data', [MasterDataController::class, 'index'])->name('master-data.index')->middleware('role:super_admin|admin');
+    Route::get('app-builder', function () {
+        return Inertia::render('AppBuilder/Index');
+    })->name('app-builder.index');
     Route::post('master-data/{type}', [MasterDataController::class, 'store'])->name('master-data.store');
     Route::put('master-data/{type}/{id}', [MasterDataController::class, 'update'])->name('master-data.update');
     Route::delete('master-data/{type}/{id}', [MasterDataController::class, 'destroy'])->name('master-data.destroy');
 
-    Route::resource('attendance', AttendanceController::class)->only(['index', 'show']);
+    Route::get('attendance/check-in', [AttendanceController::class, 'checkInPage'])->name('attendance.checkin-page');
     Route::post('attendance/check-in', [AttendanceController::class, 'checkIn'])->name('attendance.check-in');
     Route::post('attendance/check-out', [AttendanceController::class, 'checkOut'])->name('attendance.check-out');
     Route::get('attendance/report', [AttendanceController::class, 'report'])->name('attendance.report');
+    Route::resource('attendance', AttendanceController::class)->only(['index', 'show']);
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');

@@ -61,14 +61,19 @@ function createIcon(initials: string, color: string): L.DivIcon {
 }
 
 export default function TeknisiMarker({ data }: { data: TeknisiData }) {
-    if (!data.latitude || !data.longitude) return null;
+    const lat = Number(data.latitude);
+    const lng = Number(data.longitude);
 
-    const initials = data.name.slice(0, 2).toUpperCase();
+    if (!data.latitude || !data.longitude || isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+        return null;
+    }
+
+    const initials = (data.name || 'TN').slice(0, 2).toUpperCase();
     const color = statusColors[data.status_teknisi] || '#888888';
 
     return (
         <Marker
-            position={[data.latitude, data.longitude]}
+            position={[lat, lng]}
             icon={createIcon(initials, color)}
         >
             <Popup>

@@ -14,7 +14,7 @@ class RolePermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Permissions list
+        // Comprehensive Permissions List
         $permissions = [
             'dashboard.view',
 
@@ -44,6 +44,30 @@ class RolePermissionSeeder extends Seeder
             'work-reports.delete',
             'work-reports.approve',
 
+            'survey-reports.view',
+            'survey-reports.create',
+            'survey-reports.edit',
+
+            'crm.view',
+            'crm.manage',
+
+            'quotations.view',
+            'quotations.manage',
+
+            'invoices.view',
+            'invoices.manage',
+
+            'customer-requests.view',
+            'customer-requests.manage',
+
+            'leaves.view',
+            'leaves.manage',
+
+            'attendance.view',
+            'attendance.manage',
+
+            'audit-logs.view',
+
             'users.view',
             'users.create',
             'users.edit',
@@ -57,11 +81,11 @@ class RolePermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // 1. super_admin: Semua permissions
+        // 1. Super Admin: Akses 100% Seluruh Fitur Sistem
         $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $superAdminRole->syncPermissions(Permission::all());
 
-        // 2. management: view semua, tidak bisa delete dan manage users/master-data
+        // 2. Management: Read-only Dashboard, Reports, Analytics, Financials
         $managementRole = Role::firstOrCreate(['name' => 'management', 'guard_name' => 'web']);
         $managementRole->syncPermissions([
             'dashboard.view',
@@ -70,70 +94,60 @@ class RolePermissionSeeder extends Seeder
             'schedules.view',
             'technicians.view',
             'work-reports.view',
+            'survey-reports.view',
+            'crm.view',
+            'quotations.view',
+            'invoices.view',
+            'customer-requests.view',
+            'attendance.view',
+            'audit-logs.view',
         ]);
 
-        // 3. admin: semua kecuali users dan master-data
+        // 3. Admin: CRUD Operasional Pelanggan, Kontrak, Quotation, Invoice, CRM, & Request Klien
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $adminRole->syncPermissions([
             'dashboard.view',
-
-            'customers.view',
-            'customers.create',
-            'customers.edit',
-            'customers.delete',
-
-            'contracts.view',
-            'contracts.create',
-            'contracts.edit',
-            'contracts.delete',
-
-            'schedules.view',
-            'schedules.create',
-            'schedules.edit',
-            'schedules.delete',
-
+            'customers.view', 'customers.create', 'customers.edit', 'customers.delete',
+            'contracts.view', 'contracts.create', 'contracts.edit', 'contracts.delete',
+            'schedules.view', 'schedules.create', 'schedules.edit', 'schedules.delete',
             'technicians.view',
-            'technicians.create',
-            'technicians.edit',
-            'technicians.delete',
-
-            'work-reports.view',
-            'work-reports.create',
-            'work-reports.edit',
-            'work-reports.delete',
-            'work-reports.approve',
+            'work-reports.view', 'work-reports.approve',
+            'survey-reports.view',
+            'crm.view', 'crm.manage',
+            'quotations.view', 'quotations.manage',
+            'invoices.view', 'invoices.manage',
+            'customer-requests.view', 'customer-requests.manage',
+            'leaves.view', 'leaves.manage',
+            'attendance.view',
         ]);
 
-        // 4. supervisor: view customers/contracts, full schedules dan work-reports
+        // 4. Supervisor: Manajerial Penjadwalan, Laporan Pengerjaan, Absensi & Tracking Teknisi
         $supervisorRole = Role::firstOrCreate(['name' => 'supervisor', 'guard_name' => 'web']);
         $supervisorRole->syncPermissions([
             'dashboard.view',
             'customers.view',
             'contracts.view',
-
-            'schedules.view',
-            'schedules.create',
-            'schedules.edit',
-            'schedules.delete',
-
-            'work-reports.view',
-            'work-reports.create',
-            'work-reports.edit',
-            'work-reports.delete',
-            'work-reports.approve',
+            'schedules.view', 'schedules.create', 'schedules.edit', 'schedules.delete',
+            'technicians.view', 'technicians.create', 'technicians.edit',
+            'work-reports.view', 'work-reports.create', 'work-reports.edit', 'work-reports.delete', 'work-reports.approve',
+            'survey-reports.view', 'survey-reports.create', 'survey-reports.edit',
+            'customer-requests.view', 'customer-requests.manage',
+            'leaves.view', 'leaves.manage',
+            'attendance.view', 'attendance.manage',
         ]);
 
-        // 5. technician: view schedules sendiri, create/edit work-reports
+        // 5. Technician: Penugasan Pribadi, Absensi Check-In, Laporan Kerja, Cuti
         $technicianRole = Role::firstOrCreate(['name' => 'technician', 'guard_name' => 'web']);
         $technicianRole->syncPermissions([
             'dashboard.view',
             'schedules.view',
-            'work-reports.view',
-            'work-reports.create',
-            'work-reports.edit',
+            'work-reports.view', 'work-reports.create', 'work-reports.edit',
+            'survey-reports.view', 'survey-reports.create',
+            'attendance.view', 'attendance.manage',
+            'leaves.view',
         ]);
 
-        // 6. customer: tidak ada permission internal (menggunakan customer guard terpisah)
+        // 6. Customer: Menggunakan Customer Portal khusus (Guard customer)
         Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);
     }
 }

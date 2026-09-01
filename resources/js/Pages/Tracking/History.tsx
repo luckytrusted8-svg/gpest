@@ -1,11 +1,11 @@
+import React, { useState, useEffect, Suspense } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
-import { ArrowLeft, Clock, MapPin, Gauge } from 'lucide-react';
-import { useState } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { ArrowLeft, Clock, MapPin } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
+
+const HistoryMap = React.lazy(() => import('@/Components/HistoryMap'));
 
 interface Track {
     id: number;
@@ -23,10 +23,10 @@ interface Technicia {
 }
 
 interface Props {
-    tracks: Track[];
+    tracks?: Track[];
     technician: Technicia;
     selectedDate: string;
-    allTechnicians: Technicia[];
+    allTechnicians?: Technicia[];
 }
 
 const statusLabels: Record<string, string> = {
@@ -45,42 +45,18 @@ const statusColors: Record<string, string> = {
     offline: '#888888',
 };
 
-function FitBoundsMap({ tracks }: { tracks: Track[] }) {
-    const map = useMap();
-    if (tracks.length === 0) return null;
-
-    const bounds = L.latLngBounds(tracks.map((t) => [t.latitude, t.longitude] as [number, number]));
-    map.fitBounds(bounds, { padding: [50, 50] });
-    return null;
-}
-
-function createIcon(color: string, label: string): L.DivIcon {
-    return L.divIcon({
-        className: '',
-        html: `<div style="
-            width: 20px; height: 20px;
-            background: ${color};
-            border: 2px solid white;
-            border-radius: 50%;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 9px; font-weight: 700;
-        ">${label}</div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
-        popupAnchor: [0, -12],
-    });
-}
-
-export default function History({ tracks, technician, selectedDate, allTechnicians }: Props) {
-    const [techId, setTechId] = useState(String(technician.id));
+export default function History({ tracks = [], technician, selectedDate, allTechnicians = [] }: Props) {
+    const [techId, setTechId] = useState(String(technician?.id || ''));
     const [date, setDate] = useState(selectedDate);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const applyFilter = () => {
         router.get('/tracking/history', { technician_id: techId, date }, { preserveState: true, replace: true });
     };
-
-    const polylinePositions: [number, number][] = tracks.map((t) => [t.latitude, t.longitude]);
 
     return (
         <AppLayout>
@@ -94,7 +70,7 @@ export default function History({ tracks, technician, selectedDate, allTechnicia
                         </Button>
                         <div>
                             <h1 className="text-display-sm font-semibold text-ink">Riwayat Lokasi</h1>
-                            <p className="text-body-sm text-mute mt-0.5">Jalur pergerakan {technician.name}</p>
+                            <p className="text-body-sm text-mute mt-0.5">Jalur pergerakan {technician?.name ?? 'Teknisi'}</p>
                         </div>
                     </div>
                 </div>
@@ -122,46 +98,12 @@ export default function History({ tracks, technician, selectedDate, allTechnicia
                     </div>
                 </div>
 
-                <div className="h-[450px] rounded-lg overflow-hidden border border-hairline shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a]">
-                    <MapContainer
-                        center={tracks.length > 0 ? [tracks[0].latitude, tracks[0].longitude] : [-6.2088, 106.8456]}
-                        zoom={14}
-                        style={{ height: '100%', width: '100%' }}
-                    >
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <FitBoundsMap tracks={tracks} />
-                        {polylinePositions.length > 1 && (
-                            <Polyline
-                                positions={polylinePositions}
-                                pathOptions={{ color: '#0070f3', weight: 3, opacity: 0.7 }}
-                            />
-                        )}
-                        {tracks.map((track, idx) => (
-                            <Marker
-                                key={track.id}
-                                position={[track.latitude, track.longitude]}
-                                icon={createIcon(
-                                    statusColors[track.status_teknisi] || '#888888',
-                                    String(idx + 1)
-                                )}
-                            >
-                                <Popup>
-                                    <div className="p-1" style={{ fontFamily: 'system-ui, sans-serif' }}>
-                                        <div className="text-xs font-medium">#{idx + 1}</div>
-                                        <div className="text-[11px] text-gray-500">
-                                            {new Date(track.created_at).toLocaleTimeString('id-ID')}
-                                        </div>
-                                        <div className="text-[11px] text-gray-500">
-                                            {statusLabels[track.status_teknisi]}
-                                        </div>
-                                    </div>
-                                </Popup>
-                            </Marker>
-                        ))}
-                    </MapContainer>
+                <div className="h-[450px] rounded-lg overflow-hidden border border-hairline shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] bg-canvas">
+                    {isClient && (
+                        <Suspense fallback={<div className="h-[450px] w-full flex items-center justify-center bg-canvas text-mute text-body-sm">Memuat peta...</div>}>
+                            <HistoryMap tracks={tracks} />
+                        </Suspense>
+                    )}
                 </div>
 
                 <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
@@ -191,7 +133,7 @@ export default function History({ tracks, technician, selectedDate, allTechnicia
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center gap-1.5 text-xs">
                                                     <MapPin className="w-3.5 h-3.5 text-mute" />
-                                                    <span className="font-mono">{track.latitude.toFixed(6)}, {track.longitude.toFixed(6)}</span>
+                                                    <span className="font-mono">{Number(track.latitude).toFixed(6)}, {Number(track.longitude).toFixed(6)}</span>
                                                 </div>
                                             </td>
                                             <td className="py-3 px-4">
@@ -201,10 +143,10 @@ export default function History({ tracks, technician, selectedDate, allTechnicia
                                                 </span>
                                             </td>
                                             <td className="py-3 px-4 text-xs text-mute">
-                                                {track.akurasi ? `${track.akurasi.toFixed(1)}m` : '-'}
+                                                {track.akurasi ? `${Number(track.akurasi).toFixed(1)}m` : '-'}
                                             </td>
                                             <td className="py-3 px-4 text-xs text-mute">
-                                                {track.kecepatan ? `${track.kecepatan.toFixed(1)} km/h` : '-'}
+                                                {track.kecepatan ? `${Number(track.kecepatan).toFixed(1)} km/h` : '-'}
                                             </td>
                                         </tr>
                                     ))
