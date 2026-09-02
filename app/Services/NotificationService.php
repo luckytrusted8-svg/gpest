@@ -41,7 +41,7 @@ class NotificationService
 
     public function laporanDikirim(WorkReport $workReport): void
     {
-        $supervisors = User::role('supervisor')->pluck('id');
+        $supervisors = User::role('supervisor')->pluck('id')->unique();
 
         foreach ($supervisors as $supervisorId) {
             $this->kirimKeUser(
@@ -69,7 +69,7 @@ class NotificationService
 
     public function kontrakHampirHabis(Contract $contract): void
     {
-        $admins = User::role('super_admin')->pluck('id');
+        $admins = User::role('super_admin')->pluck('id')->unique();
 
         $sisaHari = $contract->end_date->diffInDays(now());
 

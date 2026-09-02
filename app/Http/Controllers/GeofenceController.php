@@ -45,8 +45,12 @@ class GeofenceController extends Controller
             'latitude_pusat' => 'required|numeric|between:-90,90',
             'longitude_pusat' => 'required|numeric|between:-180,180',
             'radius_meter' => 'required|integer|min:10|max:10000',
-            'aktif' => 'required|boolean',
+            'aktif' => 'nullable|boolean',
         ]);
+
+        if (! isset($validated['aktif'])) {
+            $validated['aktif'] = $geofence->aktif;
+        }
 
         $geofence->update($validated);
 

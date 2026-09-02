@@ -97,9 +97,14 @@ class ScheduleController extends Controller
             ->with('success', 'Jadwal pekerjaan berhasil dibuat.');
     }
 
-    public function show(Schedule $schedule)
+    public function show($id)
     {
-        $schedule->load(['customer', 'contract', 'technician', 'supervisor']);
+        $schedule = Schedule::with(['customer', 'contract', 'technician', 'supervisor'])->find($id);
+
+        if (! $schedule) {
+            return redirect()->route('schedules.index')
+                ->with('error', 'Jadwal pekerjaan tidak ditemukan atau telah diperbarui.');
+        }
 
         return Inertia::render('Schedules/Show', [
             'schedule' => $schedule,
@@ -160,5 +165,25 @@ class ScheduleController extends Controller
 
         return redirect()->route('schedules.index')
             ->with('success', 'Jadwal pekerjaan berhasil dihapus.');
+    }
+
+    public function updateStatus(Request $request, Schedule $schedule)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:dijadwalkan,ditugaskan,dalam_perjalanan,tiba,sedang_dikerjakan,selesai,dibatalkan,dijadwal_ulang',
+        ]);
+
+        $schedule->update(['status' => $validated['status']]);
+
+        $statusLabels = [
+            'dalam_perjalanan' => 'Konfirmasi OTW (Dalam Perjalanan)',
+            'tiba' => 'Konfirmasi Tiba di Lokasi Klien',
+            'sedang_dikerjakan' => 'Mulai Pengerjaan Pest Control',
+            'selesai' => 'Selesai Pengerjaan',
+        ];
+
+        $label = $statusLabels[$validated['status']] ?? 'Status jadwal';
+
+        return back()->with('success', $label.' berhasil diperbarui.');
     }
 }

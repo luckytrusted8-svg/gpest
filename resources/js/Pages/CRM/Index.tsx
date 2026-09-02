@@ -105,11 +105,11 @@ export default function Index({ leads, leadsByStatus, salesUsers, filters }: Pro
                         <p className="text-body-sm text-mute mt-0.5">{leads.length} total lead.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="flex border border-hairline rounded-md overflow-hidden">
-                            <button onClick={() => setView('kanban')} className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${view === 'kanban' ? 'bg-primary text-on-primary' : 'bg-canvas text-body-text hover:bg-canvas-soft'}`}><LayoutGrid className="w-3.5 h-3.5" />Kanban</button>
-                            <button onClick={() => setView('table')} className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 ${view === 'table' ? 'bg-primary text-on-primary' : 'bg-canvas text-body-text hover:bg-canvas-soft'}`}><List className="w-3.5 h-3.5" />Tabel</button>
+                        <div className="flex border border-hairline rounded-md overflow-hidden bg-canvas p-0.5">
+                            <button onClick={() => setView('kanban')} className={`px-3.5 py-1.5 text-xs font-semibold rounded-xs flex items-center gap-1.5 transition-all ${view === 'kanban' ? 'bg-primary text-white shadow-2xs' : 'text-body-text hover:bg-canvas-soft hover:text-ink'}`}><LayoutGrid className="w-3.5 h-3.5" />Kanban</button>
+                            <button onClick={() => setView('table')} className={`px-3.5 py-1.5 text-xs font-semibold rounded-xs flex items-center gap-1.5 transition-all ${view === 'table' ? 'bg-primary text-white shadow-2xs' : 'text-body-text hover:bg-canvas-soft hover:text-ink'}`}><List className="w-3.5 h-3.5" />Tabel</button>
                         </div>
-                        <Link href="/crm/create"><Button className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2"><Plus className="w-4 h-4" />Tambah Lead</Button></Link>
+                        <Link href="/crm/create"><Button className="bg-primary text-white hover:bg-primary/90 text-body-sm-strong flex items-center gap-2 shadow-2xs"><Plus className="w-4 h-4" />Tambah Lead</Button></Link>
                     </div>
                 </div>
 

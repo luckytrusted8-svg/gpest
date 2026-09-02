@@ -109,6 +109,23 @@ export default function CheckIn({ todayAttendance, recentAttendances }: Props) {
             <Head title="Check-in Kehadiran" />
 
             <div className="max-w-2xl mx-auto space-y-6">
+                {/* Information Banner Shift Working Hours */}
+                <div className="bg-canvas border border-hairline rounded-lg p-3.5 shadow-2xs space-y-1.5 text-body-xs bg-canvas-soft/40">
+                    <div className="flex items-center gap-2 font-semibold text-ink">
+                        <Clock className="w-4 h-4 text-primary shrink-0" />
+                        <span>Ketentuan Jam Kerja Operasional:</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-mute text-[12px] pt-1">
+                        <div className="p-2 rounded bg-canvas border border-hairline">
+                            <strong className="text-ink font-semibold block">Teknisi Lapangan</strong>
+                            <span>Jam fleksibel / Sesuai jadwal panggilan</span>
+                        </div>
+                        <div className="p-2 rounded bg-canvas border border-hairline">
+                            <strong className="text-ink font-semibold block">Staff Kantoran</strong>
+                            <span>Senin - Jumat: 08:00 - 16:00 WIB<br/>Sabtu: 08:00 - 14:00 WIB</span>
+                        </div>
+                    </div>
+                </div>
                 {flash?.success && (
                     <div className="bg-[#f0fdf4] border border-[#bbf7d0] text-[#166534] px-4 py-3 rounded-md text-body-sm flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 shrink-0" />

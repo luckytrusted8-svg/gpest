@@ -7,6 +7,7 @@ use App\Models\CustomerRequest;
 use App\Models\Invoice;
 use App\Models\Notification;
 use App\Models\Schedule;
+use App\Models\User;
 use App\Models\WorkReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -189,12 +190,24 @@ class CustomerPortalController extends Controller
             'status' => 'baru',
         ]);
 
-        Notification::create([
-            'judul' => 'Permintaan Layanan Baru ('.$req->request_number.')',
-            'pesan' => 'Pelanggan '.($customer->company_name ?? 'Klien').' mengirim request: '.$validated['jenis_layanan'],
-            'jenis' => 'info',
-            'url_tujuan' => '/customer-requests/'.$req->id,
-        ]);
+        $adminUserIds = User::whereHas('roles', function ($q) {
+            $q->whereIn('name', ['super_admin', 'admin', 'supervisor']);
+        })->pluck('id')->unique();
+
+        if ($adminUserIds->isEmpty()) {
+            $adminUserIds = User::pluck('id')->unique();
+        }
+
+        foreach ($adminUserIds as $adminId) {
+            Notification::create([
+                'user_id' => $adminId,
+                'judul' => 'Permintaan Layanan Baru ('.$req->request_number.')',
+                'pesan' => 'Pelanggan '.($customer->company_name ?? 'Klien').' mengirim request: '.$validated['jenis_layanan'],
+                'jenis' => 'info',
+                'modul' => 'customer-requests',
+                'url_tujuan' => '/customer-requests/'.$req->id,
+            ]);
+        }
 
         return back()->with('success', 'Permintaan Anda berhasil dikirim ke tim kami.');
     }

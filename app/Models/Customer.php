@@ -47,6 +47,8 @@ class Customer extends Model
         'email',
         'address',
         'location',
+        'latitude',
+        'longitude',
         'npwp',
         'status',
         'sales_pic',

@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -18,108 +18,121 @@ interface HistoryMapProps {
 
 const statusLabels: Record<string, string> = {
     aktif: 'Aktif',
-    dalam_perjalanan: 'Dalam Perjalanan',
-    tiba: 'Tiba',
-    bekerja: 'Bekerja',
+    dalam_perjalanan: 'Dalam Perjalanan (OTW)',
+    tiba: 'Tiba di Lokasi',
+    bekerja: 'Sedang Bekerja',
     offline: 'Offline',
 };
 
 const statusColors: Record<string, string> = {
-    aktif: '#16a34a',
+    aktif: '#059669',
     dalam_perjalanan: '#2563eb',
-    tiba: '#7928ca',
-    bekerja: '#f5a623',
-    offline: '#888888',
+    tiba: '#7c3aed',
+    bekerja: '#d97706',
+    offline: '#64748b',
 };
 
-function FitBoundsMap({ tracks }: { tracks: Track[] }) {
-    const map = useMap();
-    if (tracks.length === 0) return null;
-
-    const validTracks = tracks.filter((t) => {
-        const lat = Number(t.latitude);
-        const lng = Number(t.longitude);
-        return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
-    });
-
-    if (validTracks.length === 0) return null;
-
-    const bounds = L.latLngBounds(validTracks.map((t) => [Number(t.latitude), Number(t.longitude)] as [number, number]));
-    map.fitBounds(bounds, { padding: [50, 50] });
-    return null;
-}
-
-function createIcon(color: string, label: string): L.DivIcon {
-    return L.divIcon({
-        className: '',
-        html: `<div style="
-            width: 20px; height: 20px;
-            background: ${color};
-            border: 2px solid white;
-            border-radius: 50%;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 9px; font-weight: 700;
-        ">${label}</div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
-        popupAnchor: [0, -12],
-    });
-}
-
 export default function HistoryMap({ tracks = [] }: HistoryMapProps) {
-    const validTracks = tracks.filter((t) => {
-        const lat = Number(t.latitude);
-        const lng = Number(t.longitude);
-        return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
-    });
+    const containerRef = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<L.Map | null>(null);
+    const layerGroupRef = useRef<L.LayerGroup | null>(null);
 
-    const polylinePositions: [number, number][] = validTracks.map((t) => [Number(t.latitude), Number(t.longitude)]);
+    useEffect(() => {
+        if (!containerRef.current) return;
 
-    const centerLat = validTracks.length > 0 ? Number(validTracks[0].latitude) : -6.2088;
-    const centerLng = validTracks.length > 0 ? Number(validTracks[0].longitude) : 106.8456;
+        // Initialize Map
+        const map = L.map(containerRef.current, {
+            center: [-6.2088, 106.8456],
+            zoom: 13,
+            scrollWheelZoom: true,
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19,
+        }).addTo(map);
+
+        const layerGroup = L.layerGroup().addTo(map);
+        mapRef.current = map;
+        layerGroupRef.current = layerGroup;
+
+        setTimeout(() => {
+            if (mapRef.current) {
+                mapRef.current.invalidateSize();
+            }
+        }, 200);
+
+        return () => {
+            if (mapRef.current) {
+                mapRef.current.remove();
+                mapRef.current = null;
+                layerGroupRef.current = null;
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!mapRef.current || !layerGroupRef.current) return;
+
+        const layer = layerGroupRef.current;
+        layer.clearLayers();
+
+        const validTracks = tracks.filter((t) => {
+            const lat = Number(t.latitude);
+            const lng = Number(t.longitude);
+            return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+        });
+
+        if (validTracks.length === 0) return;
+
+        const polylinePositions: [number, number][] = validTracks.map((t) => [Number(t.latitude), Number(t.longitude)]);
+
+        if (polylinePositions.length > 1) {
+            L.polyline(polylinePositions, {
+                color: '#2563eb',
+                weight: 4,
+                opacity: 0.8,
+            }).addTo(layer);
+        }
+
+        validTracks.forEach((track, idx) => {
+            const lat = Number(track.latitude);
+            const lng = Number(track.longitude);
+            const color = statusColors[track.status_teknisi] || '#64748b';
+
+            const marker = L.circleMarker([lat, lng], {
+                radius: 8,
+                color: '#ffffff',
+                fillColor: color,
+                fillOpacity: 1,
+                weight: 2,
+            });
+
+            const popupContent = `
+                <div style="font-family: sans-serif; font-size: 12px; padding: 2px;">
+                    <strong>Titik Rute #${idx + 1}</strong><br/>
+                    <span style="color: #64748b;">Waktu: ${new Date(track.created_at).toLocaleTimeString('id-ID')}</span><br/>
+                    <span style="color: ${color}; font-weight: bold;">Status: ${statusLabels[track.status_teknisi] || track.status_teknisi}</span>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+            marker.addTo(layer);
+        });
+
+        if (polylinePositions.length > 0) {
+            if (polylinePositions.length === 1) {
+                mapRef.current.setView(polylinePositions[0], 15);
+            } else {
+                const bounds = L.latLngBounds(polylinePositions);
+                mapRef.current.fitBounds(bounds, { padding: [40, 40] });
+            }
+        }
+    }, [tracks]);
 
     return (
-        <div style={{ height: '450px', width: '100%' }}>
-            <MapContainer
-                center={[centerLat, centerLng]}
-                zoom={14}
-                style={{ height: '100%', width: '100%' }}
-            >
-                <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <FitBoundsMap tracks={validTracks} />
-                {polylinePositions.length > 1 && (
-                    <Polyline
-                        positions={polylinePositions}
-                        pathOptions={{ color: '#0070f3', weight: 3, opacity: 0.7 }}
-                    />
-                )}
-                {validTracks.map((track, idx) => (
-                    <Marker
-                        key={track.id}
-                        position={[Number(track.latitude), Number(track.longitude)]}
-                        icon={createIcon(
-                            statusColors[track.status_teknisi] || '#888888',
-                            String(idx + 1)
-                        )}
-                    >
-                        <Popup>
-                            <div className="p-1" style={{ fontFamily: 'system-ui, sans-serif' }}>
-                                <div className="text-xs font-medium">#{idx + 1}</div>
-                                <div className="text-[11px] text-gray-500">
-                                    {new Date(track.created_at).toLocaleTimeString('id-ID')}
-                                </div>
-                                <div className="text-[11px] text-gray-500">
-                                    {statusLabels[track.status_teknisi]}
-                                </div>
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
-            </MapContainer>
+        <div className="relative rounded-xl overflow-hidden border border-slate-300 shadow-xs h-[450px] w-full">
+            <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
         </div>
     );
 }

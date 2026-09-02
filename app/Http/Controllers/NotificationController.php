@@ -22,6 +22,10 @@ class NotificationController extends Controller
 
         $notifications = $query->paginate(15)->withQueryString();
 
+        if ($request->wantsJson()) {
+            return response()->json($notifications);
+        }
+
         return Inertia::render('Notifications/Index', [
             'notifications' => $notifications,
             'filter' => $request->input('filter', 'semua'),

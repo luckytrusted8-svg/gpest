@@ -64,7 +64,7 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
                     </div>
 
                     <Link href="/work-orders/create">
-                        <Button className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2">
+                        <Button className="bg-primary text-white hover:bg-primary/90 text-body-sm-strong flex items-center gap-2">
                             <Plus className="w-4 h-4" /> Buat Work Order
                         </Button>
                     </Link>

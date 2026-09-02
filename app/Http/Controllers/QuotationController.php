@@ -45,7 +45,7 @@ class QuotationController extends Controller
     public function create()
     {
         return Inertia::render('Quotations/Create', [
-            'customers' => Customer::get(['id', 'company_name', 'address', 'contact_person', 'phone', 'email']),
+            'customers' => Customer::get(['id', 'company_name', 'address', 'pic_name as contact_person', 'phone', 'email']),
             'leads' => Lead::whereIn('status', ['survey', 'quotation', 'negosiasi', 'menang'])
                 ->get(['id', 'lead_id', 'nama_perusahaan', 'nama_pic', 'telepon', 'email', 'alamat', 'kebutuhan']),
             'defaultSyarat' => "Pembayaran: DP 50% saat pengerjaan, 50% lunas setelah selesai.\nGaransi: 30 hari setelah pengerjaan selesai.\nHarga belum termasuk PPN 11%.",
@@ -106,7 +106,7 @@ class QuotationController extends Controller
 
         return Inertia::render('Quotations/Edit', [
             'quotation' => $quotation,
-            'customers' => Customer::get(['id', 'company_name', 'address', 'contact_person', 'phone', 'email']),
+            'customers' => Customer::get(['id', 'company_name', 'address', 'pic_name as contact_person', 'phone', 'email']),
         ]);
     }
 

@@ -1,8 +1,11 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { PriorityBadge, StatusBadge } from './Index';
-import { Calendar, Clock, User, MapPin, ArrowLeft, Edit, FileText, Building2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { 
+    Calendar, Clock, User, MapPin, ArrowLeft, Edit, FileText, 
+    Building2, ShieldCheck, AlertCircle, Navigation, Play, ClipboardList, CheckCircle2 
+} from 'lucide-react';
 
 interface Customer {
     id: number;
@@ -53,6 +56,10 @@ interface Props {
 }
 
 export default function Show({ schedule }: Props) {
+    const handleUpdateStatus = (nextStatus: string) => {
+        router.put(`/schedules/${schedule.id}/status`, { status: nextStatus }, { preserveScroll: true });
+    };
+
     return (
         <AppLayout>
             <Head title={`Jadwal: ${schedule.schedule_code}`} />
@@ -61,7 +68,7 @@ export default function Show({ schedule }: Props) {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex items-center gap-3">
-                        <Link href={route('schedules.index')}>
+                        <Link href="/schedules">
                             <Button variant="outline" size="icon" className="h-9 w-9">
                                 <ArrowLeft className="w-4 h-4" />
                             </Button>
@@ -78,17 +85,71 @@ export default function Show({ schedule }: Props) {
                         </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                        <Link href={route('schedules.edit', schedule.id)}>
+                        <Link href={`/schedules/${schedule.id}/edit`}>
                             <Button variant="outline" className="text-body-sm-strong flex items-center gap-2">
                                 <Edit className="w-4 h-4" />
                                 Edit Jadwal
                             </Button>
                         </Link>
-                        <Link href={route('schedules.index')}>
-                            <Button variant="outline" className="text-body-sm-strong">
-                                Kembali ke Daftar
-                            </Button>
-                        </Link>
+                    </div>
+                </div>
+
+                {/* Status Progress & Konfirmasi Workflow Bar */}
+                <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <Navigation className="w-4 h-4 text-blue-600" />
+                            Konfirmasi Alur Kerja Pekerjaan Teknisi
+                        </h2>
+                        <span className="text-xs text-slate-400 font-mono">Status Saat Ini: {schedule.status}</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2.5">
+                        {(schedule.status === 'dijadwalkan' || schedule.status === 'ditugaskan') && (
+                            <button
+                                onClick={() => handleUpdateStatus('dalam_perjalanan')}
+                                className="flex-1 py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2"
+                            >
+                                <Navigation className="w-4 h-4" />
+                                1. Konfirmasi Berangkat (OTW)
+                            </button>
+                        )}
+
+                        {schedule.status === 'dalam_perjalanan' && (
+                            <button
+                                onClick={() => handleUpdateStatus('tiba')}
+                                className="flex-1 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2"
+                            >
+                                <MapPin className="w-4 h-4" />
+                                2. Konfirmasi Tiba di Lokasi Klien
+                            </button>
+                        )}
+
+                        {schedule.status === 'tiba' && (
+                            <button
+                                onClick={() => handleUpdateStatus('sedang_dikerjakan')}
+                                className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2"
+                            >
+                                <Play className="w-4 h-4" />
+                                3. Mulai Pengerjaan Pest Control
+                            </button>
+                        )}
+
+                        {schedule.status === 'sedang_dikerjakan' && (
+                            <Link href={`/work-reports/create?schedule_id=${schedule.id}`} className="flex-1">
+                                <button className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-2">
+                                    <ClipboardList className="w-4 h-4" />
+                                    4. Buat Laporan Kerja & Selesaikan Pekerjaan
+                                </button>
+                            </Link>
+                        )}
+
+                        {schedule.status === 'selesai' && (
+                            <div className="w-full p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
+                                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                                <span>Pekerjaan ini telah selesai dikerjakan dan laporan kerja sudah diterbitkan.</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

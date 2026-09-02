@@ -55,7 +55,7 @@ class User extends Authenticatable
 
     public function attendances(): HasMany
     {
-        return $this->hasMany(Attendance::class, 'user_id');
+        return $this->hasMany(Attendance::class, 'technician_id');
     }
 
     public function auditLogs(): HasMany

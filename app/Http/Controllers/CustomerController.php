@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Site;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -56,12 +57,27 @@ class CustomerController extends Controller
             'email' => 'required|email',
             'address' => 'required',
             'location' => 'required',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'npwp' => 'nullable',
             'status' => 'required|in:active,inactive',
             'sales_pic' => 'nullable',
         ]);
 
-        Customer::create($validated);
+        $customer = Customer::create($validated);
+
+        // Auto-create primary Site for the new Customer
+        Site::create([
+            'site_code' => Site::generateSiteCode(),
+            'customer_id' => $customer->id,
+            'site_name' => $customer->company_name.' - Lokasi Utama',
+            'address' => $customer->address,
+            'pic_name' => $customer->pic_name,
+            'phone' => $customer->phone,
+            'latitude' => $customer->latitude ?? -6.2088,
+            'longitude' => $customer->longitude ?? 106.8456,
+            'geofence_radius' => 100,
+        ]);
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer created successfully.');
@@ -91,6 +107,8 @@ class CustomerController extends Controller
             'email' => 'required|email',
             'address' => 'required',
             'location' => 'required',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'npwp' => 'nullable',
             'status' => 'required|in:active,inactive',
             'sales_pic' => 'nullable',

@@ -3,19 +3,40 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
+use App\Models\LocationTrack;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 
 class AttendanceController extends Controller
 {
     public function index(Request $request)
     {
+        $tanggal = $request->input('tanggal', now()->toDateString());
+        $technicianIdFilter = $request->input('technician_id');
+        $statusFilter = $request->input('status');
+
+        // All active technicians and staff users
+        $allTechnicianUsers = User::select('id', 'name', 'email')
+            ->where(function ($q) {
+                $q->whereHas('technician')
+                    ->orWhereHas('attendances')
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['technician', 'supervisor', 'staff']))
+                    ->orWhere('email', 'like', '%teknisi%')
+                    ->orWhere('email', 'like', '%staff%');
+            })
+            ->orderBy('name')
+            ->get();
+
+        // Get existing attendance records for the selected date
         $query = Attendance::with('technician');
 
         if ($request->filled('tanggal')) {
             $query->byDate($request->tanggal);
+        } else {
+            $query->byDate($tanggal);
         }
 
         if ($request->filled('technician_id')) {
@@ -26,20 +47,78 @@ class AttendanceController extends Controller
             $query->where('status', $request->status);
         }
 
-        $attendances = $query->orderBy('tanggal', 'desc')
-            ->orderBy('jam_masuk', 'desc')
-            ->paginate(15)
-            ->withQueryString();
+        $existingAttendances = $query->orderBy('jam_masuk', 'desc')->get();
+        $existingUserIds = $existingAttendances->pluck('technician_id')->toArray();
 
-        $technicians = User::select('id', 'name')
-            ->whereHas('technician')
-            ->orderBy('name')
-            ->get();
+        $attendanceList = collect();
+
+        // 1. Existing attendance records
+        foreach ($existingAttendances as $att) {
+            $attendanceList->push($att);
+        }
+
+        // 2. Daily reset overview: Include technicians who haven't checked in yet today if no conflicting filter
+        if (! $statusFilter || $statusFilter === 'tidak_hadir') {
+            $unrecordedUsers = $allTechnicianUsers->reject(function ($user) use ($existingUserIds, $technicianIdFilter) {
+                if ($technicianIdFilter && (int) $technicianIdFilter !== $user->id) {
+                    return true;
+                }
+
+                return in_array($user->id, $existingUserIds);
+            });
+
+            foreach ($unrecordedUsers as $user) {
+                $unrecordedAtt = new Attendance([
+                    'id' => -1 * $user->id,
+                    'technician_id' => $user->id,
+                    'tanggal' => $request->filled('tanggal') ? $request->tanggal : $tanggal,
+                    'jam_masuk' => null,
+                    'jam_keluar' => null,
+                    'latitude_masuk' => null,
+                    'longitude_masuk' => null,
+                    'status' => 'tidak_hadir',
+                    'catatan' => 'Belum Check-In',
+                ]);
+                $unrecordedAtt->setRelation('technician', $user);
+                $attendanceList->push($unrecordedAtt);
+            }
+        }
+
+        $summaryStats = [
+            'total_hadir' => $attendanceList->where('status', 'hadir')->count(),
+            'total_berjalan' => $attendanceList->filter(fn ($a) => $a->jam_masuk && ! $a->jam_keluar)->count(),
+            'total_selesai' => $attendanceList->filter(fn ($a) => $a->jam_masuk && $a->jam_keluar)->count(),
+            'total_tidak_hadir' => $attendanceList->where('status', 'tidak_hadir')->count(),
+        ];
+
+        // Manual collection pagination
+        $page = (int) $request->input('page', 1);
+        $perPage = 15;
+        $paginatedData = new LengthAwarePaginator(
+            $attendanceList->slice(($page - 1) * $perPage, $perPage)->values(),
+            $attendanceList->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         return Inertia::render('Attendance/Index', [
-            'attendances' => $attendances,
-            'technicians' => $technicians,
-            'filters' => $request->only(['tanggal', 'technician_id', 'status']),
+            'attendances' => $paginatedData,
+            'technicians' => $allTechnicianUsers,
+            'summaryStats' => $summaryStats,
+            'filters' => [
+                'tanggal' => $request->filled('tanggal') ? $request->tanggal : $tanggal,
+                'technician_id' => $technicianIdFilter ? (string) $technicianIdFilter : '',
+                'status' => $statusFilter || '',
+            ],
+            'workingHoursConfig' => [
+                'teknisi' => 'Jam Dimulai Tidak Tentu (Fleksibel Lapangan)',
+                'staff' => [
+                    'senin_jumat' => '08:00 - 16:00 WIB',
+                    'sabtu' => '08:00 - 14:00 WIB',
+                    'minggu' => 'Libur',
+                ],
+            ],
         ]);
     }
 
@@ -103,6 +182,13 @@ class AttendanceController extends Controller
             app(NotificationService::class)->checkInTeknisi($attendance);
         }
 
+        LocationTrack::create([
+            'technician_id' => $user->id,
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'status_teknisi' => 'aktif',
+        ]);
+
         return back()->with('success', 'Check-in berhasil. Selamat bekerja!');
     }
 
@@ -132,7 +218,29 @@ class AttendanceController extends Controller
             'longitude_keluar' => $validated['longitude'],
         ]);
 
+        LocationTrack::create([
+            'technician_id' => $user->id,
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'status_teknisi' => 'offline',
+        ]);
+
         return back()->with('success', 'Check-out berhasil. Selamat istirahat!');
+    }
+
+    public function tracks(int $id)
+    {
+        $attendance = Attendance::with('technician')->findOrFail($id);
+
+        $tracks = LocationTrack::where('technician_id', $attendance->technician_id)
+            ->whereDate('created_at', $attendance->tanggal)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return response()->json([
+            'attendance' => $attendance,
+            'tracks' => $tracks,
+        ]);
     }
 
     public function show(Request $request, int $id)
@@ -144,9 +252,15 @@ class AttendanceController extends Controller
             ->whereDate('tanggal', $attendance->tanggal)
             ->get();
 
+        $tracks = LocationTrack::where('technician_id', $attendance->technician_id)
+            ->whereDate('created_at', $attendance->tanggal)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
         return Inertia::render('Attendance/Show', [
             'attendance' => $attendance,
             'dailyRecords' => $dailyRecords,
+            'tracks' => $tracks,
         ]);
     }
 

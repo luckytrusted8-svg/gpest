@@ -92,7 +92,7 @@ export default function Index({ customers, filters }: IndexProps) {
                         <p className="text-body-sm text-mute mt-1">Kelola data pelanggan, kontrak, dan kontak.</p>
                     </div>
                     <Link href="/customers/create">
-                        <Button className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2">
+                        <Button className="bg-primary text-white hover:bg-primary/90 text-body-sm-strong flex items-center gap-2">
                             <Plus className="w-4 h-4" />
                             Tambah Pelanggan
                         </Button>

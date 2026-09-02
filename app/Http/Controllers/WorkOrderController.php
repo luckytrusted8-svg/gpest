@@ -81,17 +81,63 @@ class WorkOrderController extends Controller
             'status' => 'required|in:DRAFT,ASSIGNED,ON_THE_WAY,ARRIVED,IN_PROGRESS,COMPLETED,PENDING_REVIEW,APPROVED,REJECTED,CANCELLED',
         ]);
 
-        WorkOrder::create($validated);
+        $workOrder = WorkOrder::create($validated);
 
-        return redirect()->route('work-orders.index')->with('success', 'Work Order berhasil dibuat.');
+        // Auto-link to existing schedule or create schedule for technician if not linked
+        if ($workOrder->technician_id && ! $workOrder->schedule_id) {
+            $existingSchedule = Schedule::where('customer_id', $workOrder->customer_id)
+                ->whereDate('tanggal', now()->toDateString())
+                ->first();
+
+            if ($existingSchedule) {
+                $existingSchedule->update([
+                    'technician_id' => $workOrder->technician_id,
+                    'status' => 'ditugaskan',
+                    'catatan' => $workOrder->instruction ?? $existingSchedule->catatan,
+                ]);
+                $workOrder->update(['schedule_id' => $existingSchedule->id]);
+            } else {
+                $site = $workOrder->site_id ? Site::find($workOrder->site_id) : null;
+                $customer = Customer::find($workOrder->customer_id);
+
+                $schedule = Schedule::create([
+                    'schedule_code' => 'SCH-'.now()->format('Ymd').'-'.rand(100, 999),
+                    'customer_id' => $workOrder->customer_id,
+                    'contract_id' => $workOrder->contract_id,
+                    'lokasi' => $site ? $site->site_name : ($customer->address ?? 'Lokasi Utama'),
+                    'jenis_layanan' => $workOrder->service_type,
+                    'technician_id' => $workOrder->technician_id,
+                    'tanggal' => now()->toDateString(),
+                    'jam_mulai' => '08:00',
+                    'jam_selesai' => '17:00',
+                    'prioritas' => match (strtolower($workOrder->priority)) {
+                        'urgent' => 'urgent',
+                        'high' => 'tinggi',
+                        'low' => 'rendah',
+                        default => 'normal',
+                    },
+                    'status' => 'ditugaskan',
+                    'catatan' => $workOrder->instruction,
+                ]);
+
+                $workOrder->update(['schedule_id' => $schedule->id]);
+            }
+        }
+
+        return redirect()->route('work-orders.index')->with('success', 'Work Order & Jadwal Tugas berhasil dibuat.');
     }
 
-    public function show(WorkOrder $workOrder)
+    public function show($id)
     {
-        $workOrder->load([
+        $workOrder = WorkOrder::with([
             'customer', 'site', 'contract', 'schedule',
             'technician', 'inspectionAnswers.field', 'treatments.chemical',
-        ]);
+        ])->find($id);
+
+        if (! $workOrder) {
+            return redirect()->route('work-orders.index')
+                ->with('error', 'Work Order tidak ditemukan atau telah diperbarui.');
+        }
 
         return Inertia::render('WorkOrders/Show', [
             'workOrder' => $workOrder,

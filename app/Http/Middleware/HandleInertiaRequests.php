@@ -45,7 +45,7 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'pending_requests_count' => fn () => CustomerRequest::whereIn('status', ['baru', 'ditinjau'])->count(),
-            'notifikasi_belum_dibaca' => fn () => Notification::whereNull('dibaca_pada')->count(),
+            'notifikasi_belum_dibaca' => fn () => $user ? Notification::where('user_id', $user->id)->whereNull('dibaca_pada')->count() : 0,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

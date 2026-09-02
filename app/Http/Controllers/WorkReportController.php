@@ -106,6 +106,10 @@ class WorkReportController extends Controller
             $workReport->photos()->create($photo);
         }
 
+        if ($workReport->schedule_id) {
+            Schedule::where('id', $workReport->schedule_id)->update(['status' => 'selesai']);
+        }
+
         if ($workReport->status === 'dikirim') {
             app(NotificationService::class)->laporanDikirim($workReport);
         }
@@ -114,9 +118,14 @@ class WorkReportController extends Controller
             ->with('success', 'Laporan kerja berhasil disimpan.');
     }
 
-    public function show(WorkReport $workReport)
+    public function show($id)
     {
-        $workReport->load(['customer', 'contract', 'schedule', 'technician', 'photos']);
+        $workReport = WorkReport::with(['customer', 'contract', 'schedule', 'technician', 'photos'])->find($id);
+
+        if (! $workReport) {
+            return redirect()->route('work-reports.index')
+                ->with('error', 'Laporan kerja tidak ditemukan atau telah diperbarui.');
+        }
 
         return Inertia::render('WorkReports/Show', [
             'workReport' => $workReport,
@@ -215,6 +224,10 @@ class WorkReportController extends Controller
             'status' => 'disetujui',
             'catatan_supervisor' => $request->catatan_supervisor,
         ]);
+
+        if ($workReport->schedule_id) {
+            Schedule::where('id', $workReport->schedule_id)->update(['status' => 'selesai']);
+        }
 
         app(NotificationService::class)->laporanDisetujui($workReport);
 

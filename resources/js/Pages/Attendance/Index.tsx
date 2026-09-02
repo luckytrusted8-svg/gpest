@@ -2,8 +2,9 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Eye, Search, User, Calendar, Clock, MapPin, Download } from 'lucide-react';
+import { Eye, Search, User, Calendar, Clock, MapPin, Download, Activity, CheckCircle, PlayCircle } from 'lucide-react';
 import { useState } from 'react';
+import AttendanceTrackingModal from '@/Components/AttendanceTrackingModal';
 
 interface Technician {
     id: number;
@@ -41,28 +42,41 @@ interface PaginatedAttendances {
 interface IndexProps {
     attendances: PaginatedAttendances;
     technicians: Technician[];
+    summaryStats?: {
+        total_hadir: number;
+        total_berjalan: number;
+        total_selesai: number;
+        total_tidak_hadir: number;
+    };
     filters: { tanggal?: string; technician_id?: string; status?: string };
+    workingHoursConfig?: {
+        teknisi: string;
+        staff: { senin_jumat: string; sabtu: string; minggu: string };
+    };
 }
 
-const StatusBadge = ({ status }: { status: Attendance['status'] }) => {
+const StatusBadge = ({ status }: { status: string }) => {
     const map: Record<string, { label: string; cls: string }> = {
-        hadir:      { label: 'Hadir',      cls: 'bg-[#0070f3]/15 text-[#0070f3]' },
-        tidak_hadir: { label: 'Tidak Hadir', cls: 'bg-[#ee0000]/15 text-[#ee0000]' },
-        izin:       { label: 'Izin',       cls: 'bg-[#f5a623]/15 text-[#ab570a]' },
-        sakit:      { label: 'Sakit',      cls: 'bg-[#7928ca]/15 text-[#7928ca]' },
+        hadir:       { label: 'Hadir',                      cls: 'bg-[#0070f3]/15 text-[#0070f3]' },
+        tidak_hadir: { label: 'Tidak Hadir / Belum Check-in', cls: 'bg-slate-500/15 text-slate-600 dark:text-slate-400' },
+        izin:        { label: 'Izin',                       cls: 'bg-[#f5a623]/15 text-[#ab570a]' },
+        sakit:       { label: 'Sakit',                      cls: 'bg-[#7928ca]/15 text-[#7928ca]' },
     };
     const { label, cls } = map[status] ?? { label: status, cls: 'bg-canvas-soft-2 text-body-text border border-hairline' };
     return (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cls}`}>
             {label}
         </span>
     );
 };
 
-export default function Index({ attendances, technicians, filters }: IndexProps) {
+export default function Index({ attendances, technicians, summaryStats, filters }: IndexProps) {
     const [tanggal, setTanggal] = useState(filters.tanggal || '');
     const [technicianId, setTechnicianId] = useState(filters.technician_id || '');
     const [status, setStatus] = useState(filters.status || '');
+
+    const [selectedAttendanceId, setSelectedAttendanceId] = useState<number | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const applyFilters = (overrides: object = {}) => {
         router.get('/attendance', { tanggal, technician_id: technicianId, status, ...overrides }, { preserveState: true, replace: true });
@@ -81,7 +95,7 @@ export default function Index({ attendances, technicians, filters }: IndexProps)
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h1 className="text-display-sm font-semibold text-ink">Kehadiran (Attendance)</h1>
-                        <p className="text-body-sm text-mute mt-1">Monitoring check-in dan check-out teknisi di lapangan.</p>
+                        <p className="text-body-sm text-mute mt-1">Monitoring check-in, check-out, dan rute lokasi teknisi di lapangan.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <Link href="/attendance/check-in">
@@ -103,6 +117,79 @@ export default function Index({ attendances, technicians, filters }: IndexProps)
                     </div>
                 </div>
 
+                {/* Information Banner Shift Operational Hours */}
+                <div className="bg-canvas border border-hairline rounded-lg p-3.5 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-body-xs bg-canvas-soft/40">
+                    <div className="flex items-center gap-2 font-medium text-ink">
+                        <Clock className="w-4 h-4 text-primary shrink-0" />
+                        <span>Ketentuan Jam Kerja:</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 text-mute">
+                        <span className="flex items-center gap-1">
+                            <strong className="text-ink font-semibold">Teknisi Lapangan:</strong> Jam fleksibel / sesuai jadwal panggilan
+                        </span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                            <strong className="text-ink font-semibold">Staff Kantoran:</strong> Sen-Jum (08:00 - 16:00 WIB), Sab (08:00 - 14:00 WIB)
+                        </span>
+                    </div>
+                </div>
+
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-canvas border border-hairline rounded-lg p-4 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-body-xs text-mute font-medium">Teknisi Hadir</span>
+                            <div className="p-2 rounded-md bg-blue-500/10 text-blue-600">
+                                <CheckCircle className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="mt-2">
+                            <span className="text-display-xs font-semibold text-ink font-mono">{summaryStats?.total_hadir || 0}</span>
+                            <p className="text-caption-mono text-mute mt-0.5">Catatan kehadiran hari ini</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-canvas border border-hairline rounded-lg p-4 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-body-xs text-mute font-medium">Sedang Bekerja</span>
+                            <div className="p-2 rounded-md bg-emerald-500/10 text-emerald-600">
+                                <PlayCircle className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="mt-2">
+                            <span className="text-display-xs font-semibold text-ink font-mono">{summaryStats?.total_berjalan || 0}</span>
+                            <p className="text-caption-mono text-mute mt-0.5">Belum check-out (berjalan)</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-canvas border border-hairline rounded-lg p-4 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-body-xs text-mute font-medium">Check-Out Selesai</span>
+                            <div className="p-2 rounded-md bg-purple-500/10 text-purple-600">
+                                <Activity className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="mt-2">
+                            <span className="text-display-xs font-semibold text-ink font-mono">{summaryStats?.total_selesai || 0}</span>
+                            <p className="text-caption-mono text-mute mt-0.5">Sudah menyelesaikan jam kerja</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-canvas border border-hairline rounded-lg p-4 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-body-xs text-mute font-medium">Belum Check-In / Tidak Hadir</span>
+                            <div className="p-2 rounded-md bg-rose-500/10 text-rose-600">
+                                <User className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <div className="mt-2">
+                            <span className="text-display-xs font-semibold text-ink font-mono">{summaryStats?.total_tidak_hadir || 0}</span>
+                            <p className="text-caption-mono text-mute mt-0.5">Belum melakukan presensi</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Filter Form */}
                 <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
                     <form onSubmit={(e) => { e.preventDefault(); applyFilters(); }} className="flex flex-col sm:flex-row flex-wrap items-center gap-3">
                         <div className="relative flex-1 min-w-[200px]">
@@ -143,6 +230,7 @@ export default function Index({ attendances, technicians, filters }: IndexProps)
                     </form>
                 </div>
 
+                {/* Table */}
                 <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -176,7 +264,7 @@ export default function Index({ attendances, technicians, filters }: IndexProps)
                                             </td>
                                             <td className="py-3 px-4 text-body-text">
                                                 {att.jam_masuk ? (
-                                                    <div className="flex items-center gap-1.5">
+                                                    <div className="flex items-center gap-1.5 font-mono text-xs">
                                                         <Clock className="w-3.5 h-3.5 text-mute" />
                                                         {att.jam_masuk}
                                                     </div>
@@ -186,7 +274,7 @@ export default function Index({ attendances, technicians, filters }: IndexProps)
                                             </td>
                                             <td className="py-3 px-4 text-body-text">
                                                 {att.jam_keluar ? (
-                                                    <div className="flex items-center gap-1.5">
+                                                    <div className="flex items-center gap-1.5 font-mono text-xs">
                                                         <Clock className="w-3.5 h-3.5 text-mute" />
                                                         {att.jam_keluar}
                                                     </div>
@@ -194,26 +282,58 @@ export default function Index({ attendances, technicians, filters }: IndexProps)
                                                     <span className="text-mute">-</span>
                                                 )}
                                             </td>
-                                            <td className="py-3 px-4 text-body-text font-mono text-xs">
-                                                {att.durasi_kerja ?? '-'}
+                                            <td className="py-3 px-4 text-body-text">
+                                                {att.durasi_kerja ? (
+                                                    <span className={`inline-flex items-center gap-1.5 font-mono text-xs font-medium ${
+                                                        !att.jam_keluar ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-ink'
+                                                    }`}>
+                                                        {!att.jam_keluar && (
+                                                            <span className="relative flex h-2 w-2 shrink-0">
+                                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                            </span>
+                                                        )}
+                                                        {att.durasi_kerja}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-mute">-</span>
+                                                )}
                                             </td>
                                             <td className="py-3 px-4 text-body-text">
                                                 {att.latitude_masuk && att.longitude_masuk ? (
-                                                    <div className="flex items-center gap-1.5 text-xs text-mute">
-                                                        <MapPin className="w-3 h-3" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setSelectedAttendanceId(att.id); setIsModalOpen(true); }}
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono bg-canvas-soft border border-hairline hover:border-primary hover:text-primary hover:shadow-2xs transition-all group"
+                                                        title="Klik untuk cek peta tracking rute teknisi"
+                                                    >
+                                                        <MapPin className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform shrink-0" />
                                                         <span>{att.latitude_masuk.toFixed(5)}, {att.longitude_masuk.toFixed(5)}</span>
-                                                    </div>
+                                                    </button>
                                                 ) : (
                                                     <span className="text-mute">-</span>
                                                 )}
                                             </td>
                                             <td className="py-3 px-4"><StatusBadge status={att.status} /></td>
                                             <td className="py-3 px-4 text-right">
-                                                <Link href={`/attendance/${att.id}`}>
-                                                    <Button variant="outline" size="icon" className="h-8 w-8 text-body-text hover:text-ink">
-                                                        <Eye className="w-4 h-4" />
-                                                    </Button>
-                                                </Link>
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    {att.latitude_masuk && att.longitude_masuk && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-primary border-primary/30 hover:bg-primary/10"
+                                                            title="Cek Peta Rute Tracking"
+                                                            onClick={() => { setSelectedAttendanceId(att.id); setIsModalOpen(true); }}
+                                                        >
+                                                            <MapPin className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Link href={`/attendance/${att.id}`}>
+                                                        <Button variant="outline" size="icon" className="h-8 w-8 text-body-text hover:text-ink">
+                                                            <Eye className="w-4 h-4" />
+                                                        </Button>
+                                                    </Link>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -249,6 +369,14 @@ export default function Index({ attendances, technicians, filters }: IndexProps)
                     )}
                 </div>
             </div>
+
+            {/* Tracking Map Modal */}
+            <AttendanceTrackingModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                attendanceId={selectedAttendanceId}
+            />
         </AppLayout>
     );
 }
+

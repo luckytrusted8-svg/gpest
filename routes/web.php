@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('sites', SiteController::class)->middleware('permission:sites.view');
     Route::resource('contracts', ContractController::class)->middleware('permission:contracts.view');
     Route::resource('schedules', ScheduleController::class)->middleware('permission:schedules.view');
+    Route::put('schedules/{schedule}/status', [ScheduleController::class, 'updateStatus'])->name('schedules.status');
     Route::resource('work-orders', WOController::class)->names('work-orders')->middleware('permission:work-orders.view');
     Route::put('work-orders/{workOrder}/status', [WOController::class, 'updateStatus'])->name('work-orders.status')->middleware('permission:work-orders.approve');
     Route::resource('technicians', TechnicianController::class)->middleware('permission:technicians.view');
@@ -85,6 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('attendance/check-in', [AttendanceController::class, 'checkIn'])->name('attendance.check-in');
     Route::post('attendance/check-out', [AttendanceController::class, 'checkOut'])->name('attendance.check-out');
     Route::get('attendance/report', [AttendanceController::class, 'report'])->name('attendance.report');
+    Route::get('attendance/{attendance}/tracks', [AttendanceController::class, 'tracks'])->name('attendance.tracks');
     Route::resource('attendance', AttendanceController::class)->only(['index', 'show']);
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');

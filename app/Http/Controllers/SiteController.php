@@ -35,7 +35,7 @@ class SiteController extends Controller
     public function create()
     {
         return Inertia::render('Sites/Create', [
-            'customers' => Customer::all(['id', 'company_name']),
+            'customers' => Customer::all(['id', 'company_name', 'address', 'pic_name', 'phone', 'location', 'latitude', 'longitude']),
             'autoSiteCode' => Site::generateSiteCode(),
         ]);
     }
@@ -83,8 +83,8 @@ class SiteController extends Controller
     public function edit(Site $site)
     {
         return Inertia::render('Sites/Edit', [
-            'site' => $site,
-            'customers' => Customer::all(['id', 'company_name']),
+            'site' => $site->load('customer'),
+            'customers' => Customer::all(['id', 'company_name', 'address', 'pic_name', 'phone', 'location', 'latitude', 'longitude']),
         ]);
     }
 

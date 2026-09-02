@@ -38,9 +38,14 @@ class CustomerRequestController extends Controller
         ]);
     }
 
-    public function show(CustomerRequest $customerRequest)
+    public function show($id)
     {
-        $customerRequest->load(['customer']);
+        $customerRequest = CustomerRequest::with(['customer'])->find($id);
+
+        if (! $customerRequest) {
+            return redirect()->route('customer-requests.index')
+                ->with('error', 'Permintaan/Komplain Klien tidak ditemukan atau telah diperbarui.');
+        }
 
         return Inertia::render('CustomerRequests/Show', [
             'requestItem' => $customerRequest,

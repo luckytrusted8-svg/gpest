@@ -26,11 +26,26 @@ class DashboardController extends Controller
             'pendingRequests' => CustomerRequest::whereIn('status', ['baru', 'ditinjau'])->count(),
         ];
 
-        $todaySchedules = Schedule::with(['customer', 'technician'])
-            ->whereDate('tanggal', $todayDate)
-            ->orderBy('jam_mulai', 'asc')
-            ->take(5)
-            ->get();
+        $user = auth()->user();
+        $isTechnician = $user && $user->roles->pluck('name')->contains('technician');
+
+        if ($isTechnician) {
+            $todaySchedules = Schedule::with(['customer', 'technician'])
+                ->where('technician_id', $user->id)
+                ->orderByRaw("FIELD(status, 'sedang_dikerjakan', 'tiba', 'dalam_perjalanan', 'ditugaskan', 'dijadwalkan', 'selesai', 'dibatalkan') ASC")
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->unique('id')
+                ->values();
+        } else {
+            $todaySchedules = Schedule::with(['customer', 'technician'])
+                ->whereDate('tanggal', $todayDate)
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get()
+                ->unique('id')
+                ->values();
+        }
 
         $technicianCounts = [
             'online' => Technician::where('status', 'aktif')->count(),

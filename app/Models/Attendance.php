@@ -25,6 +25,11 @@ class Attendance extends Model
         'catatan',
     ];
 
+    protected $appends = [
+        'durasi_kerja',
+        'durasi_jam',
+    ];
+
     protected $casts = [
         'tanggal' => 'date:Y-m-d',
         'jam_masuk' => 'datetime:H:i',
@@ -42,30 +47,65 @@ class Attendance extends Model
 
     public function getDurasiKerjaAttribute(): ?string
     {
-        if (! $this->jam_masuk || ! $this->jam_keluar) {
+        $masukRaw = $this->getRawOriginal('jam_masuk');
+        if (! $masukRaw) {
             return null;
         }
 
-        $masuk = Carbon::parse($this->jam_masuk);
-        $keluar = Carbon::parse($this->jam_keluar);
-        $diff = $masuk->diff($keluar);
+        $dateStr = is_string($this->tanggal) ? $this->tanggal : ($this->tanggal ? $this->tanggal->format('Y-m-d') : date('Y-m-d'));
+        $masuk = Carbon::parse("{$dateStr} {$masukRaw}");
+        $keluarRaw = $this->getRawOriginal('jam_keluar');
 
+        if ($keluarRaw) {
+            $keluar = Carbon::parse("{$dateStr} {$keluarRaw}");
+            if ($keluar->lt($masuk)) {
+                $keluar->addDay();
+            }
+            $diff = $masuk->diff($keluar);
+            $hours = $diff->h + ($diff->days * 24);
+            $minutes = $diff->i;
+
+            return sprintf('%d jam %d menit', $hours, $minutes);
+        }
+
+        $now = now();
+        if ($now->lt($masuk)) {
+            return '0 jam 0 menit (Berjalan)';
+        }
+
+        $diff = $masuk->diff($now);
         $hours = $diff->h + ($diff->days * 24);
         $minutes = $diff->i;
 
-        return sprintf('%d jam %d menit', $hours, $minutes);
+        return sprintf('%d jam %d menit (Berjalan)', $hours, $minutes);
     }
 
     public function getDurasiJamAttribute(): ?float
     {
-        if (! $this->jam_masuk || ! $this->jam_keluar) {
+        $masukRaw = $this->getRawOriginal('jam_masuk');
+        if (! $masukRaw) {
             return null;
         }
 
-        $masuk = Carbon::parse($this->jam_masuk);
-        $keluar = Carbon::parse($this->jam_keluar);
+        $dateStr = is_string($this->tanggal) ? $this->tanggal : ($this->tanggal ? $this->tanggal->format('Y-m-d') : date('Y-m-d'));
+        $masuk = Carbon::parse("{$dateStr} {$masukRaw}");
+        $keluarRaw = $this->getRawOriginal('jam_keluar');
 
-        return round($masuk->diffInMinutes($keluar) / 60, 2);
+        if ($keluarRaw) {
+            $keluar = Carbon::parse("{$dateStr} {$keluarRaw}");
+            if ($keluar->lt($masuk)) {
+                $keluar->addDay();
+            }
+
+            return round($masuk->diffInMinutes($keluar) / 60, 2);
+        }
+
+        $now = now();
+        if ($now->lt($masuk)) {
+            return 0.0;
+        }
+
+        return round($masuk->diffInMinutes($now) / 60, 2);
     }
 
     public function scopeByDate(Builder $query, string $date): Builder

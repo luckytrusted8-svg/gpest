@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
 use App\Models\Geofence;
 use App\Models\LocationTrack;
 use App\Models\Schedule;
@@ -32,16 +33,40 @@ class LocationTrackingController extends Controller
             ->select('id', 'name')
             ->orderBy('name')
             ->get()
-            ->map(function ($tech) use ($latestTracks) {
+            ->map(function ($tech) use ($latestTracks, $tanggal) {
                 $track = $latestTracks->firstWhere('technician_id', $tech->id);
+
+                $attendance = Attendance::where('technician_id', $tech->id)
+                    ->whereDate('tanggal', $tanggal)
+                    ->first();
+
+                // If technician checked out today, status is strictly offline
+                if ($attendance && $attendance->jam_keluar) {
+                    $status = 'offline';
+                    $lat = $track?->latitude ?? $attendance->latitude_keluar ?? $attendance->latitude_masuk;
+                    $lng = $track?->longitude ?? $attendance->longitude_keluar ?? $attendance->longitude_masuk;
+                    $lastUpdate = $attendance->updated_at?->toIso8601String() ?? $track?->created_at?->toIso8601String();
+                } elseif ($attendance && $attendance->jam_masuk) {
+                    // Checked in today and has not checked out yet
+                    $status = ($track && $track->status_teknisi !== 'offline') ? $track->status_teknisi : 'aktif';
+                    $lat = $track?->latitude ?? $attendance->latitude_masuk;
+                    $lng = $track?->longitude ?? $attendance->longitude_masuk;
+                    $lastUpdate = $track?->created_at?->toIso8601String() ?? $attendance->updated_at?->toIso8601String();
+                } else {
+                    // Has not checked in today
+                    $status = 'offline';
+                    $lat = $track?->latitude;
+                    $lng = $track?->longitude;
+                    $lastUpdate = $track?->created_at?->toIso8601String();
+                }
 
                 return [
                     'id' => $tech->id,
                     'name' => $tech->name,
-                    'latitude' => $track?->latitude,
-                    'longitude' => $track?->longitude,
-                    'status_teknisi' => $track?->status_teknisi ?? 'offline',
-                    'last_update' => $track?->created_at?->toIso8601String(),
+                    'latitude' => $lat !== null ? (float) $lat : null,
+                    'longitude' => $lng !== null ? (float) $lng : null,
+                    'status_teknisi' => $status,
+                    'last_update' => $lastUpdate,
                     'schedule' => $track?->schedule ? [
                         'id' => $track->schedule->id,
                         'schedule_code' => $track->schedule->schedule_code,
@@ -50,7 +75,7 @@ class LocationTrackingController extends Controller
                 ];
             });
 
-        $geofences = Geofence::where('aktif', true)->get();
+        $geofences = Geofence::with('customer')->where('aktif', true)->get();
 
         return Inertia::render('Tracking/Index', [
             'technicians' => $allTechnicians,
