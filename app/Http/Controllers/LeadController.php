@@ -28,9 +28,11 @@ class LeadController extends Controller
             $query->ofSales($request->sales_id);
         }
 
-        $leads = $query->latest()->get();
+        $leads = $query->latest()->paginate(15)->withQueryString();
 
-        $byStatus = $leads->groupBy('status')->map(fn ($items) => $items->values());
+        // For kanban view: get all leads grouped by status (without pagination)
+        $allLeads = Lead::with('sales')->latest()->get();
+        $byStatus = $allLeads->groupBy('status')->map(fn ($items) => $items->values());
 
         return Inertia::render('CRM/Index', [
             'leads' => $leads,

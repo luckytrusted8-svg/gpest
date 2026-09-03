@@ -85,8 +85,19 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
+        $customer->load([
+            'contracts',
+            'schedules.technician',
+            'workReports.technician',
+            'invoices',
+            'requests',
+        ]);
+
+        $sites = Site::where('customer_id', $customer->id)->get();
+
         return Inertia::render('Customers/Show', [
             'customer' => $customer,
+            'sites' => $sites,
         ]);
     }
 

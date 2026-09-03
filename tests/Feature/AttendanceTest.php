@@ -50,10 +50,11 @@ class AttendanceTest extends TestCase
     public function test_attendance_tracks_json_endpoint()
     {
         $user = User::factory()->create();
+        $today = now()->toDateString();
 
         $attendance = Attendance::create([
             'technician_id' => $user->id,
-            'tanggal' => '2026-09-02',
+            'tanggal' => $today,
             'jam_masuk' => '08:00:00',
             'jam_keluar' => '17:00:00',
             'latitude_masuk' => -6.2088,
@@ -68,7 +69,6 @@ class AttendanceTest extends TestCase
             'latitude' => -6.2090,
             'longitude' => 106.8470,
             'status_teknisi' => 'dalam_perjalanan',
-            'created_at' => '2026-09-02 10:00:00',
         ]);
 
         $response = $this->actingAs($user)->get(route('attendance.tracks', $attendance->id));
