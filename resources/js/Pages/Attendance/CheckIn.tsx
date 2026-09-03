@@ -311,7 +311,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                                 </span>
                                             </div>
 
-                                            {/* Row Check-In / KPI / Check-Out */}
+                                            {/* Row Check-In / Durasi Tugas / Check-Out */}
                                             <div className="flex items-center justify-between gap-2">
                                                 {/* Left: Check In */}
                                                 <div className="flex items-center gap-3">
@@ -321,23 +321,29 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                                     <div>
                                                         <div className="text-[11px] text-slate-400 font-medium">Check In</div>
                                                         <div className="text-base font-bold text-slate-900 font-mono">{inTime}</div>
-                                                        <div className="text-[10px] font-bold text-emerald-600">On Time</div>
+                                                        <div className="text-[10px] font-semibold text-emerald-600">Presensi Masuk</div>
                                                     </div>
                                                 </div>
 
-                                                {/* Center: KPI / Durasi */}
-                                                <div className="flex-1 max-w-[140px] text-center px-1">
-                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                                                        KPI (08:00 - 17:00)
+                                                {/* Center: Durasi Penugasan Fleksibel */}
+                                                <div className="flex-1 max-w-[150px] text-center px-1">
+                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                                                        Penugasan Lapangan
                                                     </div>
                                                     <div className="w-full bg-slate-100 h-1.5 rounded-full my-1.5 overflow-hidden">
                                                         <div 
-                                                            className="bg-emerald-500 h-full rounded-full" 
-                                                            style={{ width: att.jam_keluar ? '100%' : '50%' }}
+                                                            className={`h-full rounded-full transition-all ${
+                                                                att.jam_keluar ? 'bg-emerald-500 w-full' : 'bg-amber-500 w-2/3 animate-pulse'
+                                                            }`} 
                                                         />
                                                     </div>
-                                                    <div className="text-[10px] font-semibold text-emerald-600 font-mono">
-                                                        {att.durasi_kerja ? `${att.durasi_kerja} • Selesai` : 'Sedang Bertugas'}
+                                                    <div className={`text-[10px] font-semibold font-mono ${
+                                                        att.jam_keluar ? 'text-emerald-700' : 'text-amber-700'
+                                                    }`}>
+                                                        {att.jam_keluar 
+                                                            ? (att.durasi_kerja ? `${att.durasi_kerja} • Selesai` : 'Tugas Selesai')
+                                                            : 'Sedang Bertugas • Aktif'
+                                                        }
                                                     </div>
                                                 </div>
 
@@ -346,8 +352,8 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                                     <div>
                                                         <div className="text-[11px] text-slate-400 font-medium">Check Out</div>
                                                         <div className="text-base font-bold text-slate-900 font-mono">{outTime}</div>
-                                                        <div className={`text-[10px] font-bold ${att.jam_keluar ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                                            {att.jam_keluar ? 'On Time' : '-'}
+                                                        <div className={`text-[10px] font-semibold ${att.jam_keluar ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                                            {att.jam_keluar ? 'Presensi Selesai' : 'Sedang Berjalan'}
                                                         </div>
                                                     </div>
                                                     <div className="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
