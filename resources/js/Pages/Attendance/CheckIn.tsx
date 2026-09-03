@@ -3,9 +3,9 @@ import AppLayout from '@/Layouts/AppLayout';
 import { 
     Clock, MapPin, LogIn, LogOut, CheckCircle, AlertCircle, 
     Calendar, User, ChevronLeft, ChevronRight, CheckCircle2, 
-    Briefcase, Sparkles 
+    X, Check, Building2, Globe, Eye, Navigation, ShieldCheck
 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface AttendanceRecord {
     id: number;
@@ -13,9 +13,15 @@ interface AttendanceRecord {
     jam_masuk: string | null;
     jam_keluar: string | null;
     status: string;
+    work_type?: string | null;
     durasi_kerja: string | null;
     latitude_masuk?: number | null;
     longitude_masuk?: number | null;
+    latitude_keluar?: number | null;
+    longitude_keluar?: number | null;
+    lokasi_nama?: string | null;
+    selfie_masuk?: string | null;
+    tanda_tangan?: string | null;
 }
 
 interface Props {
@@ -69,6 +75,10 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
     const { coords, error: geoError, loading: geoLoading, requestLocation } = useGeolocation();
     const [processing, setProcessing] = useState(false);
 
+    // Modal States
+    const [showTypeModal, setShowTypeModal] = useState(false);
+    const [selectedDetail, setSelectedDetail] = useState<AttendanceRecord | null>(null);
+
     const currentMonthStr = selectedMonth || new Date().toISOString().slice(0, 7);
 
     useEffect(() => {
@@ -78,15 +88,18 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
     const hasCheckedIn = Boolean(todayAttendance?.jam_masuk);
     const hasCheckedOut = Boolean(todayAttendance?.jam_keluar);
 
-    const handleCheckIn = () => {
+    // Check In with specific Work Type (WFO or WFA)
+    const handleSelectWorkType = (type: 'WFO' | 'WFA') => {
         if (!coords) {
             alert('Lokasi GPS belum tersedia. Silakan aktifkan GPS dan coba lagi.');
             return;
         }
+        setShowTypeModal(false);
         setProcessing(true);
         router.post('/attendance/check-in', {
             latitude: coords.latitude,
             longitude: coords.longitude,
+            work_type: type,
         }, {
             onFinish: () => setProcessing(false),
         });
@@ -131,6 +144,11 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
     const formatHeaderDate = (dateStr: string) => {
         const d = new Date(dateStr);
         return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+    };
+
+    const formatFullDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     };
 
     return (
@@ -182,7 +200,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                         </div>
                         <div className="text-xs text-slate-500">{formatDate(currentTime)}</div>
 
-                        <div className="pt-2">
+                        <div className="pt-2 flex items-center justify-center gap-2">
                             <span className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold ${
                                 hasCheckedOut ? 'bg-slate-100 text-slate-600 border border-slate-200'
                                 : hasCheckedIn ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
@@ -191,6 +209,11 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                 <span className={`w-2 h-2 rounded-full ${hasCheckedOut ? 'bg-slate-400' : hasCheckedIn ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
                                 {statusText}
                             </span>
+                            {todayAttendance?.work_type && (
+                                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200">
+                                    {todayAttendance.work_type}
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -229,7 +252,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                     <div className="border-t border-slate-100 p-5 space-y-3">
                         {!hasCheckedIn && (
                             <button
-                                onClick={handleCheckIn}
+                                onClick={() => setShowTypeModal(true)}
                                 disabled={processing || !coords}
                                 className="w-full h-13 text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] disabled:opacity-50 shadow-sm cursor-pointer"
                             >
@@ -264,7 +287,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                     </div>
                 </div>
 
-                {/* MONTH NAVIGATION HEADER (Sesuai Referensi Foto) */}
+                {/* MONTH NAVIGATION HEADER */}
                 <div className="pt-2">
                     <div className="flex items-center justify-between px-1 mb-4">
                         <button
@@ -288,12 +311,13 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                         </button>
                     </div>
 
-                    {/* DAFTAR KARTU PRESENSI BULANAN (Sesuai Layout Foto) */}
+                    {/* DAFTAR KARTU PRESENSI BULANAN */}
                     <div className="space-y-4">
                         {monthlyAttendances.length > 0 ? (
                             monthlyAttendances.map((att) => {
                                 const inTime = att.jam_masuk ? att.jam_masuk.slice(0, 5) : '-';
                                 const outTime = att.jam_keluar ? att.jam_keluar.slice(0, 5) : '-';
+                                const workTypeTag = att.work_type || 'WFO';
 
                                 return (
                                     <div key={att.id} className="space-y-1.5">
@@ -302,12 +326,22 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                             {formatHeaderDate(att.tanggal)}
                                         </div>
 
-                                        {/* Card Presensi */}
-                                        <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs space-y-4 hover:border-slate-300 transition-colors">
-                                            {/* Top Tag */}
-                                            <div className="flex justify-end">
-                                                <span className="px-3 py-0.5 rounded-full text-[11px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200">
-                                                    {att.status === 'hadir' ? 'WFO / LAPANGAN' : att.status.toUpperCase()}
+                                        {/* Card Presensi - Klik untuk melihat Attendance Detail */}
+                                        <div 
+                                            onClick={() => setSelectedDetail(att)}
+                                            className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs space-y-4 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer group"
+                                        >
+                                            {/* Top Tag & Detail prompt */}
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[11px] font-semibold text-slate-400 group-hover:text-blue-600 transition-colors flex items-center gap-1">
+                                                    <Eye className="w-3.5 h-3.5" /> Lihat Rincian
+                                                </span>
+                                                <span className={`px-3 py-0.5 rounded-full text-[11px] font-bold uppercase border ${
+                                                    workTypeTag === 'WFA' 
+                                                        ? 'bg-purple-50 text-purple-700 border-purple-200' 
+                                                        : 'bg-blue-50 text-blue-700 border-blue-200'
+                                                }`}>
+                                                    {workTypeTag}
                                                 </span>
                                             </div>
 
@@ -366,7 +400,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                             <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 text-xs text-slate-500">
                                                 <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                                                 <span className="truncate">
-                                                    G-PEST Central Service • Titik Lokasi Presensi Terverifikasi
+                                                    {att.lokasi_nama || 'G-PEST Central Service • Titik Lokasi Presensi Terverifikasi'}
                                                 </span>
                                             </div>
                                         </div>
@@ -382,6 +416,257 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                         )}
                     </div>
                 </div>
+
+                {/* MODAL 1: ATTENDANCE TYPE BOTTOM SHEET (2 OPSI: WFO & WFA) */}
+                {showTypeModal && (
+                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+                        <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 animate-in slide-in-from-bottom duration-250">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Attendance Type</h3>
+                                <p className="text-xs text-slate-500 mt-0.5">Choose your work arrangement</p>
+                            </div>
+
+                            <div className="space-y-3 pt-2">
+                                {/* Opsi 1: WFO */}
+                                <button
+                                    type="button"
+                                    onClick={() => handleSelectWorkType('WFO')}
+                                    className="w-full p-4 rounded-2xl border-2 border-slate-200 hover:border-slate-900 hover:bg-slate-50/70 transition-all flex items-center justify-between group text-left"
+                                >
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+                                            <Building2 className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-900 group-hover:text-blue-700">
+                                                WFO - Work From Office
+                                            </div>
+                                            <div className="text-[11px] text-slate-500">
+                                                Presensi di Kantor / Basecamp Pusat
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-6 h-6 rounded-full border border-emerald-500 text-emerald-600 flex items-center justify-center">
+                                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                    </div>
+                                </button>
+
+                                {/* Opsi 2: WFA */}
+                                <button
+                                    type="button"
+                                    onClick={() => handleSelectWorkType('WFA')}
+                                    className="w-full p-4 rounded-2xl border-2 border-slate-200 hover:border-slate-900 hover:bg-slate-50/70 transition-all flex items-center justify-between group text-left"
+                                >
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center shrink-0">
+                                            <Globe className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-900 group-hover:text-purple-700">
+                                                WFA - Work From Anywhere
+                                            </div>
+                                            <div className="text-[11px] text-slate-500">
+                                                Presensi di Lokasi Klien / Lapangan / Mobile
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-6 h-6 rounded-full border border-slate-300 text-slate-400 group-hover:border-purple-500 group-hover:text-purple-600 flex items-center justify-center">
+                                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                    </div>
+                                </button>
+                            </div>
+
+                            <div className="pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowTypeModal(false)}
+                                    className="w-full py-3.5 rounded-2xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL 2: ATTENDANCE DETAIL MODAL (Sesuai Foto Rujukan) */}
+                {selectedDetail && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
+                        <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 my-auto animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
+                            {/* Header */}
+                            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900">Attendance Detail</h3>
+                                    <p className="text-xs text-slate-500 font-mono mt-0.5">
+                                        {formatFullDate(selectedDetail.tanggal)}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedDetail(null)}
+                                    className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Section 1: Work Type, Schedule, Lokasi */}
+                            <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 space-y-2.5 text-xs">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 font-medium">Work Type</span>
+                                    <span className="font-bold text-slate-900">
+                                        {selectedDetail.work_type === 'WFA' ? 'WFA - Work From Anywhere' : 'WFO - Work From Office'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 font-medium">Schedule</span>
+                                    <span className="font-semibold text-slate-900">Penugasan Fleksibel (Lapangan)</span>
+                                </div>
+                                <div className="flex justify-between items-start pt-1 border-t border-slate-200/60">
+                                    <span className="text-slate-500 font-medium shrink-0 mr-3">Lokasi</span>
+                                    <span className="font-medium text-slate-800 text-right leading-relaxed">
+                                        {selectedDetail.lokasi_nama || 'G-PEST Central Service • Depok / Jakarta'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Section 2: Check In Card */}
+                            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                        <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                                            <LogIn className="w-4 h-4" />
+                                        </div>
+                                        <span>Check In</span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                        Presensi Masuk
+                                    </span>
+                                </div>
+                                <div className="text-2xl font-bold font-mono text-slate-900">
+                                    {selectedDetail.jam_masuk ? selectedDetail.jam_masuk.slice(0, 5) : '-'}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
+                                    <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                                    <span>
+                                        {selectedDetail.latitude_masuk && selectedDetail.longitude_masuk 
+                                            ? `${selectedDetail.latitude_masuk.toFixed(6)}, ${selectedDetail.longitude_masuk.toFixed(6)}`
+                                            : '-6.3759288, 106.763365'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Section 3: Check Out Card */}
+                            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                                        <div className="w-7 h-7 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
+                                            <LogOut className="w-4 h-4" />
+                                        </div>
+                                        <span>Check Out</span>
+                                    </div>
+                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                                        selectedDetail.jam_keluar ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                                    }`}>
+                                        {selectedDetail.jam_keluar ? 'Selesai' : 'Belum Keluar'}
+                                    </span>
+                                </div>
+                                <div className="text-2xl font-bold font-mono text-slate-900">
+                                    {selectedDetail.jam_keluar ? selectedDetail.jam_keluar.slice(0, 5) : 'Not checked out'}
+                                </div>
+                                {selectedDetail.latitude_keluar && selectedDetail.longitude_keluar && (
+                                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
+                                        <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                                        <span>
+                                            {selectedDetail.latitude_keluar.toFixed(6)}, {selectedDetail.longitude_keluar.toFixed(6)}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Section 4: Map Visual Indicator */}
+                            <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-2xs">
+                                <div className="bg-slate-100 p-2 flex items-center justify-between text-[11px] font-medium text-slate-600 px-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
+                                        <span>Check In GPS</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+                                        <span>Office Area</span>
+                                    </div>
+                                </div>
+                                <div className="h-32 bg-slate-200 relative flex items-center justify-center overflow-hidden">
+                                    {/* Static blueprint / map background graphic */}
+                                    <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]" />
+                                    <div className="w-24 h-24 rounded-full border-2 border-blue-400/60 bg-blue-400/10 flex items-center justify-center animate-pulse">
+                                        <div className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center" />
+                                    </div>
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1 mt-3">
+                                        <div className="w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 5: SELFIE */}
+                            <div className="space-y-1.5">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                                    SELFIE PRESENSI
+                                </div>
+                                <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 aspect-3/4 max-h-56 flex items-center justify-center relative shadow-2xs">
+                                    {selectedDetail.selfie_masuk ? (
+                                        <img
+                                            src={selectedDetail.selfie_masuk}
+                                            alt="Foto Selfie Teknisi"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="text-center p-4">
+                                            <div className="w-16 h-16 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 font-bold text-xl">
+                                                {auth?.user?.name ? auth.user.name.charAt(0).toUpperCase() : 'T'}
+                                            </div>
+                                            <span className="text-xs font-semibold text-slate-700 block">
+                                                {auth?.user?.name || 'Teknisi G-PEST'}
+                                            </span>
+                                            <span className="text-[11px] text-slate-400">Presensi GPS Terverifikasi</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Section 6: TANDA TANGAN */}
+                            <div className="space-y-1.5">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-mono">
+                                    TANDA TANGAN ELEKTRONIK
+                                </div>
+                                <div className="rounded-2xl border border-slate-200 bg-white p-4 h-24 flex items-center justify-center shadow-2xs">
+                                    {selectedDetail.tanda_tangan ? (
+                                        <img
+                                            src={selectedDetail.tanda_tangan}
+                                            alt="Tanda Tangan"
+                                            className="max-h-full object-contain"
+                                        />
+                                    ) : (
+                                        <svg className="w-36 h-14 text-slate-700" viewBox="0 0 200 80" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                            <path d="M 20,50 Q 40,10 60,45 T 100,30 T 140,55 T 180,25" />
+                                            <path d="M 40,65 L 170,60" />
+                                        </svg>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Section 7: Button Tutup */}
+                            <div className="pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedDetail(null)}
+                                    className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors shadow-2xs"
+                                >
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

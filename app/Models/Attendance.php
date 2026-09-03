@@ -22,6 +22,10 @@ class Attendance extends Model
         'latitude_keluar',
         'longitude_keluar',
         'status',
+        'work_type',
+        'selfie_masuk',
+        'tanda_tangan',
+        'lokasi_nama',
         'catatan',
     ];
 

@@ -167,13 +167,20 @@ class AttendanceController extends Controller
         $validated = $request->validate([
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
+            'work_type' => 'nullable|in:WFO,WFA',
+            'lokasi_nama' => 'nullable|string',
         ]);
+
+        $workType = $validated['work_type'] ?? 'WFO';
+        $lokasiNama = $validated['lokasi_nama'] ?? ($workType === 'WFO' ? 'G-PEST Central Service • Head Office' : 'Titik Tugas Lapangan (WFA)');
 
         if ($existing) {
             $existing->update([
                 'jam_masuk' => now()->format('H:i:s'),
                 'latitude_masuk' => $validated['latitude'],
                 'longitude_masuk' => $validated['longitude'],
+                'work_type' => $workType,
+                'lokasi_nama' => $lokasiNama,
                 'status' => 'hadir',
             ]);
 
@@ -185,6 +192,8 @@ class AttendanceController extends Controller
                 'jam_masuk' => now()->format('H:i:s'),
                 'latitude_masuk' => $validated['latitude'],
                 'longitude_masuk' => $validated['longitude'],
+                'work_type' => $workType,
+                'lokasi_nama' => $lokasiNama,
                 'status' => 'hadir',
             ]);
 
