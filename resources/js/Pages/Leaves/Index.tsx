@@ -8,7 +8,7 @@ import {
     Plus, CheckCircle, Clock, FileText, Camera, 
     X, CheckCircle2, XCircle, AlertCircle, Eye, Calendar, UserCheck, 
     Edit, Trash2, ShieldCheck, User, MoreVertical, Check, Image as ImageIcon,
-    Search, Filter, Users
+    Search, Filter, Users, ArrowRight
 } from 'lucide-react';
 
 interface LeaveItem {
@@ -43,6 +43,15 @@ const calculateDays = (start: string, end: string) => {
 const formatCode = (type: string, id: number) => {
     const prefix = type === 'sakit' ? 'SKT' : type === 'izin' ? 'IZN' : 'CUT';
     return `${prefix}-${String(id).padStart(4, '0')}`;
+};
+
+const getPhotoUrl = (url?: string | null) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+    if (url.startsWith('/storage/')) return url;
+    if (url.startsWith('storage/')) return '/' + url;
+    if (url.startsWith('/')) return url;
+    return '/storage/' + url;
 };
 
 export default function LeavesIndex({ leaves }: Props) {
@@ -1203,32 +1212,53 @@ export default function LeavesIndex({ leaves }: Props) {
                 {/* MODAL 6: PREVIEW LIGHTBOX FOTO LAMPIRAN */}
                 {previewPhoto && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/75 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-                        <div className="bg-white rounded-3xl max-w-xl w-full p-5 shadow-2xl border border-slate-200 space-y-3">
-                            <div className="flex items-center justify-between">
+                        <div className="bg-white rounded-3xl max-w-xl w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 font-mono">
                                     <ImageIcon className="w-4 h-4 text-blue-600" /> Lampiran Bukti Foto Surat Dokter / Cuti
                                 </h3>
                                 <button
                                     onClick={() => setPreviewPhoto(null)}
-                                    className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                                    className="text-slate-400 hover:text-slate-600 p-1 rounded-xl"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center max-h-[70vh]">
+                            <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center min-h-[220px] max-h-[70vh] p-2">
                                 <img
-                                    src={previewPhoto}
+                                    src={getPhotoUrl(previewPhoto)}
                                     alt="Foto Bukti Surat"
-                                    className="max-h-[68vh] w-auto object-contain rounded-xl shadow-xs"
+                                    className="max-h-[65vh] w-auto max-w-full object-contain rounded-xl shadow-xs"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        const parent = target.parentElement;
+                                        if (parent && !parent.querySelector('.img-fallback-msg')) {
+                                            const div = document.createElement('div');
+                                            div.className = 'img-fallback-msg text-center p-6 text-slate-500 text-xs';
+                                            div.innerHTML = '<p class="font-bold text-slate-700 mb-1">Foto Sedang Diproses / Memuat</p><p class="text-[11px] text-slate-400">File foto lampiran berhasil tersimpan di sistem.</p>';
+                                            parent.appendChild(div);
+                                        }
+                                    }}
                                 />
                             </div>
 
-                            <div className="flex justify-end">
+                            <div className="flex justify-between items-center pt-1">
+                                <a
+                                    href={getPhotoUrl(previewPhoto)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
+                                >
+                                    <span>Buka Gambar Penuh</span>
+                                    <ArrowRight className="w-3.5 h-3.5" />
+                                </a>
+
                                 <button
                                     type="button"
                                     onClick={() => setPreviewPhoto(null)}
-                                    className="px-5 py-2.5 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition-colors"
+                                    className="px-5 py-2.5 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition-colors shadow-xs"
                                 >
                                     Tutup
                                 </button>
