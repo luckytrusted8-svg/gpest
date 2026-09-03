@@ -169,7 +169,7 @@ export default function Edit({ quotation, customers }: Props) {
                     <div className="flex justify-end gap-3">
                         <Link href={`/quotations/${quotation.id}`}><Button type="button" variant="outline" className="text-body-sm-strong">Batal</Button></Link>
                         <Button type="submit" className="bg-[#f5a623] hover:bg-[#e6960a] text-white text-body-sm-strong flex items-center gap-2" disabled={processing}>{processing ? 'Menyimpan...' : <><FileText className="w-4 h-4" />Simpan Draft</>}</Button>
-                        <Button type="button" onClick={(e) => handleSubmit(e, 'dikirim')} className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2" disabled={processing}>{processing ? 'Mengirim...' : <><FileText className="w-4 h-4" />Simpan & Kirim</>}</Button>
+                        <Button type="button" onClick={(e) => handleSubmit(e, 'dikirim')} className="bg-slate-900 text-white hover:bg-slate-800 font-semibold flex items-center gap-2" disabled={processing}>{processing ? 'Mengirim...' : <><FileText className="w-4 h-4" />Simpan & Kirim</>}</Button>
                     </div>
                 </form>
             </div>

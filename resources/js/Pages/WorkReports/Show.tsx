@@ -128,7 +128,7 @@ export default function Show({ workReport }: Props) {
                         {workReport.status === 'dikirim' && (
                             <>
                                 <Button
-                                    className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2"
+                                    className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold flex items-center gap-2"
                                     onClick={() => setShowApprove(true)}
                                 >
                                     <CheckCircle className="w-4 h-4" /> Setujui
@@ -233,7 +233,7 @@ export default function Show({ workReport }: Props) {
                                 />
                                 <div className="flex gap-3">
                                     <Button type="button" variant="outline" className="flex-1" onClick={() => setShowApprove(false)}>Batal</Button>
-                                    <Button type="submit" className="flex-1 bg-primary text-on-primary hover:bg-ink" disabled={approveForm.processing}>Setujui Laporan</Button>
+                                    <Button type="submit" className="flex-1 bg-emerald-600 text-white hover:bg-emerald-700 font-semibold" disabled={approveForm.processing}>Setujui Laporan</Button>
                                 </div>
                             </form>
                         </div>

@@ -145,7 +145,7 @@ export default function Create({ customers, technicians, contracts, schedules, n
                             const active = i === step;
                             return (
                                 <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${done ? 'bg-primary text-on-primary' : active ? 'bg-primary text-on-primary ring-4 ring-primary/20' : 'bg-canvas-soft-2 text-mute border border-hairline'}`}>
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${done ? 'bg-slate-900 text-white' : active ? 'bg-slate-900 text-white ring-4 ring-slate-900/20' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
                                         {done ? <CheckCircle className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                                     </div>
                                     <span className={`text-[10px] font-medium text-center leading-tight hidden sm:block ${active ? 'text-primary' : done ? 'text-ink' : 'text-mute'}`}>{s.label}</span>
@@ -449,7 +449,7 @@ export default function Create({ customers, technicians, contracts, schedules, n
                                     </Button>
                                     <Button
                                         type="button"
-                                        className="flex-1 bg-primary text-on-primary hover:bg-ink text-body-sm-strong"
+                                        className="flex-1 bg-slate-900 text-white hover:bg-slate-800 font-semibold"
                                         disabled={processing}
                                         onClick={() => submit(false)}
                                     >
@@ -476,7 +476,7 @@ export default function Create({ customers, technicians, contracts, schedules, n
                     {step < STEPS.length - 1 && (
                         <Button
                             type="button"
-                            className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2"
+                            className="bg-slate-900 text-white hover:bg-slate-800 font-semibold flex items-center gap-2"
                             onClick={nextStep}
                         >
                             Selanjutnya <ChevronRight className="w-4 h-4" />

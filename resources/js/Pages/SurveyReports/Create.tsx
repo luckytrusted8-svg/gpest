@@ -126,7 +126,7 @@ export default function Create({ customers, technicians, nomorSurvey }: Props) {
                         <h2 className="text-body-md-strong text-ink border-b border-hairline pb-3">Jenis Hama</h2>
                         <div className="flex flex-wrap gap-2">
                             {JENIS_HAMA_OPTIONS.map((hama) => (
-                                <button key={hama} type="button" onClick={() => toggleHama(hama)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${data.jenis_hama.includes(hama) ? 'bg-primary text-on-primary border-primary' : 'bg-canvas text-body-text border-hairline hover:bg-canvas-soft'}`}>
+                                <button key={hama} type="button" onClick={() => toggleHama(hama)} className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${data.jenis_hama.includes(hama) ? 'bg-slate-900 text-white border-slate-900 shadow-xs' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}>
                                     {hama}
                                 </button>
                             ))}
@@ -170,7 +170,7 @@ export default function Create({ customers, technicians, nomorSurvey }: Props) {
                     <div className="flex justify-end gap-3">
                         <Link href="/survey-reports"><Button type="button" variant="outline" className="text-body-sm-strong">Batal</Button></Link>
                         <Button type="button" variant="outline" className="text-body-sm-strong" disabled={processing} onClick={() => { setData('status', 'draft'); post('/survey-reports'); }}>Simpan Draft</Button>
-                        <Button type="submit" className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong" disabled={processing} onClick={() => setData('status', 'dikirim')}>{processing ? 'Menyimpan...' : 'Kirim Laporan'}</Button>
+                        <Button type="submit" className="bg-slate-900 text-white hover:bg-slate-800 font-semibold" disabled={processing} onClick={() => setData('status', 'dikirim')}>{processing ? 'Menyimpan...' : 'Kirim Laporan'}</Button>
                     </div>
                 </form>
             </div>

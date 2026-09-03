@@ -222,7 +222,7 @@ export default function Edit({ invoice, customers = [] }: Props) {
                         <Link href={`/invoices/${invoice.id}`}>
                             <Button type="button" variant="outline">Batal</Button>
                         </Link>
-                        <Button type="submit" disabled={processing} className="bg-primary text-on-primary hover:bg-ink">
+                        <Button type="submit" disabled={processing} className="bg-slate-900 text-white hover:bg-slate-800 font-semibold">
                             {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                         </Button>
                     </div>

@@ -145,7 +145,7 @@ export default function Edit({ user, roles }: Props) {
                             <Button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong"
+                                className="bg-slate-900 text-white hover:bg-slate-800 font-semibold"
                             >
                                 Perbarui User
                             </Button>

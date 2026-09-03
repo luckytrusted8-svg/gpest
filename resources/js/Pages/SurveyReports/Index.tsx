@@ -81,7 +81,7 @@ export default function Index({ surveyReports, technicians, filters }: Props) {
                         <p className="text-body-sm text-mute mt-1">Inspeksi dan survey area sebelum treatment dilakukan.</p>
                     </div>
                     <Link href="/survey-reports/create">
-                        <Button className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 font-semibold flex items-center gap-2">
                             <Plus className="w-4 h-4" /> Buat Survey Baru
                         </Button>
                     </Link>

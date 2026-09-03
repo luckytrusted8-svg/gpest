@@ -213,7 +213,7 @@ export default function Create({ customers = [], contracts = [], workReports = [
                         <Link href="/invoices">
                             <Button type="button" variant="outline">Batal</Button>
                         </Link>
-                        <Button type="submit" disabled={processing} className="bg-primary text-on-primary hover:bg-ink">
+                        <Button type="submit" disabled={processing} className="bg-slate-900 text-white hover:bg-slate-800 font-semibold">
                             {processing ? 'Menyimpan...' : 'Terbit Invoice'}
                         </Button>
                     </div>
