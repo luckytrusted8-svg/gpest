@@ -32,7 +32,7 @@ export default function Login() {
         <div className="min-h-screen w-full bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-900 antialiased">
             <Head title="Masuk ke Sistem - G-PEST" />
 
-            {/* LEFT PANEL - Desktop Only Branding (Hidden on Mobile for fast & clean access) */}
+            {/* LEFT PANEL - Desktop Only Branding (Identical layout) */}
             <div className="hidden lg:flex lg:w-5/12 bg-slate-900 text-white p-12 lg:p-16 flex-col justify-between relative shrink-0">
                 {/* Brand Title */}
                 <div>
@@ -47,10 +47,10 @@ export default function Login() {
                         <ShieldCheck className="w-3.5 h-3.5" />
                         <span>Enterprise Control System</span>
                     </div>
-                    <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight min-h-[5.5rem]">
                         Platform Operasional Pengendalian Hama Modern.
                     </h1>
-                    <p className="text-sm text-slate-400 mt-4 leading-relaxed">
+                    <p className="text-sm text-slate-400 mt-4 leading-relaxed min-h-[3rem]">
                         Satu sistem terintegrasi untuk pemantauan teknisi, digital work order, absensi berbasis GPS, dan portal pelanggan.
                     </p>
 

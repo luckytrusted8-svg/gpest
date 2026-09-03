@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEventHandler } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { Mail, Lock, ArrowRight, CheckCircle2, ShieldCheck, Phone } from 'lucide-react';
+import { Mail, Lock, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 interface FormData {
     email: string;
@@ -32,7 +32,7 @@ export default function CustomerLogin() {
         <div className="min-h-screen w-full bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-900 antialiased">
             <Head title="Masuk Portal Pelanggan - G-PEST" />
 
-            {/* LEFT PANEL - Desktop Only Branding (Identical colors to Staff Login) */}
+            {/* LEFT PANEL - Desktop Only Branding (Identical layout and width) */}
             <div className="hidden lg:flex lg:w-5/12 bg-slate-900 text-white p-12 lg:p-16 flex-col justify-between relative shrink-0">
                 {/* Brand Title */}
                 <div>
@@ -47,10 +47,10 @@ export default function CustomerLogin() {
                         <ShieldCheck className="w-3.5 h-3.5" />
                         <span>Customer Portal System</span>
                     </div>
-                    <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight">
-                        Portal Khusus Pelanggan & Mitra G-PEST.
+                    <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight min-h-[5.5rem]">
+                        Portal Transparansi Layanan Pelanggan.
                     </h1>
-                    <p className="text-sm text-slate-400 mt-4 leading-relaxed">
+                    <p className="text-sm text-slate-400 mt-4 leading-relaxed min-h-[3rem]">
                         Pantau jadwal penanganan teknisi, laporan kerja digital, berita acara, dan tagihan proyek Anda secara real-time.
                     </p>
 
@@ -72,12 +72,12 @@ export default function CustomerLogin() {
 
                 {/* Bottom Footer */}
                 <div className="pt-6 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-slate-500">
-                    <span>G-PEST CUSTOMER PORTAL</span>
+                    <span>G-PEST CONTROL</span>
                     <span>ENTERPRISE SYSTEM</span>
                 </div>
             </div>
 
-            {/* RIGHT PANEL - Clean Form Area (Identical colors to Staff Login) */}
+            {/* RIGHT PANEL - Clean Mobile-Optimized Form Area */}
             <div className="w-full lg:w-7/12 min-h-screen bg-slate-50/50 sm:bg-white p-5 sm:p-12 lg:p-20 flex flex-col justify-center items-center relative flex-1">
                 <div className="max-w-md w-full bg-white sm:bg-transparent p-6 sm:p-0 rounded-3xl sm:rounded-none border border-slate-200/80 sm:border-0 shadow-xl sm:shadow-none space-y-6 sm:space-y-8 my-auto">
                     {/* Header with Logo */}
@@ -89,7 +89,7 @@ export default function CustomerLogin() {
                             Masuk Portal Pelanggan
                         </h2>
                         <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
-                            Silakan masukkan email pelanggan dan kata sandi untuk mengakses portal.
+                            Silakan masukkan email pelanggan dan kata sandi untuk mengakses workspace.
                         </p>
                     </div>
 
@@ -193,19 +193,6 @@ export default function CustomerLogin() {
                                 <span>Masuk sebagai Staff / Teknisi</span>
                             </button>
                         </Link>
-
-                        {/* WhatsApp Survey Inquiry Link */}
-                        <div className="pt-4 text-center text-xs text-slate-500 border-t border-slate-100">
-                            <p>Belum memiliki akun pelanggan?</p>
-                            <a 
-                                href="https://wa.me/6281234567890?text=Halo%20G-PEST,%20saya%20ingin%20mengajukan%20survey%20lokasi" 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="text-blue-600 font-bold hover:underline inline-flex items-center gap-1.5 mt-1.5 transition-colors"
-                            >
-                                <Phone className="w-3.5 h-3.5" /> Hubungi Sales / Ajukan Survey Gratis →
-                            </a>
-                        </div>
                     </form>
                 </div>
             </div>
