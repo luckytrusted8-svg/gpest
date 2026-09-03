@@ -142,7 +142,7 @@ export default function Index({ contracts, filters }: IndexProps) {
                         <p className="text-body-sm text-mute mt-1">Kelola perjanjian pelanggan, jadwal layanan, dan siklus hidup kontrak.</p>
                     </div>
                     <Link href="/contracts/create">
-                        <Button className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
                             <Plus className="w-4 h-4" />
                             Buat Kontrak
                         </Button>

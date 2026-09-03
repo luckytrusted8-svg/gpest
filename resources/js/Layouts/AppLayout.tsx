@@ -2,7 +2,7 @@ import { Link, usePage, router } from '@inertiajs/react';
 import { 
     Home, Users, Calendar, FileText, DollarSign, Settings, ClipboardList, 
     Shield, CheckCircle, XCircle, X, MapPin, Radar, MessageSquare, 
-    ShieldCheck, CreditCard, LogOut, User as UserIcon, ChevronDown 
+    ShieldCheck, CreditCard, LogOut, User as UserIcon, ChevronDown
 } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import NotificationBell from '@/Components/NotificationBell';
@@ -35,6 +35,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const sidebarNavRef = useRef<HTMLElement>(null);
+
+    // Restore sidebar scroll position across Inertia page transitions
+    useEffect(() => {
+        const savedScroll = sessionStorage.getItem('gpest_sidebar_scroll');
+        if (savedScroll && sidebarNavRef.current) {
+            sidebarNavRef.current.scrollTop = Number(savedScroll);
+        }
+    }, [url]);
+
+    const handleSidebarScroll = (e: React.UIEvent<HTMLElement>) => {
+        sessionStorage.setItem('gpest_sidebar_scroll', String(e.currentTarget.scrollTop));
+    };
 
     useEffect(() => {
         if (flash?.success) {
@@ -72,7 +85,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     const rawNavItems = [
         {
-            label: 'DASHBOARD UTAMA',
+            label: 'WORKSPACE',
             items: [
                 { name: 'Dashboard', href: '/dashboard', icon: Home, permission: 'dashboard.view' },
             ],
@@ -99,7 +112,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {
             label: 'LAYANAN & WORK ORDER',
             items: [
-                { name: 'Perintah Kerja (Work Order)', href: '/work-orders', icon: ClipboardList, permission: 'work-orders.view' },
+                { name: 'Perintah Kerja (WO)', href: '/work-orders', icon: ClipboardList, permission: 'work-orders.view' },
                 { name: 'Jadwal Layanan', href: '/schedules', icon: Calendar, permission: 'schedules.view' },
             ],
         },
@@ -118,7 +131,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             ],
         },
         {
-            label: 'KEUANGAN & TAGIHAN',
+            label: 'KEUANGAN & KONTRAK',
             items: [
                 { name: 'Penawaran Harga (Quotation)', href: '/quotations', icon: DollarSign, permission: 'quotations.view' },
                 { name: 'Kontrak Kerja', href: '/contracts', icon: FileText, permission: 'contracts.view' },
@@ -126,7 +139,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             ],
         },
         {
-            label: 'SUMBER DAYA MANUSIA',
+            label: 'HUMAN RESOURCES',
             items: [
                 { name: 'Absensi Teknisi', href: '/attendance', icon: MapPin, permission: 'attendance.view' },
                 { name: 'Pengajuan Cuti & Izin', href: '/leaves', icon: Shield },
@@ -134,17 +147,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
             ],
         },
         {
-            label: 'PENGATURAN SISTEM',
+            label: 'SISTEM & PENGATURAN',
             items: [
-                { name: 'Pembuat Form (App-Builder)', href: '/app-builder', icon: Settings, permission: 'master-data.view' },
+                { name: 'App-Builder', href: '/app-builder', icon: Settings, permission: 'master-data.view' },
                 { name: 'Data Master', href: '/master-data', icon: Settings, permission: 'master-data.view' },
                 { name: 'Kelola Pengguna', href: '/users', icon: Users, permission: 'users.view' },
-                { name: 'Catatan Aktivitas (Audit Log)', href: '/audit-logs', icon: ShieldCheck, permission: 'users.view' },
+                { name: 'Audit Log', href: '/audit-logs', icon: ShieldCheck, permission: 'users.view' },
             ],
         },
     ];
 
-    // Filter items based on user permissions
     const navItems = rawNavItems
         .map((section) => ({
             ...section,
@@ -157,7 +169,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
         item.href === '/dashboard' ? url === item.href : url.startsWith(item.href)
     );
 
-    // Mobile Bottom Tap Bar Items for Technician / Mobile view
     const mobileTapItems = [
         { name: 'Home', href: '/dashboard', icon: Home },
         { name: 'Jadwal', href: '/schedules', icon: Calendar },
@@ -171,36 +182,44 @@ export default function AppLayout({ children }: AppLayoutProps) {
     };
 
     return (
-        <div className="min-h-screen bg-canvas-soft flex flex-col md:flex-row">
+        <div className="min-h-[100dvh] bg-[#f8fafc] flex flex-col md:flex-row text-slate-900 antialiased font-sans">
             {/* Flash Toast Notifications */}
             {notification && (
-                <div className={`fixed top-4 right-4 z-[9999] flex items-start gap-3 px-4 py-3 rounded-md shadow-md border text-body-sm max-w-sm transition-all ${
+                <div className={`fixed top-4 right-4 z-[9999] flex items-start gap-3 px-4 py-3 rounded-2xl shadow-ambient-lg border text-xs max-w-sm transition-all duration-300 ${
                     notification.type === 'success'
-                        ? 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'
-                        : 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]'
+                        ? 'bg-emerald-50/95 border-emerald-200 text-emerald-900'
+                        : 'bg-rose-50/95 border-rose-200 text-rose-900'
                 }`}>
                     {notification.type === 'success'
-                        ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#16a34a]" />
-                        : <XCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#dc2626]" />
+                        ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                        : <XCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
                     }
-                    <span className="flex-1">{notification.message}</span>
-                    <button onClick={() => setNotification(null)} className="ml-2 hover:opacity-70">
+                    <span className="flex-1 font-medium">{notification.message}</span>
+                    <button onClick={() => setNotification(null)} className="ml-2 hover:opacity-70 text-slate-400">
                         <X className="w-3.5 h-3.5" />
                     </button>
                 </div>
             )}
 
-            {/* Desktop Sidebar - Hidden for Technicians or Mobile View */}
+            {/* Desktop Sidebar (Only for non-technicians) */}
             {!isTechnician && (
-                <aside className="hidden md:flex w-[240px] bg-canvas border-r border-hairline fixed inset-y-0 left-0 flex-col z-40 shadow-sm">
-                    <div className="p-3.5 border-b border-hairline flex items-center justify-center bg-white shrink-0 sticky top-0 z-10 shadow-[0px_1px_2px_rgba(0,0,0,0.03)]">
-                        <img src="/images/logo.png" alt="G-PEST Logo" className="h-9 w-auto max-w-[190px] object-contain" />
+                <aside className="hidden md:flex w-[240px] bg-white border-r border-slate-200 fixed inset-y-0 left-0 flex-col z-40 shadow-xs">
+                    {/* Brand Header */}
+                    <div className="h-16 px-5 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+                        <Link href="/dashboard" className="flex items-center gap-2">
+                            <img src="/images/logo.png" alt="G-PEST Logo" className="h-8 w-auto object-contain" />
+                        </Link>
                     </div>
 
-                    <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+                    {/* Navigation Menu */}
+                    <nav
+                        ref={sidebarNavRef}
+                        onScroll={handleSidebarScroll}
+                        className="flex-1 px-3 py-4 space-y-5 overflow-y-auto"
+                    >
                         {navItems.map((section, idx) => (
                             <div key={idx} className="space-y-1">
-                                <h2 className="px-3 text-[10px] font-mono uppercase tracking-wider text-mute font-semibold">
+                                <h2 className="px-3 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
                                     {section.label}
                                 </h2>
                                 <div className="space-y-0.5 mt-1">
@@ -212,16 +231,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                             <Link
                                                 key={item.name}
                                                 href={item.href}
-                                                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-md text-body-sm transition-colors ${
+                                                preserveScroll
+                                                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
                                                     isActive
-                                                        ? 'bg-canvas-soft-2 text-ink font-medium border border-hairline'
-                                                        : 'text-body-text hover:bg-canvas-soft hover:text-ink'
+                                                        ? 'bg-slate-900 text-white shadow-xs'
+                                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                                 }`}
                                             >
-                                                <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-mute'}`} />
-                                                <span className="flex-1">{item.name}</span>
+                                                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                                                <span className="flex-1 truncate">{item.name}</span>
                                                 {isRequestMenu && pendingRequestsCount > 0 && (
-                                                    <span className="px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-rose-600 text-white animate-pulse">
+                                                    <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full bg-slate-900 text-white border border-slate-700">
                                                         {pendingRequestsCount}
                                                     </span>
                                                 )}
@@ -233,14 +253,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         ))}
                     </nav>
 
-                    <div className="p-3 border-t border-hairline shrink-0 bg-canvas">
-                        <div className="flex items-center gap-3 px-2 py-1.5 rounded-md bg-canvas-soft">
-                            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
+                    {/* User Profile Card at Bottom */}
+                    <div className="p-3 border-t border-slate-200 shrink-0 bg-white">
+                        <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-semibold text-xs shrink-0">
                                 {auth?.user?.name ? auth.user.name.charAt(0).toUpperCase() : 'U'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-ink truncate">{auth?.user?.name || 'User'}</p>
-                                <p className="text-[10px] text-mute truncate capitalize">
+                                <p className="text-xs font-semibold text-slate-900 truncate">{auth?.user?.name || 'User'}</p>
+                                <p className="text-[10px] text-slate-400 truncate capitalize font-mono">
                                     {userRoles[0] ? userRoles[0].replace('_', ' ') : 'User'}
                                 </p>
                             </div>
@@ -249,25 +270,25 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 </aside>
             )}
 
-            {/* Main Container Area */}
+            {/* Main Content Viewport */}
             <div className={`flex-1 flex flex-col min-w-0 ${!isTechnician ? 'md:pl-[240px]' : ''} pb-16 md:pb-0`}>
                 {/* Header Navbar */}
-                <header className="h-14 bg-canvas border-b border-hairline flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-xs">
-                    {/* Left Brand / Breadcrumb */}
-                    <div className="flex items-center gap-3">
-                        <Link href="/dashboard" className="flex items-center gap-2">
-                            <img src="/images/logo.png" alt="G-PEST Logo" className="h-7 w-auto object-contain" />
+                <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-30">
+                    <div className="flex items-center gap-4">
+                        {/* Logo visible for technicians ALWAYS and for non-technicians on mobile */}
+                        <Link href="/dashboard" className={`flex items-center ${!isTechnician ? 'md:hidden' : ''}`}>
+                            <img src="/images/logo.png" alt="G-PEST Logo" className="h-8 w-auto object-contain" />
                         </Link>
+
                         {!isTechnician && (
-                            <div className="hidden sm:flex items-center gap-2 text-xs text-mute border-l border-hairline pl-3">
-                                <span>Aplikasi</span>
-                                <span>/</span>
-                                <span className="text-ink font-medium">{currentPage?.name || 'Halaman'}</span>
+                            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 font-medium">
+                                <span className="font-mono text-slate-400">G-PEST</span>
+                                <span className="text-slate-300">/</span>
+                                <span className="text-slate-900 font-semibold">{currentPage?.name || 'Overview'}</span>
                             </div>
                         )}
                     </div>
 
-                    {/* Right User Profile Dropdown & Notifications */}
                     <div className="flex items-center gap-3">
                         <NotificationBell />
 
@@ -275,26 +296,32 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                className="flex items-center gap-2 p-1 rounded-full hover:bg-canvas-soft transition-colors border border-hairline"
+                                className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 transition-colors border border-slate-200"
                             >
-                                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center border border-primary/20">
+                                <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-semibold text-xs flex items-center justify-center shadow-xs">
                                     {auth?.user?.name ? auth.user.name.slice(0, 2).toUpperCase() : <UserIcon className="w-4 h-4" />}
                                 </div>
-                                <ChevronDown className="w-3.5 h-3.5 text-mute hidden sm:block" />
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block mr-1" />
                             </button>
 
                             {profileMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-hairline py-2 z-50 text-xs animate-in fade-in slide-in-from-top-2">
-                                    <div className="px-4 py-2 border-b border-hairline">
-                                        <div className="font-bold text-gray-900 truncate">{auth?.user?.name || 'User'}</div>
-                                        <div className="text-gray-500 truncate text-[11px]">{auth?.user?.email || ''}</div>
-                                        <div className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-semibold rounded-full mt-1 uppercase">
+                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-ambient-lg border border-slate-200 py-2 z-50 text-xs animate-in fade-in slide-in-from-top-2">
+                                    <div className="px-4 py-2.5 border-b border-slate-100">
+                                        <div className="font-semibold text-slate-900 truncate">{auth?.user?.name || 'User'}</div>
+                                        <div className="text-slate-400 truncate text-[11px] mt-0.5">{auth?.user?.email || ''}</div>
+                                        <div className="inline-block px-2 py-0.5 bg-slate-50 text-slate-700 text-[10px] font-mono font-medium rounded-md mt-1.5 border border-slate-200">
                                             {userRoles[0] ? userRoles[0].replace('_', ' ') : 'User'}
                                         </div>
                                     </div>
+                                    <Link
+                                        href="/profile"
+                                        className="w-full px-4 py-2 text-left text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium flex items-center gap-2 transition-colors"
+                                    >
+                                        <UserIcon className="w-4 h-4 text-slate-400" /> Pengaturan Profil
+                                    </Link>
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full px-4 py-2 text-left text-rose-600 hover:bg-rose-50 font-medium flex items-center gap-2 transition-colors"
+                                        className="w-full px-4 py-2 text-left text-rose-600 hover:bg-rose-50 font-medium flex items-center gap-2 transition-colors border-t border-slate-100 mt-1 cursor-pointer"
                                     >
                                         <LogOut className="w-4 h-4" /> Keluar dari Akun
                                     </button>
@@ -304,12 +331,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     </div>
                 </header>
 
-                {/* Main Content View */}
-                <main className="flex-1 p-4 sm:p-6">{children}</main>
+                {/* Main Content Area - Balanced and Centered */}
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full flex justify-center">
+                    <div className="w-full max-w-6xl">
+                        {children}
+                    </div>
+                </main>
             </div>
 
-            {/* Mobile Bottom Navigation Tab Bar (Tap Bar) - Rendered for Technicians & Mobile Screens */}
-            <nav className={`fixed bottom-0 inset-x-0 bg-white border-t border-hairline z-50 h-16 flex items-center justify-around px-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] ${!isTechnician ? 'md:hidden' : ''}`}>
+            {/* Mobile Bottom Navigation Tap Bar */}
+            <nav className={`fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50 h-16 flex items-center justify-around px-2 shadow-sm ${!isTechnician ? 'md:hidden' : ''}`}>
                 {mobileTapItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = item.href === '/dashboard' ? url === item.href : url.startsWith(item.href);
@@ -321,14 +352,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                 href={item.href}
                                 className="flex flex-col items-center group -mt-5"
                             >
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95 ${
                                     isActive
-                                        ? 'bg-blue-600 text-white ring-4 ring-blue-100'
-                                        : 'bg-primary text-white hover:bg-blue-700 ring-4 ring-white'
+                                        ? 'bg-slate-900 text-white ring-4 ring-slate-100'
+                                        : 'bg-slate-900 text-white hover:bg-slate-800 ring-4 ring-white'
                                 }`}>
-                                    <Icon className="w-6 h-6" />
+                                    <Icon className="w-5 h-5" />
                                 </div>
-                                <span className={`text-[10px] font-bold mt-1 ${isActive ? 'text-blue-600' : 'text-gray-600'}`}>
+                                <span className={`text-[10px] font-medium mt-1 ${isActive ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
                                     {item.name}
                                 </span>
                             </Link>
@@ -340,11 +371,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
                             key={item.name}
                             href={item.href}
                             className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-                                isActive ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-900'
+                                isActive ? 'text-slate-900 font-semibold' : 'text-slate-400 hover:text-slate-900'
                             }`}
                         >
-                            <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
-                            <span className="text-[10px] mt-1 font-medium">{item.name}</span>
+                            <Icon className={`w-5 h-5 ${isActive ? 'text-slate-900' : 'text-slate-400'}`} />
+                            <span className="text-[10px] mt-1">{item.name}</span>
                         </Link>
                     );
                 })}

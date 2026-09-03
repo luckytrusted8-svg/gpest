@@ -30,9 +30,18 @@ export default function ResetPassword({
 
     return (
         <GuestLayout>
-            <Head title="Reset Password" />
+            <Head title="Reset Kata Sandi - G-PEST Enterprise" />
 
-            <form onSubmit={submit}>
+            <div className="mb-4">
+                <h1 className="text-xl font-semibold tracking-display-sm text-ink">
+                    Atur Ulang Kata Sandi
+                </h1>
+                <p className="text-xs text-mute mt-1">
+                    Silakan buat kata sandi baru untuk akun Anda.
+                </p>
+            </div>
+
+            <form onSubmit={submit} className="space-y-4">
                 <div>
                     <InputLabel htmlFor="email" value="Email" />
 
@@ -46,11 +55,11 @@ export default function ResetPassword({
                         onChange={(e) => setData('email', e.target.value)}
                     />
 
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={errors.email} />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                <div>
+                    <InputLabel htmlFor="password" value="Kata Sandi Baru" />
 
                     <TextInput
                         id="password"
@@ -63,16 +72,17 @@ export default function ResetPassword({
                         onChange={(e) => setData('password', e.target.value)}
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} />
                 </div>
 
-                <div className="mt-4">
+                <div>
                     <InputLabel
                         htmlFor="password_confirmation"
-                        value="Confirm Password"
+                        value="Konfirmasi Kata Sandi Baru"
                     />
 
                     <TextInput
+                        id="password_confirmation"
                         type="password"
                         name="password_confirmation"
                         value={data.password_confirmation}
@@ -83,15 +93,12 @@ export default function ResetPassword({
                         }
                     />
 
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
+                    <InputError message={errors.password_confirmation} />
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Reset Password
+                <div className="flex items-center justify-end pt-2">
+                    <PrimaryButton disabled={processing}>
+                        Simpan Kata Sandi Baru
                     </PrimaryButton>
                 </div>
             </form>

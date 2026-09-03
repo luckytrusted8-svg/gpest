@@ -92,7 +92,7 @@ export default function Index({ customers, filters }: IndexProps) {
                         <p className="text-body-sm text-mute mt-1">Kelola data pelanggan, kontrak, dan kontak.</p>
                     </div>
                     <Link href="/customers/create">
-                        <Button className="bg-primary text-white hover:bg-primary/90 text-body-sm-strong flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
                             <Plus className="w-4 h-4" />
                             Tambah Pelanggan
                         </Button>
@@ -155,10 +155,10 @@ export default function Index({ customers, filters }: IndexProps) {
                                             </td>
                                             <td className="py-3 px-4 text-body-text">{customer.location}</td>
                                             <td className="py-3 px-4">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                                                     customer.status === 'active'
-                                                        ? 'bg-[#0070f3]/15 text-[#0070f3]'
-                                                        : 'bg-canvas-soft-2 text-body-text border border-hairline'
+                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                        : 'bg-slate-100 text-slate-600 border-slate-200'
                                                 }`}>
                                                     {customer.status === 'active' ? 'Aktif' : 'Non-aktif'}
                                                 </span>

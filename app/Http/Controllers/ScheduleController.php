@@ -52,13 +52,26 @@ class ScheduleController extends Controller
 
     public function create()
     {
-        $customers = Customer::select('id', 'company_name', 'customer_id')
+        $customers = Customer::with(['sites:id,customer_id,site_name,address'])->select('id', 'company_name', 'customer_id', 'address', 'location')
             ->orderBy('company_name')
             ->get();
 
         $contracts = Contract::select('id', 'contract_number', 'customer_id', 'service_type')
             ->orderBy('contract_number')
             ->get();
+
+        $technicians = User::role('technician')->select('id', 'name', 'email')->orderBy('name')->get();
+        if ($technicians->isEmpty()) {
+            $technicians = User::whereHas('technician')->select('id', 'name', 'email')->orderBy('name')->get();
+        }
+        if ($technicians->isEmpty()) {
+            $technicians = User::select('id', 'name', 'email')->orderBy('name')->get();
+        }
+
+        $supervisors = User::role(['supervisor', 'super_admin', 'admin'])->select('id', 'name', 'email')->orderBy('name')->get();
+        if ($supervisors->isEmpty()) {
+            $supervisors = User::select('id', 'name', 'email')->orderBy('name')->get();
+        }
 
         $users = User::select('id', 'name', 'email')
             ->orderBy('name')
@@ -67,6 +80,8 @@ class ScheduleController extends Controller
         return Inertia::render('Schedules/Create', [
             'customers' => $customers,
             'contracts' => $contracts,
+            'technicians' => $technicians,
+            'supervisors' => $supervisors,
             'users' => $users,
         ]);
     }
@@ -115,13 +130,26 @@ class ScheduleController extends Controller
     {
         $schedule->load(['customer', 'contract', 'technician', 'supervisor']);
 
-        $customers = Customer::select('id', 'company_name', 'customer_id')
+        $customers = Customer::with(['sites:id,customer_id,site_name,address'])->select('id', 'company_name', 'customer_id', 'address', 'location')
             ->orderBy('company_name')
             ->get();
 
         $contracts = Contract::select('id', 'contract_number', 'customer_id', 'service_type')
             ->orderBy('contract_number')
             ->get();
+
+        $technicians = User::role('technician')->select('id', 'name', 'email')->orderBy('name')->get();
+        if ($technicians->isEmpty()) {
+            $technicians = User::whereHas('technician')->select('id', 'name', 'email')->orderBy('name')->get();
+        }
+        if ($technicians->isEmpty()) {
+            $technicians = User::select('id', 'name', 'email')->orderBy('name')->get();
+        }
+
+        $supervisors = User::role(['supervisor', 'super_admin', 'admin'])->select('id', 'name', 'email')->orderBy('name')->get();
+        if ($supervisors->isEmpty()) {
+            $supervisors = User::select('id', 'name', 'email')->orderBy('name')->get();
+        }
 
         $users = User::select('id', 'name', 'email')
             ->orderBy('name')
@@ -131,6 +159,8 @@ class ScheduleController extends Controller
             'schedule' => $schedule,
             'customers' => $customers,
             'contracts' => $contracts,
+            'technicians' => $technicians,
+            'supervisors' => $supervisors,
             'users' => $users,
         ]);
     }

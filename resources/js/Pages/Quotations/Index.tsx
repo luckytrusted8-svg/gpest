@@ -84,7 +84,7 @@ export default function Index({ quotations, customers = [], filters = {} }: Prop
                         <p className="text-body-sm text-mute mt-0.5">{totalCount} quotation.</p>
                     </div>
                     <Link href="/quotations/create">
-                        <Button className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
                             <Plus className="w-4 h-4" />Buat Quotation
                         </Button>
                     </Link>

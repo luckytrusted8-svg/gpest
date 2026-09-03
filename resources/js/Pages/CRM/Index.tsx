@@ -17,39 +17,54 @@ interface Lead {
     created_at: string;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+interface PaginatedLeads {
+    data: Lead[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: PaginationLink[];
+}
+
 interface Props {
-    leads: Lead[];
+    leads: PaginatedLeads | Lead[];
     leadsByStatus: Record<string, Lead[]>;
     salesUsers: { id: number; name: string }[];
     filters: { search?: string; status?: string; sumber?: string; sales_id?: string };
 }
 
 const STATUSES = [
-    { key: 'baru', label: 'Baru', bg: 'bg-canvas-soft-2', text: 'text-body-text', border: 'border-hairline' },
-    { key: 'dihubungi', label: 'Dihubungi', bg: 'bg-[#7928ca]/10', text: 'text-[#7928ca]', border: 'border-[#7928ca]/20' },
-    { key: 'survey', label: 'Survey', bg: 'bg-[#7928ca]/10', text: 'text-[#7928ca]', border: 'border-[#7928ca]/20' },
-    { key: 'quotation', label: 'Quotation', bg: 'bg-[#f5a623]/10', text: 'text-[#ab570a]', border: 'border-[#f5a623]/20' },
-    { key: 'negosiasi', label: 'Negosiasi', bg: 'bg-[#f5a623]/10', text: 'text-[#ab570a]', border: 'border-[#f5a623]/20' },
-    { key: 'menang', label: 'Menang', bg: 'bg-[#0070f3]/10', text: 'text-[#0070f3]', border: 'border-[#0070f3]/20' },
-    { key: 'kalah', label: 'Kalah', bg: 'bg-[#ee0000]/10', text: 'text-[#ee0000]', border: 'border-[#ee0000]/20' },
+    { key: 'baru', label: 'Baru', bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
+    { key: 'dihubungi', label: 'Dihubungi', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+    { key: 'survey', label: 'Survey', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+    { key: 'quotation', label: 'Quotation', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+    { key: 'negosiasi', label: 'Negosiasi', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+    { key: 'menang', label: 'Menang (Deal)', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+    { key: 'kalah', label: 'Kalah / Batal', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' },
 ];
 
 const StatusBadge = ({ status }: { status: string }) => {
     const s = STATUSES.find((x) => x.key === status);
-    if (!s) return <span className="px-2 py-0.5 text-xs rounded-full bg-canvas-soft-2 text-body-text border border-hairline">{status}</span>;
-    return <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${s.bg} ${s.text}`}>{s.label}</span>;
+    if (!s) return <span className="px-2.5 py-0.5 text-xs rounded-full bg-slate-100 text-slate-600 border border-slate-200">{status}</span>;
+    return <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full border ${s.bg} ${s.text} ${s.border}`}>{s.label}</span>;
 };
 
 const SumberBadge = ({ sumber }: { sumber: string }) => {
     const map: Record<string, string> = {
-        telepon: 'bg-[#7928ca]/10 text-[#7928ca]',
-        website: 'bg-[#0070f3]/10 text-[#0070f3]',
-        referral: 'bg-[#00b8a9]/10 text-[#00b8a9]',
-        media_sosial: 'bg-[#f5a623]/10 text-[#ab570a]',
-        walk_in: 'bg-canvas-soft-2 text-body-text border border-hairline',
-        lainnya: 'bg-canvas-soft-2 text-body-text border border-hairline',
+        telepon: 'bg-violet-50 text-violet-700 border border-violet-200',
+        website: 'bg-blue-50 text-blue-700 border border-blue-200',
+        referral: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+        media_sosial: 'bg-orange-50 text-orange-700 border border-orange-200',
+        walk_in: 'bg-slate-100 text-slate-700 border border-slate-200',
+        lainnya: 'bg-slate-100 text-slate-700 border border-slate-200',
     };
-    return <span className={`px-2 py-0.5 text-xs rounded-full ${map[sumber] ?? map.lainnya}`}>{sumber.replace('_', ' ')}</span>;
+    return <span className={`px-2.5 py-0.5 text-xs rounded-full font-medium ${map[sumber] ?? map.lainnya}`}>{sumber.replace('_', ' ')}</span>;
 };
 
 const LeadCard = ({ lead }: { lead: Lead }) => (
@@ -81,6 +96,10 @@ export default function Index({ leads, leadsByStatus, salesUsers, filters }: Pro
     const [sumberFilter, setSumberFilter] = useState(filters.sumber ?? '');
     const [salesFilter, setSalesFilter] = useState(filters.sales_id ?? '');
 
+    const leadList: Lead[] = Array.isArray(leads) ? leads : (leads?.data ?? []);
+    const totalLeads: number = Array.isArray(leads) ? leads.length : (leads?.total ?? leadList.length);
+    const paginationLinks = !Array.isArray(leads) ? (leads?.links ?? []) : [];
+
     const applyFilter = () => {
         router.get('/crm', { search, status: statusFilter, sumber: sumberFilter, sales_id: salesFilter }, { preserveState: true });
     };
@@ -102,14 +121,14 @@ export default function Index({ leads, leadsByStatus, salesUsers, filters }: Pro
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
                         <h1 className="text-display-sm font-semibold text-ink">CRM Leads</h1>
-                        <p className="text-body-sm text-mute mt-0.5">{leads.length} total lead.</p>
+                        <p className="text-body-sm text-mute mt-0.5">{totalLeads} total lead.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="flex border border-hairline rounded-md overflow-hidden bg-canvas p-0.5">
                             <button onClick={() => setView('kanban')} className={`px-3.5 py-1.5 text-xs font-semibold rounded-xs flex items-center gap-1.5 transition-all ${view === 'kanban' ? 'bg-primary text-white shadow-2xs' : 'text-body-text hover:bg-canvas-soft hover:text-ink'}`}><LayoutGrid className="w-3.5 h-3.5" />Kanban</button>
                             <button onClick={() => setView('table')} className={`px-3.5 py-1.5 text-xs font-semibold rounded-xs flex items-center gap-1.5 transition-all ${view === 'table' ? 'bg-primary text-white shadow-2xs' : 'text-body-text hover:bg-canvas-soft hover:text-ink'}`}><List className="w-3.5 h-3.5" />Tabel</button>
                         </div>
-                        <Link href="/crm/create"><Button className="bg-primary text-white hover:bg-primary/90 text-body-sm-strong flex items-center gap-2 shadow-2xs"><Plus className="w-4 h-4" />Tambah Lead</Button></Link>
+                        <Link href="/crm/create"><Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 shadow-2xs"><Plus className="w-4 h-4" />Tambah Lead</Button></Link>
                     </div>
                 </div>
 
@@ -166,7 +185,7 @@ export default function Index({ leads, leadsByStatus, salesUsers, filters }: Pro
                                 <th className="text-left py-3 px-4 text-body-sm-strong text-ink font-medium">Aksi</th>
                             </tr></thead>
                             <tbody>
-                                {leads.map((lead) => (
+                                {leadList.map((lead) => (
                                     <tr key={lead.id} className="border-b border-hairline hover:bg-canvas-soft/50">
                                         <td className="py-3 px-4"><Link href={`/crm/${lead.id}`} className="text-link font-medium hover:underline">{lead.nama_perusahaan}</Link><div className="text-xs text-mute font-mono">{lead.lead_id}</div></td>
                                         <td className="py-3 px-4">{lead.nama_pic}</td>
@@ -178,9 +197,39 @@ export default function Index({ leads, leadsByStatus, salesUsers, filters }: Pro
                                         <td className="py-3 px-4"><Link href={`/crm/${lead.id}`} className="text-link text-xs hover:underline">Detail</Link></td>
                                     </tr>
                                 ))}
-                                {leads.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-mute text-body-sm">Tidak ada lead ditemukan.</td></tr>}
+                                {leadList.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-mute text-body-sm">Tidak ada lead ditemukan.</td></tr>}
                             </tbody>
                         </table>
+
+                        {paginationLinks && paginationLinks.length > 3 && (
+                            <div className="p-4 border-t border-hairline flex flex-col sm:flex-row items-center justify-between gap-4 text-body-sm">
+                                <div className="text-mute">
+                                    Menampilkan {leadList.length} dari {totalLeads} lead
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    {paginationLinks.map((link, idx) => (
+                                        link.url ? (
+                                            <Link
+                                                key={idx}
+                                                href={link.url}
+                                                className={`px-3 py-1 rounded border text-xs font-medium transition-colors ${
+                                                    link.active
+                                                        ? 'bg-primary text-white border-primary'
+                                                        : 'bg-canvas text-body-text border-hairline hover:bg-canvas-soft'
+                                                }`}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        ) : (
+                                            <span
+                                                key={idx}
+                                                className="px-3 py-1 rounded border text-xs font-medium bg-canvas-soft text-mute border-hairline opacity-50"
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        )
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

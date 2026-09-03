@@ -21,16 +21,15 @@ export default function ConfirmPassword() {
 
     return (
         <GuestLayout>
-            <Head title="Confirm Password" />
+            <Head title="Konfirmasi Kata Sandi - G-PEST Enterprise" />
 
-            <div className="mb-4 text-sm text-gray-600">
-                This is a secure area of the application. Please confirm your
-                password before continuing.
+            <div className="mb-4 text-xs text-body leading-relaxed">
+                Ini adalah area sistem yang aman. Silakan konfirmasikan kata sandi Anda sebelum melanjutkan.
             </div>
 
-            <form onSubmit={submit}>
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+            <form onSubmit={submit} className="space-y-4">
+                <div>
+                    <InputLabel htmlFor="password" value="Kata Sandi" />
 
                     <TextInput
                         id="password"
@@ -42,12 +41,12 @@ export default function ConfirmPassword() {
                         onChange={(e) => setData('password', e.target.value)}
                     />
 
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} />
                 </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Confirm
+                <div className="flex items-center justify-end pt-2">
+                    <PrimaryButton disabled={processing}>
+                        Konfirmasi
                     </PrimaryButton>
                 </div>
             </form>

@@ -188,7 +188,7 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                         <p className="text-body-sm text-mute mt-1">Kelola dan pantau penugasan jadwal teknisi lapangan.</p>
                     </div>
                     <Link href="/schedules/create">
-                        <Button className="bg-primary text-white hover:bg-primary/90 text-body-sm-strong flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
                             <Plus className="w-4 h-4" />
                             Buat Jadwal Baru
                         </Button>

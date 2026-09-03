@@ -95,7 +95,7 @@ export default function Index({ workReports, technicians, filters }: IndexProps)
                         <p className="text-body-sm text-mute mt-1">Dokumentasi pekerjaan lapangan teknisi pest control.</p>
                     </div>
                     <Link href="/work-reports/create">
-                        <Button className="bg-primary text-on-primary hover:bg-ink text-body-sm-strong flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
                             <Plus className="w-4 h-4" />
                             Buat Laporan Baru
                         </Button>

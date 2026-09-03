@@ -214,7 +214,7 @@ export default function Create({ autoCustomerId }: Props) {
                         </div>
 
                         <div>
-                            <Label htmlFor="address" className="text-xs font-bold text-slate-700">Alamat Lengkap Perusahaan *</Label>
+                            <Label htmlFor="address" className="text-xs font-bold text-slate-700">Alamat Kantor Pusat / Domisili Perusahaan *</Label>
                             <Textarea
                                 id="address"
                                 value={data.address}
@@ -223,6 +223,9 @@ export default function Create({ autoCustomerId }: Props) {
                                 className="mt-1.5 min-h-[90px] text-xs"
                                 required
                             />
+                            <p className="text-[11px] text-slate-500 mt-1">
+                                * Catatan: Jika perusahaan ini memiliki banyak cabang atau gudang terpisah, lokasi tiap cabang dapat dikelola secara spesifik melalui menu <strong>Titik Lokasi (Site)</strong>.
+                            </p>
                             {errors.address && <div className="text-rose-600 text-xs mt-1">{errors.address}</div>}
                         </div>
 

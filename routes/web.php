@@ -14,6 +14,7 @@ use App\Http\Controllers\LocationTrackingController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SiteController;
@@ -30,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', function () {
         return redirect()->route('dashboard');
     });
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::resource('customers', CustomerController::class)->middleware('permission:customers.view');
     Route::resource('sites', SiteController::class)->middleware('permission:sites.view');
