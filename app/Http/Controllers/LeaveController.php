@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\Leave;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -40,7 +41,14 @@ class LeaveController extends Controller
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'alasan' => 'required|string',
+            'foto_surat' => 'nullable|image|max:5120',
         ]);
+
+        $fotoSuratPath = null;
+        if ($request->hasFile('foto_surat')) {
+            $path = $request->file('foto_surat')->store('leaves', 'public');
+            $fotoSuratPath = '/storage/'.$path;
+        }
 
         $leave = Leave::create([
             'user_id' => Auth::id(),
@@ -48,12 +56,34 @@ class LeaveController extends Controller
             'tanggal_mulai' => $validated['tanggal_mulai'],
             'tanggal_selesai' => $validated['tanggal_selesai'],
             'alasan' => $validated['alasan'],
+            'foto_surat' => $fotoSuratPath,
             'status' => 'menunggu',
         ]);
 
         AuditLog::log('Apply Leave', 'Leave Management', "Pengajuan {$leave->jenis_izin} oleh ".Auth::user()->name);
 
-        return back()->with('success', 'Pengajuan cuti/izin berhasil dikirim.');
+        // Send notification to Supervisors and Admins
+        try {
+            $approvers = User::role(['super_admin', 'admin', 'supervisor'])->pluck('id')->unique();
+            $userName = Auth::user()->name;
+            $notifService = app(NotificationService::class);
+            foreach ($approvers as $adminId) {
+                if ($adminId !== Auth::id()) {
+                    $notifService->kirimKeUser(
+                        userId: $adminId,
+                        judul: "Pengajuan {$leave->jenis_izin} Baru",
+                        pesan: "Teknisi {$userName} mengajukan permohonan {$leave->jenis_izin} ({$leave->tanggal_mulai} s/d {$leave->tanggal_selesai}) dan menunggu persetujuan.",
+                        jenis: 'warning',
+                        modul: 'leaves',
+                        urlTujuan: '/leaves'
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            // ignore notification failure
+        }
+
+        return back()->with('success', 'Pengajuan cuti/izin berhasil dikirim dan menunggu persetujuan atasan.');
     }
 
     public function approve(Request $request, Leave $leave)
@@ -70,6 +100,24 @@ class LeaveController extends Controller
         ]);
 
         AuditLog::log('Approve Leave', 'Leave Management', "Mengubah status cuti #{$leave->id} menjadi {$validated['status']}");
+
+        // Notify the Technician
+        try {
+            $statusText = $validated['status'] === 'disetujui' ? 'Disetujui' : 'Ditolak';
+            $notifType = $validated['status'] === 'disetujui' ? 'success' : 'error';
+            $approverName = Auth::user()->name;
+
+            app(NotificationService::class)->kirimKeUser(
+                userId: $leave->user_id,
+                judul: "Pengajuan {$leave->jenis_izin} {$statusText}",
+                pesan: "Pengajuan {$leave->jenis_izin} Anda ({$leave->tanggal_mulai} s/d {$leave->tanggal_selesai}) telah {$validated['status']} oleh {$approverName}.".($leave->catatan_approval ? " Catatan: {$leave->catatan_approval}" : ''),
+                jenis: $notifType,
+                modul: 'leaves',
+                urlTujuan: '/leaves'
+            );
+        } catch (\Exception $e) {
+            // ignore notification failure
+        }
 
         return back()->with('success', "Pengajuan cuti telah {$validated['status']}.");
     }

@@ -15,6 +15,7 @@ class Leave extends Model
         'tanggal_mulai',
         'tanggal_selesai',
         'alasan',
+        'foto_surat',
         'status',
         'disetujui_oleh',
         'catatan_approval',
