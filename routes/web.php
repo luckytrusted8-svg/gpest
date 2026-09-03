@@ -89,10 +89,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('master-data/{type}/{id}', [MasterDataController::class, 'update'])->name('master-data.update');
     Route::delete('master-data/{type}/{id}', [MasterDataController::class, 'destroy'])->name('master-data.destroy');
 
+    Route::get('attendance/export-csv', [AttendanceController::class, 'exportCsv'])->name('attendance.export-csv');
     Route::get('attendance/check-in', [AttendanceController::class, 'checkInPage'])->name('attendance.checkin-page');
     Route::post('attendance/check-in', [AttendanceController::class, 'checkIn'])->name('attendance.check-in');
     Route::post('attendance/check-out', [AttendanceController::class, 'checkOut'])->name('attendance.check-out');
     Route::get('attendance/report', [AttendanceController::class, 'report'])->name('attendance.report');
+    Route::get('attendance/report/export-csv', [AttendanceController::class, 'exportReportCsv'])->name('attendance.report.export-csv');
     Route::get('attendance/{attendance}/tracks', [AttendanceController::class, 'tracks'])->name('attendance.tracks');
     Route::resource('attendance', AttendanceController::class)->only(['index', 'show']);
 
