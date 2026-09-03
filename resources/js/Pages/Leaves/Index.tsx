@@ -266,7 +266,7 @@ export default function LeavesIndex({ leaves }: Props) {
                         className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
                     >
                         <Plus className="w-4 h-4 stroke-[3]" />
-                        <span>+ New</span>
+                        <span>New</span>
                     </button>
                 </div>
 
