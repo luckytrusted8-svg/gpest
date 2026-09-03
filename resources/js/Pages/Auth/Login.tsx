@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEventHandler } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 interface FormData {
     email: string;
@@ -32,8 +32,8 @@ export default function Login() {
         <div className="min-h-screen w-full bg-slate-50 flex flex-col lg:flex-row font-sans text-slate-900 antialiased">
             <Head title="Masuk ke Sistem - G-PEST" />
 
-            {/* LEFT PANEL */}
-            <div className="lg:w-5/12 bg-slate-900 text-white p-8 sm:p-12 lg:p-16 flex flex-col justify-between relative shrink-0">
+            {/* LEFT PANEL - Desktop Only Branding (Hidden on Mobile for fast & clean access) */}
+            <div className="hidden lg:flex lg:w-5/12 bg-slate-900 text-white p-12 lg:p-16 flex-col justify-between relative shrink-0">
                 {/* Brand Title */}
                 <div>
                     <Link href="/" className="inline-block">
@@ -43,14 +43,18 @@ export default function Login() {
 
                 {/* Center Pitch */}
                 <div className="py-10 my-auto max-w-md">
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-white tracking-tight leading-tight">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-blue-400 text-xs font-semibold mb-6">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>Enterprise Control System</span>
+                    </div>
+                    <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight">
                         Platform Operasional Pengendalian Hama Modern.
                     </h1>
                     <p className="text-sm text-slate-400 mt-4 leading-relaxed">
                         Satu sistem terintegrasi untuk pemantauan teknisi, digital work order, absensi berbasis GPS, dan portal pelanggan.
                     </p>
 
-                    <div className="mt-8 space-y-3">
+                    <div className="mt-8 space-y-3.5">
                         <div className="flex items-center gap-3 text-xs text-slate-300">
                             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                             <span>GPS Dispatch & Live Attendance Real-Time</span>
@@ -73,18 +77,18 @@ export default function Login() {
                 </div>
             </div>
 
-            {/* RIGHT PANEL - Clean Form Area */}
-            <div className="lg:w-7/12 bg-white p-6 sm:p-12 lg:p-20 flex flex-col justify-center items-center relative flex-1">
-                <div className="max-w-md w-full space-y-8">
-                    {/* Header */}
+            {/* RIGHT PANEL - Clean Mobile-Optimized Form Area */}
+            <div className="w-full lg:w-7/12 min-h-screen bg-slate-50/50 sm:bg-white p-5 sm:p-12 lg:p-20 flex flex-col justify-center items-center relative flex-1">
+                <div className="max-w-md w-full bg-white sm:bg-transparent p-6 sm:p-0 rounded-3xl sm:rounded-none border border-slate-200/80 sm:border-0 shadow-xl sm:shadow-none space-y-6 sm:space-y-8 my-auto">
+                    {/* Header with Logo */}
                     <div>
-                        <Link href="/" className="inline-block mb-6 lg:hidden">
-                            <img src="/images/logo.png" alt="G-PEST Logo" className="h-8 w-auto object-contain" />
+                        <Link href="/" className="inline-block mb-5">
+                            <img src="/images/logo.png" alt="G-PEST Logo" className="h-9 w-auto object-contain" />
                         </Link>
-                        <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                             Masuk ke Akun
                         </h2>
-                        <p className="text-xs text-slate-500 mt-1.5">
+                        <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
                             Silakan masukkan email dan kata sandi untuk mengakses workspace.
                         </p>
                     </div>
@@ -93,7 +97,7 @@ export default function Login() {
                     <form onSubmit={submit} className="space-y-4">
                         {/* Email Input */}
                         <div className="space-y-1.5">
-                            <label htmlFor="email" className="block text-xs font-medium text-slate-700">
+                            <label htmlFor="email" className="block text-xs font-bold text-slate-700">
                                 Email / Username
                             </label>
                             <div className="relative">
@@ -103,7 +107,7 @@ export default function Login() {
                                     type="email"
                                     name="email"
                                     value={data.email}
-                                    className="w-full h-11 bg-white border border-slate-300 rounded-xl pl-10 pr-4 text-slate-900 placeholder:text-slate-400 text-sm focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors shadow-2xs"
+                                    className="w-full h-12 bg-slate-50/60 sm:bg-white border border-slate-300 rounded-2xl pl-10 pr-4 text-slate-900 placeholder:text-slate-400 text-sm focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors shadow-2xs font-medium"
                                     placeholder="nama@gpest.id"
                                     autoComplete="username"
                                     autoFocus
@@ -116,7 +120,7 @@ export default function Login() {
 
                         {/* Password Input */}
                         <div className="space-y-1.5">
-                            <label htmlFor="password" className="block text-xs font-medium text-slate-700">
+                            <label htmlFor="password" className="block text-xs font-bold text-slate-700">
                                 Kata Sandi
                             </label>
                             <div className="relative">
@@ -126,7 +130,7 @@ export default function Login() {
                                     type={showPassword ? 'text' : 'password'}
                                     name="password"
                                     value={data.password}
-                                    className="w-full h-11 bg-white border border-slate-300 rounded-xl pl-10 pr-16 text-slate-900 placeholder:text-slate-400 text-sm focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors shadow-2xs"
+                                    className="w-full h-12 bg-slate-50/60 sm:bg-white border border-slate-300 rounded-2xl pl-10 pr-16 text-slate-900 placeholder:text-slate-400 text-sm focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-colors shadow-2xs font-medium"
                                     placeholder="••••••••"
                                     autoComplete="current-password"
                                     onChange={(e) => setData('password', e.target.value)}
@@ -135,7 +139,7 @@ export default function Login() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors px-2 py-1 rounded-lg"
                                 >
                                     {showPassword ? 'Tutup' : 'Lihat'}
                                 </button>
@@ -152,9 +156,9 @@ export default function Login() {
                                     onChange={(e) => setData('remember', e.target.checked)}
                                     className="rounded border-slate-300 text-slate-900 focus:ring-slate-900/20 h-4 w-4"
                                 />
-                                <span>Ingat saya</span>
+                                <span className="font-medium">Ingat saya</span>
                             </label>
-                            <Link href="/portal/login" className="text-slate-900 font-medium hover:underline">
+                            <Link href="/portal/login" className="text-blue-600 font-bold hover:underline">
                                 Portal Pelanggan →
                             </Link>
                         </div>
@@ -163,7 +167,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 mt-6 cursor-pointer disabled:opacity-50"
+                            className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 mt-6 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
                         >
                             {processing ? 'Memproses...' : (
                                 <>
@@ -176,7 +180,7 @@ export default function Login() {
                         {/* Alternative Portal Button */}
                         <div className="relative my-6 flex items-center justify-center">
                             <div className="border-t border-slate-200 w-full" />
-                            <span className="bg-white px-3 text-xs text-slate-400 font-mono uppercase absolute">
+                            <span className="bg-white px-3 text-[11px] text-slate-400 font-bold uppercase tracking-wider absolute">
                                 Atau
                             </span>
                         </div>
@@ -184,7 +188,7 @@ export default function Login() {
                         <Link href="/portal/login" className="block w-full">
                             <button
                                 type="button"
-                                className="w-full h-11 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium text-sm rounded-xl transition-colors flex items-center justify-center gap-2 shadow-2xs"
+                                className="w-full h-12 border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-2 shadow-2xs active:scale-[0.99]"
                             >
                                 <span>Masuk sebagai Klien (Customer Portal)</span>
                             </button>
