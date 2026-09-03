@@ -350,47 +350,19 @@ class AttendanceController extends Controller
 
         $attendances = $query->orderBy('jam_masuk', 'desc')->get();
 
+        $content = view('excel.attendance', [
+            'attendances' => $attendances,
+            'tanggal' => $tanggal,
+        ])->render();
+
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="rekap-absensi-'.$tanggal.'.csv"',
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="rekap-absensi-'.$tanggal.'.xls"',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ];
 
-        $callback = function () use ($attendances) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($file, [
-                'Nama Teknisi',
-                'Tanggal',
-                'Jam Masuk',
-                'Jam Keluar',
-                'Durasi Kerja',
-                'Status Kehadiran',
-                'Latitude Masuk',
-                'Longitude Masuk',
-                'Latitude Keluar',
-                'Longitude Keluar',
-                'Catatan / Alamat',
-            ]);
-
-            foreach ($attendances as $att) {
-                fputcsv($file, [
-                    $att->technician ? $att->technician->name : 'Teknisi',
-                    $att->tanggal,
-                    $att->jam_masuk ? substr($att->jam_masuk, 0, 5) : '-',
-                    $att->jam_keluar ? substr($att->jam_keluar, 0, 5) : '-',
-                    $att->durasi_kerja ?? '-',
-                    ucwords(str_replace('_', ' ', $att->status)),
-                    $att->latitude_masuk ?? '-',
-                    $att->longitude_masuk ?? '-',
-                    $att->latitude_keluar ?? '-',
-                    $att->longitude_keluar ?? '-',
-                    $att->catatan ?? '-',
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return response($content, 200, $headers);
     }
 
     public function exportReportCsv(Request $request)
@@ -430,31 +402,19 @@ class AttendanceController extends Controller
             ];
         });
 
+        $content = view('excel.attendance_monthly', [
+            'reportData' => $reportData,
+            'month' => $month,
+            'year' => $year,
+        ])->render();
+
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="rekap-bulanan-'.$year.'-'.$month.'.csv"',
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="rekap-bulanan-'.$year.'-'.$month.'.xls"',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ];
 
-        $callback = function () use ($reportData, $month, $year) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($file, ['Nama Teknisi', 'Bulan', 'Tahun', 'Total Hadir', 'Tidak Hadir', 'Izin', 'Sakit', 'Total Jam Kerja (Jam)']);
-
-            foreach ($reportData as $row) {
-                fputcsv($file, [
-                    $row['nama'],
-                    $month,
-                    $year,
-                    $row['total_hadir'],
-                    $row['total_tidak_hadir'],
-                    $row['total_izin'],
-                    $row['total_sakit'],
-                    $row['total_jam_kerja'],
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return response($content, 200, $headers);
     }
 }

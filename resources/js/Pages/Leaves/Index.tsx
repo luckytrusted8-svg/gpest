@@ -302,140 +302,156 @@ export default function LeavesIndex({ leaves }: Props) {
                         {/* Header Admin */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                                <h1 className="text-display-sm font-semibold text-ink flex items-center gap-2">
                                     <span>Pengajuan Cuti & Izin Teknisi</span>
-                                    <span className="text-xs px-2.5 py-1 rounded-full bg-slate-900 text-white font-mono">Admin Panel</span>
+                                    <span className="text-caption-mono px-2 py-0.5 rounded-full bg-canvas-soft-2 border border-hairline text-ink font-semibold">Admin Panel</span>
                                 </h1>
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-body-sm text-mute mt-1">
                                     Tinjau, setujui, atau tolak permohonan cuti, sakit, dan izin kerja teknisi lapangan.
                                 </p>
                             </div>
                         </div>
 
                         {/* KPI Summary Cards */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div 
                                 onClick={() => setStatusFilter('all')}
-                                className={`bg-white rounded-2xl p-4 border transition-all cursor-pointer shadow-2xs ${
-                                    statusFilter === 'all' ? 'border-slate-900 ring-2 ring-slate-900/10' : 'border-slate-200/90 hover:border-slate-300'
+                                className={`bg-canvas border border-hairline rounded-md p-4 shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] transition-all cursor-pointer ${
+                                    statusFilter === 'all' ? 'border-primary ring-1 ring-primary' : 'hover:border-slate-300'
                                 }`}
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold text-slate-500">Total Pengajuan</span>
-                                    <Users className="w-4 h-4 text-slate-400" />
+                                    <span className="text-body-xs text-mute font-medium">Total Pengajuan</span>
+                                    <div className="p-2 rounded-md bg-slate-500/10 text-slate-600">
+                                        <Users className="w-4 h-4" />
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-bold text-slate-900 mt-2">{totalCount}</div>
-                                <div className="text-[11px] text-slate-400 mt-0.5">Semua permohonan</div>
+                                <div className="mt-2">
+                                    <span className="text-display-xs font-semibold text-ink font-mono">{totalCount}</span>
+                                    <p className="text-caption-mono text-mute mt-0.5">Semua permohonan</p>
+                                </div>
                             </div>
 
                             <div 
                                 onClick={() => setStatusFilter('menunggu')}
-                                className={`bg-white rounded-2xl p-4 border transition-all cursor-pointer shadow-2xs ${
-                                    statusFilter === 'menunggu' ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/20' : 'border-slate-200/90 hover:border-slate-300'
+                                className={`bg-canvas border border-hairline rounded-md p-4 shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] transition-all cursor-pointer ${
+                                    statusFilter === 'menunggu' ? 'border-amber-500 ring-1 ring-amber-500' : 'hover:border-slate-300'
                                 }`}
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold text-amber-700">Menunggu Review</span>
-                                    <Clock className="w-4 h-4 text-amber-500" />
+                                    <span className="text-body-xs text-[#ab570a] font-medium">Menunggu Review</span>
+                                    <div className="p-2 rounded-md bg-[#f5a623]/10 text-[#ab570a]">
+                                        <Clock className="w-4 h-4" />
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-bold text-amber-600 mt-2">{pendingCount}</div>
-                                <div className="text-[11px] text-amber-600/80 mt-0.5">Perlu tindakan persetujuan</div>
+                                <div className="mt-2">
+                                    <span className="text-display-xs font-semibold text-[#ab570a] font-mono">{pendingCount}</span>
+                                    <p className="text-caption-mono text-[#ab570a]/80 mt-0.5">Perlu tindakan persetujuan</p>
+                                </div>
                             </div>
 
                             <div 
                                 onClick={() => setStatusFilter('disetujui')}
-                                className={`bg-white rounded-2xl p-4 border transition-all cursor-pointer shadow-2xs ${
-                                    statusFilter === 'disetujui' ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20' : 'border-slate-200/90 hover:border-slate-300'
+                                className={`bg-canvas border border-hairline rounded-md p-4 shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] transition-all cursor-pointer ${
+                                    statusFilter === 'disetujui' ? 'border-emerald-500 ring-1 ring-emerald-500' : 'hover:border-slate-300'
                                 }`}
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold text-emerald-700">Disetujui</span>
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                    <span className="text-body-xs text-emerald-700 font-medium">Disetujui</span>
+                                    <div className="p-2 rounded-md bg-emerald-500/10 text-emerald-600">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-bold text-emerald-600 mt-2">{approvedCount}</div>
-                                <div className="text-[11px] text-emerald-600/80 mt-0.5">Izin diterima</div>
+                                <div className="mt-2">
+                                    <span className="text-display-xs font-semibold text-emerald-600 font-mono">{approvedCount}</span>
+                                    <p className="text-caption-mono text-emerald-600/80 mt-0.5">Izin diterima</p>
+                                </div>
                             </div>
 
                             <div 
                                 onClick={() => setStatusFilter('ditolak')}
-                                className={`bg-white rounded-2xl p-4 border transition-all cursor-pointer shadow-2xs ${
-                                    statusFilter === 'ditolak' ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-slate-200/90 hover:border-slate-300'
+                                className={`bg-canvas border border-hairline rounded-md p-4 shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] transition-all cursor-pointer ${
+                                    statusFilter === 'ditolak' ? 'border-rose-500 ring-1 ring-rose-500' : 'hover:border-slate-300'
                                 }`}
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold text-rose-700">Ditolak</span>
-                                    <XCircle className="w-4 h-4 text-rose-500" />
+                                    <span className="text-body-xs text-rose-700 font-medium">Ditolak</span>
+                                    <div className="p-2 rounded-md bg-rose-500/10 text-rose-600">
+                                        <XCircle className="w-4 h-4" />
+                                    </div>
                                 </div>
-                                <div className="text-2xl font-bold text-rose-600 mt-2">{rejectedCount}</div>
-                                <div className="text-[11px] text-rose-600/80 mt-0.5">Izin tidak disetujui</div>
+                                <div className="mt-2">
+                                    <span className="text-display-xs font-semibold text-rose-600 font-mono">{rejectedCount}</span>
+                                    <p className="text-caption-mono text-rose-600/80 mt-0.5">Izin tidak disetujui</p>
+                                </div>
                             </div>
                         </div>
 
                         {/* Filter Bar */}
-                        <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3">
+                        <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4 flex flex-col md:flex-row items-center justify-between gap-3">
                             <div className="relative flex-1 w-full">
-                                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                                <input
+                                <Search className="w-4 h-4 text-mute absolute left-3 top-1/2 -translate-y-1/2" />
+                                <Input
                                     type="text"
                                     placeholder="Cari nama teknisi, alasan, atau jenis izin..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                                    className="pl-9"
                                 />
                             </div>
 
                             {/* Category Filter Pills */}
                             <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto text-xs shrink-0">
-                                <button
+                                <Button
+                                    type="button"
+                                    variant={selectedTab === 'all' ? 'default' : 'outline'}
+                                    className="h-9 px-3 text-xs"
                                     onClick={() => setSelectedTab('all')}
-                                    className={`px-3 py-2 rounded-xl font-bold transition-all ${
-                                        selectedTab === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                                    }`}
                                 >
                                     Semua ({totalCount})
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={selectedTab === 'sakit' ? 'default' : 'outline'}
+                                    className="h-9 px-3 text-xs"
                                     onClick={() => setSelectedTab('sakit')}
-                                    className={`px-3 py-2 rounded-xl font-bold transition-all ${
-                                        selectedTab === 'sakit' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                                    }`}
                                 >
                                     Sakit
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={selectedTab === 'cuti' ? 'default' : 'outline'}
+                                    className="h-9 px-3 text-xs"
                                     onClick={() => setSelectedTab('cuti')}
-                                    className={`px-3 py-2 rounded-xl font-bold transition-all ${
-                                        selectedTab === 'cuti' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                                    }`}
                                 >
                                     Cuti
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant={selectedTab === 'izin' ? 'default' : 'outline'}
+                                    className="h-9 px-3 text-xs"
                                     onClick={() => setSelectedTab('izin')}
-                                    className={`px-3 py-2 rounded-xl font-bold transition-all ${
-                                        selectedTab === 'izin' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                                    }`}
                                 >
                                     Izin
-                                </button>
+                                </Button>
                             </div>
                         </div>
 
                         {/* Desktop Table View */}
-                        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+                        <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left text-xs">
-                                    <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
-                                        <tr>
-                                            <th className="px-5 py-3.5">Teknisi</th>
-                                            <th className="px-5 py-3.5">Jenis Izin</th>
-                                            <th className="px-5 py-3.5">Periode Tanggal</th>
-                                            <th className="px-5 py-3.5">Alasan / Bukti Foto</th>
-                                            <th className="px-5 py-3.5">Status</th>
-                                            <th className="px-5 py-3.5 text-right">Aksi Persetujuan</th>
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-hairline bg-canvas-soft text-caption-mono uppercase text-mute">
+                                            <th className="py-3 px-4 font-semibold">Teknisi</th>
+                                            <th className="py-3 px-4 font-semibold">Jenis Izin</th>
+                                            <th className="py-3 px-4 font-semibold">Periode Tanggal</th>
+                                            <th className="py-3 px-4 font-semibold">Alasan / Bukti Foto</th>
+                                            <th className="py-3 px-4 font-semibold">Status</th>
+                                            <th className="py-3 px-4 font-semibold text-right">Aksi Persetujuan</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100">
+                                    <tbody className="divide-y divide-hairline text-body-sm text-ink">
                                         {dataList.map((item) => {
                                             const days = calculateDays(item.tanggal_mulai, item.tanggal_selesai);
                                             const isPending = item.status === 'menunggu';

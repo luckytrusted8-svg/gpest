@@ -1,6 +1,7 @@
 import { Head, router, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import { Calendar, Download, User, Clock, ArrowLeft, Users, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Button } from '@/Components/ui/button';
+import { Calendar, Download, User, Clock, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 interface ReportItem {
@@ -56,51 +57,39 @@ export default function Report({ reportData, technicians, month, year }: Props) 
 
     return (
         <AppLayout>
-            <Head title={`Rekap Kehadiran ${monthLabel} ${selectedYear} - G-PEST`} />
+            <Head title="Rekap Kehadiran" />
 
             <div className="max-w-7xl mx-auto space-y-6">
-                {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex items-center gap-3">
                         <Link href="/attendance">
-                            <button
-                                type="button"
-                                className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs"
-                                title="Kembali ke Presensi"
-                            >
+                            <Button variant="outline" size="icon" className="h-9 w-9">
                                 <ArrowLeft className="w-4 h-4" />
-                            </button>
+                            </Button>
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                                <span>Rekap Kehadiran Bulanan</span>
-                                <span className="text-xs px-2.5 py-1 rounded-full bg-slate-900 text-white font-mono">{monthLabel} {selectedYear}</span>
-                            </h1>
-                            <p className="text-xs text-slate-500 mt-1">Ringkasan dan akumulasi kehadiran seluruh teknisi lapangan per bulan.</p>
+                            <h1 className="text-display-sm font-semibold text-ink">Rekap Kehadiran Bulanan</h1>
+                            <p className="text-body-sm text-mute mt-1">Ringkasan kehadiran seluruh teknisi per bulan.</p>
                         </div>
                     </div>
-
-                    <a
-                        href={exportReportUrl}
-                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-all active:scale-95"
-                        title="Export rekap bulanan ke file Excel (.csv)"
-                    >
-                        <Download className="w-4 h-4" />
-                        <span>Export Excel</span>
+                    <a href={exportReportUrl}>
+                        <Button variant="outline" className="text-body-sm-strong flex items-center gap-2">
+                            <Download className="w-4 h-4" />
+                            Export Excel
+                        </Button>
                     </a>
                 </div>
 
-                {/* Filter Period Bar */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4">
+                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
                     <div className="flex flex-col sm:flex-row items-center gap-3">
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                            <Calendar className="w-4 h-4 text-blue-600" />
-                            <span>Pilih Periode:</span>
+                        <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-mute" />
+                            <span className="text-body-sm text-ink font-medium">Periode:</span>
                         </div>
                         <select
                             value={selectedMonth}
                             onChange={(e) => setSelectedMonth(e.target.value)}
-                            className="h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 w-full sm:w-44"
+                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-36"
                         >
                             {MONTHS.map((m) => (
                                 <option key={m.value} value={m.value}>{m.label}</option>
@@ -109,124 +98,100 @@ export default function Report({ reportData, technicians, month, year }: Props) 
                         <select
                             value={selectedYear}
                             onChange={(e) => setSelectedYear(e.target.value)}
-                            className="h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 w-full sm:w-32"
+                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-24"
                         >
                             {YEARS.map((y) => (
                                 <option key={y} value={y}>{y}</option>
                             ))}
                         </select>
-                        <button
-                            type="button"
-                            onClick={applyFilter}
-                            className="h-10 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-xs w-full sm:w-auto"
-                        >
+                        <Button onClick={applyFilter} variant="outline" className="text-body-sm-strong">
                             Tampilkan
-                        </button>
+                        </Button>
                     </div>
                 </div>
 
-                {/* Summary Metrics */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-center">
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Hadir</div>
-                        <div className="text-2xl font-bold text-blue-600 font-mono">
-                            {totalHadir}
+                    {[
+                        { label: 'Total Hadir', value: totalHadir, color: 'text-[#0070f3]', bg: 'bg-[#0070f3]/10' },
+                        { label: 'Tidak Hadir', value: totalTidakHadir, color: 'text-[#ee0000]', bg: 'bg-[#ee0000]/10' },
+                        { label: 'Izin', value: totalIzin, color: 'text-[#ab570a]', bg: 'bg-[#f5a623]/10' },
+                        { label: 'Sakit', value: totalSakit, color: 'text-[#7928ca]', bg: 'bg-[#7928ca]/10' },
+                        { label: 'Total Jam Kerja', value: totalJamKerja.toFixed(1), color: 'text-ink', bg: 'bg-canvas-soft', suffix: 'jam' },
+                    ].map((item) => (
+                        <div key={item.label} className={`${item.bg} border border-hairline rounded-md p-4 text-center`}>
+                            <div className="text-caption text-mute uppercase tracking-wider mb-1">{item.label}</div>
+                            <div className={`text-display-sm font-bold ${item.color} font-mono`}>
+                                {item.value}{item.suffix ? ` ${item.suffix}` : ''}
+                            </div>
                         </div>
-                    </div>
-                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-center">
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tidak Hadir</div>
-                        <div className="text-2xl font-bold text-rose-600 font-mono">
-                            {totalTidakHadir}
-                        </div>
-                    </div>
-                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-center">
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Izin</div>
-                        <div className="text-2xl font-bold text-amber-600 font-mono">
-                            {totalIzin}
-                        </div>
-                    </div>
-                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-center">
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Sakit</div>
-                        <div className="text-2xl font-bold text-purple-600 font-mono">
-                            {totalSakit}
-                        </div>
-                    </div>
-                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-center col-span-2 sm:col-span-1">
-                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Jam Kerja</div>
-                        <div className="text-2xl font-bold text-slate-900 font-mono">
-                            {totalJamKerja.toFixed(1)} <span className="text-xs font-normal text-slate-500">jam</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Table View */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
-                    <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                        <h2 className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                            <Users className="w-4 h-4 text-blue-600" />
-                            <span>Rekapitulasi per Teknisi — {monthLabel} {selectedYear}</span>
+                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                    <div className="p-4 border-b border-hairline">
+                        <h2 className="text-body-md-strong text-ink flex items-center gap-2">
+                            <User className="w-4 h-4 text-mute" />
+                            Rekap per Teknisi - {monthLabel} {selectedYear}
                         </h2>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
-                                <tr>
-                                    <th className="px-5 py-3.5">No</th>
-                                    <th className="px-5 py-3.5">Nama Teknisi</th>
-                                    <th className="px-5 py-3.5 text-center">Hadir</th>
-                                    <th className="px-5 py-3.5 text-center">Tidak Hadir</th>
-                                    <th className="px-5 py-3.5 text-center">Izin</th>
-                                    <th className="px-5 py-3.5 text-center">Sakit</th>
-                                    <th className="px-5 py-3.5 text-center">Total Jam Kerja</th>
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-hairline bg-canvas-soft text-caption-mono uppercase text-mute">
+                                    <th className="py-3 px-4 font-semibold">No</th>
+                                    <th className="py-3 px-4 font-semibold">Nama Teknisi</th>
+                                    <th className="py-3 px-4 font-semibold text-center">Hadir</th>
+                                    <th className="py-3 px-4 font-semibold text-center">Tidak Hadir</th>
+                                    <th className="py-3 px-4 font-semibold text-center">Izin</th>
+                                    <th className="py-3 px-4 font-semibold text-center">Sakit</th>
+                                    <th className="py-3 px-4 font-semibold text-center">Total Jam Kerja</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 font-medium">
+                            <tbody className="divide-y divide-hairline text-body-sm text-ink">
                                 {reportData.length > 0 ? (
                                     reportData.map((item, idx) => (
-                                        <tr key={item.technician_id} className="hover:bg-slate-50/60 transition-colors">
-                                            <td className="px-5 py-4 text-slate-400 font-mono text-xs">{idx + 1}</td>
-                                            <td className="px-5 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-800 font-bold flex items-center justify-center text-xs shrink-0">
-                                                        {item.nama ? item.nama.charAt(0).toUpperCase() : 'T'}
+                                        <tr key={item.technician_id} className="hover:bg-canvas-soft/50 transition-colors">
+                                            <td className="py-3 px-4 text-mute">{idx + 1}</td>
+                                            <td className="py-3 px-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-7 h-7 rounded-full bg-canvas-soft-2 border border-hairline flex items-center justify-center text-[10px] font-bold text-ink shrink-0">
+                                                        {item.nama.slice(0, 2).toUpperCase()}
                                                     </div>
-                                                    <span className="font-bold text-slate-900">{item.nama}</span>
+                                                    <span className="font-medium">{item.nama}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4 text-center">
-                                                <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-xl bg-blue-50 text-blue-700 text-xs font-bold font-mono">
+                                            <td className="py-3 px-4 text-center">
+                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#0070f3]/10 text-[#0070f3] text-xs font-bold font-mono">
                                                     {item.total_hadir}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 text-center">
-                                                <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold font-mono">
+                                            <td className="py-3 px-4 text-center">
+                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#ee0000]/10 text-[#ee0000] text-xs font-bold font-mono">
                                                     {item.total_tidak_hadir}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 text-center">
-                                                <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold font-mono">
+                                            <td className="py-3 px-4 text-center">
+                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#f5a623]/10 text-[#ab570a] text-xs font-bold font-mono">
                                                     {item.total_izin}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 text-center">
-                                                <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-xl bg-purple-50 text-purple-700 text-xs font-bold font-mono">
+                                            <td className="py-3 px-4 text-center">
+                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#7928ca]/10 text-[#7928ca] text-xs font-bold font-mono">
                                                     {item.total_sakit}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 text-center">
-                                                <div className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-slate-800">
-                                                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                                    <span>{item.total_jam_kerja.toFixed(1)} jam</span>
+                                            <td className="py-3 px-4 text-center">
+                                                <div className="flex items-center justify-center gap-1.5">
+                                                    <Clock className="w-3.5 h-3.5 text-mute" />
+                                                    <span className="font-mono text-xs font-medium">{item.total_jam_kerja.toFixed(1)} jam</span>
                                                 </div>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={7} className="py-12 text-center text-slate-400">
-                                            <Calendar className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                                            <div className="font-bold text-slate-700 text-sm">Belum ada data kehadiran untuk periode ini</div>
-                                            <div className="text-xs text-slate-400 mt-0.5">Silakan pilih bulan atau tahun lain.</div>
+                                        <td colSpan={7} className="py-10 text-center text-mute text-body-sm">
+                                            Belum ada data kehadiran untuk periode ini.
                                         </td>
                                     </tr>
                                 )}
