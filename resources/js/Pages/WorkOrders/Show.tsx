@@ -4,7 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { useState } from 'react';
 import { 
     ArrowLeft, ClipboardList, MapPin, UserCheck, Calendar, 
-    CheckCircle2, XCircle, AlertCircle, Clock, ShieldCheck, FileText 
+    CheckCircle2, XCircle, AlertCircle, Clock, ShieldCheck, FileText, Trash2
 } from 'lucide-react';
 
 interface InspectionAnswer {
@@ -57,6 +57,12 @@ export default function WorkOrdersShow({ workOrder }: Props) {
         });
     };
 
+    const handleDelete = () => {
+        if (confirm(`Hapus Work Order "${workOrder.wo_number}"? Tindakan ini tidak dapat dibatalkan.`)) {
+            router.delete(`/work-orders/${workOrder.id}`);
+        }
+    };
+
     return (
         <AppLayout>
             <Head title={`Detail Work Order ${workOrder.wo_number}`} />
@@ -105,6 +111,15 @@ export default function WorkOrdersShow({ workOrder }: Props) {
                                 </Button>
                             </>
                         )}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                            onClick={handleDelete}
+                            title="Hapus Work Order"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
                     </div>
                 </div>
 

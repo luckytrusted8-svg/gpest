@@ -3,7 +3,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { useState } from 'react';
-import { ClipboardList, Plus, Search, Filter, CheckCircle2, Clock, AlertTriangle, UserCheck, Shield } from 'lucide-react';
+import { ClipboardList, Plus, Search, Filter, CheckCircle2, Clock, AlertTriangle, UserCheck, Shield, Trash2 } from 'lucide-react';
 
 interface WorkOrder {
     id: number;
@@ -44,6 +44,12 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
 
     const applyFilter = () => {
         router.get('/work-orders', { search, status, technician_id: technicianId }, { preserveState: true });
+    };
+
+    const handleDelete = (id: number, woNumber: string) => {
+        if (confirm(`Hapus Work Order "${woNumber}"? Tindakan ini tidak dapat dibatalkan.`)) {
+            router.delete(`/work-orders/${id}`);
+        }
     };
 
     return (
@@ -169,11 +175,22 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
                                                 </span>
                                             </td>
                                             <td className="py-3 px-4 text-right">
-                                                <Link href={`/work-orders/${wo.id}`}>
-                                                    <Button variant="outline" size="sm" className="text-xs">
-                                                        Detail WO
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    <Link href={`/work-orders/${wo.id}`}>
+                                                        <Button variant="outline" size="sm" className="text-xs">
+                                                            Detail WO
+                                                        </Button>
+                                                    </Link>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        onClick={() => handleDelete(wo.id, wo.wo_number)}
+                                                        className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                                        title="Hapus Work Order"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
                                                     </Button>
-                                                </Link>
+                                                </div>
                                             </td>
                                         </tr>
                                     );

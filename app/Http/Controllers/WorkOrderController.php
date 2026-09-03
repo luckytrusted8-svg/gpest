@@ -155,4 +155,13 @@ class WorkOrderController extends Controller
 
         return back()->with('success', "Status Work Order {$workOrder->wo_number} berhasil diperbarui.");
     }
+
+    public function destroy(WorkOrder $workOrder)
+    {
+        $woNumber = $workOrder->wo_number;
+        $workOrder->delete();
+
+        return redirect()->route('work-orders.index')
+            ->with('success', "Work Order {$woNumber} berhasil dihapus.");
+    }
 }
