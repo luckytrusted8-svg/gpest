@@ -126,19 +126,28 @@ class AttendanceController extends Controller
     {
         $user = $request->user();
         $today = now()->toDateString();
+        $selectedMonth = $request->input('month', now()->format('Y-m'));
+
+        if (! preg_match('/^\d{4}-\d{2}$/', $selectedMonth)) {
+            $selectedMonth = now()->format('Y-m');
+        }
+
+        [$year, $month] = explode('-', $selectedMonth);
 
         $todayAttendance = Attendance::where('technician_id', $user->id)
             ->byDate($today)
             ->first();
 
-        $recentAttendances = Attendance::where('technician_id', $user->id)
+        $monthlyAttendances = Attendance::where('technician_id', $user->id)
+            ->whereYear('tanggal', (int) $year)
+            ->whereMonth('tanggal', (int) $month)
             ->orderBy('tanggal', 'desc')
-            ->take(5)
             ->get();
 
         return Inertia::render('Attendance/CheckIn', [
             'todayAttendance' => $todayAttendance,
-            'recentAttendances' => $recentAttendances,
+            'monthlyAttendances' => $monthlyAttendances,
+            'selectedMonth' => $selectedMonth,
         ]);
     }
 
