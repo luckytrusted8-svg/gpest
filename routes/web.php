@@ -73,6 +73,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('leaves', [LeaveController::class, 'index'])->name('leaves.index');
     Route::post('leaves', [LeaveController::class, 'store'])->name('leaves.store');
+    Route::put('leaves/{leave}', [LeaveController::class, 'update'])->name('leaves.update');
+    Route::delete('leaves/{leave}', [LeaveController::class, 'destroy'])->name('leaves.destroy');
     Route::post('leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
 
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index')->middleware('role:super_admin|admin');

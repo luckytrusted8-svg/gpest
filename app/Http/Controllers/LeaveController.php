@@ -121,4 +121,58 @@ class LeaveController extends Controller
 
         return back()->with('success', "Pengajuan cuti telah {$validated['status']}.");
     }
+
+    public function update(Request $request, Leave $leave)
+    {
+        $user = Auth::user();
+        if ($user->hasRole('technician') && $leave->user_id !== $user->id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        if ($user->hasRole('technician') && $leave->status !== 'menunggu') {
+            return back()->with('error', 'Pengajuan yang sudah diproses oleh atasan tidak dapat diubah.');
+        }
+
+        $validated = $request->validate([
+            'jenis_izin' => 'required|in:cuti,sakit,izin',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'alasan' => 'required|string',
+            'foto_surat' => 'nullable|image|max:5120',
+        ]);
+
+        $fotoSuratPath = $leave->foto_surat;
+        if ($request->hasFile('foto_surat')) {
+            $path = $request->file('foto_surat')->store('leaves', 'public');
+            $fotoSuratPath = '/storage/'.$path;
+        }
+
+        $leave->update([
+            'jenis_izin' => $validated['jenis_izin'],
+            'tanggal_mulai' => $validated['tanggal_mulai'],
+            'tanggal_selesai' => $validated['tanggal_selesai'],
+            'alasan' => $validated['alasan'],
+            'foto_surat' => $fotoSuratPath,
+        ]);
+
+        AuditLog::log('Update Leave', 'Leave Management', "Memperbarui data pengajuan cuti #{$leave->id}");
+
+        return back()->with('success', 'Pengajuan cuti/izin berhasil diperbarui.');
+    }
+
+    public function destroy(Leave $leave)
+    {
+        $user = Auth::user();
+        $canDelete = $user->hasRole(['super_admin', 'admin', 'supervisor']) || $leave->user_id === $user->id;
+
+        if (! $canDelete) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $leave->delete();
+
+        AuditLog::log('Delete Leave', 'Leave Management', "Menghapus pengajuan cuti #{$leave->id}");
+
+        return back()->with('success', 'Pengajuan cuti/izin berhasil dihapus/dibatalkan.');
+    }
 }
