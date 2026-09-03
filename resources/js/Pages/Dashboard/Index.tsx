@@ -1,9 +1,10 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
 import { 
     Users, FileText, CalendarCheck, ClipboardList, UserCheck, UserPlus, 
     UserMinus, UserX, ArrowRight, Calendar, Clock, DollarSign, MessageSquare, 
-    CreditCard, ShieldCheck, MapPin, User, CheckCircle2, PlusCircle, Navigation, Play, Compass
+    CreditCard, ShieldCheck, MapPin, User, CheckCircle2, PlusCircle, Navigation, Play, Compass, AlertTriangle, X
 } from 'lucide-react';
 import LeafletLocationPicker from '@/Components/LeafletLocationPicker';
 
@@ -69,6 +70,8 @@ interface Props {
     recentRequests?: RequestItem[];
     unpaidInvoices?: InvoiceItem[];
     recentAuditLogs?: AuditLogItem[];
+    hasCheckedIn?: boolean;
+    todayAttendance?: any;
 }
 
 const fmtRp = (n: number | null | undefined) => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
@@ -109,15 +112,25 @@ const getScheduleStatusBadge = (status: string) => {
     return <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${cls}`}>{label}</span>;
 };
 
-export default function Dashboard({ kpiData, todaySchedules = [], technicianCounts, recentRequests = [], unpaidInvoices = [], recentAuditLogs = [] }: Props) {
+export default function Dashboard({ kpiData, todaySchedules = [], technicianCounts, recentRequests = [], unpaidInvoices = [], recentAuditLogs = [], hasCheckedIn = false, todayAttendance }: Props) {
     const page = usePage();
     const auth = page.props.auth as any;
     const userRoles: string[] = auth?.user?.roles || [];
     const isTechnician = userRoles.includes('technician');
     const userName = auth?.user?.name || 'Teknisi';
 
+    const [showCheckInAlertModal, setShowCheckInAlertModal] = useState(false);
+
     const handleUpdateStatus = (scheduleId: number, nextStatus: string) => {
         router.put(`/schedules/${scheduleId}/status`, { status: nextStatus }, { preserveScroll: true });
+    };
+
+    const handleStartTrip = (scheduleId: number) => {
+        if (!hasCheckedIn) {
+            setShowCheckInAlertModal(true);
+            return;
+        }
+        handleUpdateStatus(scheduleId, 'dalam_perjalanan');
     };
 
     const kpis = [
@@ -261,7 +274,7 @@ export default function Dashboard({ kpiData, todaySchedules = [], technicianCoun
                                                 lat={lat}
                                                 lng={lng}
                                                 radius={100}
-                                                onLocationSelect={() => {}}
+                                                readonly={true}
                                                 height="180px"
                                             />
                                         </div>
@@ -270,7 +283,7 @@ export default function Dashboard({ kpiData, todaySchedules = [], technicianCoun
                                         <div className="pt-2 flex flex-wrap gap-2">
                                             {(sch.status === 'dijadwalkan' || sch.status === 'ditugaskan') && (
                                                 <button
-                                                    onClick={() => handleUpdateStatus(sch.id, 'dalam_perjalanan')}
+                                                    onClick={() => handleStartTrip(sch.id)}
                                                     className="flex-1 py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition-colors flex items-center justify-center gap-1.5"
                                                 >
                                                     <Navigation className="w-4 h-4" />
@@ -330,12 +343,63 @@ export default function Dashboard({ kpiData, todaySchedules = [], technicianCoun
                                 <div className="p-12 text-center text-slate-400">
                                     <CheckCircle2 className="w-10 h-10 mx-auto text-slate-300 mb-2" />
                                     <p className="text-sm font-semibold text-slate-700">Tidak Ada Tugas Hari Ini</p>
-                                    <p className="text-xs text-slate-400 mt-1">Anda tidak memiliki penugasan jadwal untuk saat ini.</p>
+                                    <p className="text-xs text-slate-400 mt-0.5">Semua penugasan dan jadwal kunjungan selesai atau belum dijadwalkan.</p>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
+
+                {/* Modal Peringatan Belum Check-In */}
+                {showCheckInAlertModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+                        <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                            <div className="flex items-start justify-between">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
+                                    <AlertTriangle className="w-6 h-6" />
+                                </div>
+                                <button
+                                    onClick={() => setShowCheckInAlertModal(false)}
+                                    className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900">
+                                    Presensi Masuk Diperlukan
+                                </h3>
+                                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                                    Anda belum melakukan <strong>Presensi Masuk (Check-In)</strong> hari ini. 
+                                    Silakan lakukan Check-In terlebih dahulu untuk mencatat jam kehadiran dan mengaktifkan koordinat GPS sebelum berangkat ke lokasi klien.
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCheckInAlertModal(false)}
+                                    className="w-full sm:w-auto flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors"
+                                >
+                                    Nanti Saja
+                                </button>
+                                <Link
+                                    href="/attendance/check-in"
+                                    className="w-full sm:w-auto flex-1"
+                                >
+                                    <button
+                                        type="button"
+                                        className="w-full px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                                    >
+                                        <MapPin className="w-4 h-4" />
+                                        Check-In Sekarang
+                                    </button>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </AppLayout>
         );
     }

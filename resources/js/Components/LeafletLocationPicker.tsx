@@ -7,8 +7,9 @@ interface LeafletLocationPickerProps {
     lat: number | string;
     lng: number | string;
     radius?: number;
-    onLocationSelect: (lat: number, lng: number, addressSuggestion?: string) => void;
+    onLocationSelect?: (lat: number, lng: number, addressSuggestion?: string) => void;
     height?: string;
+    readonly?: boolean;
 }
 
 export default function LeafletLocationPicker({
@@ -17,6 +18,7 @@ export default function LeafletLocationPicker({
     radius = 100,
     onLocationSelect,
     height = '320px',
+    readonly = false,
 }: LeafletLocationPickerProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
@@ -46,10 +48,12 @@ export default function LeafletLocationPicker({
             maxZoom: 19,
         }).addTo(map);
 
-        // Click Handler on Map
-        map.on('click', (e: L.LeafletMouseEvent) => {
-            onLocationSelect(e.latlng.lat, e.latlng.lng);
-        });
+        // Click Handler on Map (only when not readonly)
+        if (!readonly && onLocationSelect) {
+            map.on('click', (e: L.LeafletMouseEvent) => {
+                onLocationSelect(e.latlng.lat, e.latlng.lng);
+            });
+        }
 
         // Add Marker
         const marker = L.circleMarker([numLat, numLng], {
@@ -116,7 +120,7 @@ export default function LeafletLocationPicker({
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 setLoadingGps(false);
-                onLocationSelect(pos.coords.latitude, pos.coords.longitude);
+                onLocationSelect?.(pos.coords.latitude, pos.coords.longitude);
             },
             (err) => {
                 setLoadingGps(false);
@@ -139,7 +143,7 @@ export default function LeafletLocationPicker({
                 const first = data[0];
                 const foundLat = parseFloat(first.lat);
                 const foundLng = parseFloat(first.lon);
-                onLocationSelect(foundLat, foundLng, first.display_name);
+                onLocationSelect?.(foundLat, foundLng, first.display_name);
             } else {
                 alert('Lokasi tidak ditemukan. Coba kata kunci yang lebih spesifik.');
             }
@@ -159,40 +163,42 @@ export default function LeafletLocationPicker({
 
     return (
         <div className="space-y-2">
-            {/* Toolbar Search & GPS (DIV to avoid nested form) */}
-            <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex-1 flex gap-2">
-                    <div className="relative flex-1">
-                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Cari nama jalan / lokasi di peta..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={handleKeyDownSearch}
-                            className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 font-medium"
-                        />
+            {/* Toolbar Search & GPS (only in edit/picker mode) */}
+            {!readonly && (
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex-1 flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Cari nama jalan / lokasi di peta..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleKeyDownSearch}
+                                className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 font-medium"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleSearchAddress}
+                            disabled={searching}
+                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold shrink-0 transition-colors disabled:opacity-50"
+                        >
+                            {searching ? 'Cari...' : 'Cari di Peta'}
+                        </button>
                     </div>
+
                     <button
                         type="button"
-                        onClick={handleSearchAddress}
-                        disabled={searching}
-                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold shrink-0 transition-colors disabled:opacity-50"
+                        onClick={handleGetCurrentLocation}
+                        disabled={loadingGps}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-xs"
                     >
-                        {searching ? 'Cari...' : 'Cari di Peta'}
+                        <Compass className={`w-4 h-4 ${loadingGps ? 'animate-spin' : ''}`} />
+                        <span>{loadingGps ? 'Mengambil GPS...' : 'Gunakan GPS Saya'}</span>
                     </button>
                 </div>
-
-                <button
-                    type="button"
-                    onClick={handleGetCurrentLocation}
-                    disabled={loadingGps}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-xs"
-                >
-                    <Compass className={`w-4 h-4 ${loadingGps ? 'animate-spin' : ''}`} />
-                    <span>{loadingGps ? 'Mengambil GPS...' : 'Gunakan GPS Saya'}</span>
-                </button>
-            </div>
+            )}
 
             {/* Pure Vanilla Leaflet Map Container */}
             <div className="relative rounded-xl overflow-hidden border border-slate-300 shadow-xs z-10" style={{ height }}>
@@ -203,9 +209,12 @@ export default function LeafletLocationPicker({
                     <span>Lat: {numLat.toFixed(6)}, Lng: {numLng.toFixed(6)}</span>
                 </div>
             </div>
-            <p className="text-[11px] text-slate-500 italic">
-                * Klik di mana saja pada peta Leaflet untuk menentukan titik lokasi koordinat GPS secara presisi.
-            </p>
+
+            {!readonly && (
+                <p className="text-[11px] text-slate-500 italic">
+                    * Klik di mana saja pada peta Leaflet untuk menentukan titik lokasi koordinat GPS secara presisi.
+                </p>
+            )}
         </div>
     );
 }

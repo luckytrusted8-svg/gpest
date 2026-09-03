@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
 use App\Models\Contract;
 use App\Models\Customer;
 use App\Models\Schedule;
@@ -202,6 +203,20 @@ class ScheduleController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:dijadwalkan,ditugaskan,dalam_perjalanan,tiba,sedang_dikerjakan,selesai,dibatalkan,dijadwal_ulang',
         ]);
+
+        if ($validated['status'] === 'dalam_perjalanan') {
+            $user = auth()->user();
+            if ($user && $user->roles->pluck('name')->contains('technician')) {
+                $hasCheckedIn = Attendance::where('technician_id', $user->id)
+                    ->whereDate('tanggal', now()->toDateString())
+                    ->whereNotNull('jam_masuk')
+                    ->exists();
+
+                if (! $hasCheckedIn) {
+                    return back()->with('error', 'Anda belum melakukan Presensi Masuk (Check-In) hari ini. Silakan Check-In terlebih dahulu sebelum berangkat ke lokasi klien.');
+                }
+            }
+        }
 
         $schedule->update(['status' => $validated['status']]);
 

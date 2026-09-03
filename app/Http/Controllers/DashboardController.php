@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
 use App\Models\AuditLog;
 use App\Models\Contract;
 use App\Models\Customer;
@@ -28,8 +29,15 @@ class DashboardController extends Controller
 
         $user = auth()->user();
         $isTechnician = $user && $user->roles->pluck('name')->contains('technician');
+        $hasCheckedIn = false;
+        $todayAttendance = null;
 
         if ($isTechnician) {
+            $todayAttendance = Attendance::where('technician_id', $user->id)
+                ->whereDate('tanggal', $todayDate)
+                ->first();
+            $hasCheckedIn = $todayAttendance && ! empty($todayAttendance->jam_masuk);
+
             $todaySchedules = Schedule::with(['customer', 'technician'])
                 ->where('technician_id', $user->id)
                 ->orderByRaw("FIELD(status, 'sedang_dikerjakan', 'tiba', 'dalam_perjalanan', 'ditugaskan', 'dijadwalkan', 'selesai', 'dibatalkan') ASC")
@@ -77,6 +85,8 @@ class DashboardController extends Controller
             'recentRequests' => $recentRequests,
             'unpaidInvoices' => $unpaidInvoices,
             'recentAuditLogs' => $recentAuditLogs,
+            'hasCheckedIn' => $hasCheckedIn,
+            'todayAttendance' => $todayAttendance,
         ]);
     }
 }
