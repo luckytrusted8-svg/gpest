@@ -4,7 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { useState } from 'react';
 import { 
     ArrowLeft, ClipboardList, MapPin, UserCheck, Calendar, 
-    CheckCircle2, XCircle, AlertCircle, Clock, ShieldCheck, FileText, Trash2
+    CheckCircle2, XCircle, AlertCircle, Clock, ShieldCheck, FileText, Trash2, Edit
 } from 'lucide-react';
 
 interface InspectionAnswer {
@@ -111,6 +111,15 @@ export default function WorkOrdersShow({ workOrder }: Props) {
                                 </Button>
                             </>
                         )}
+                        <Link href={`/work-orders/${workOrder.id}/edit`}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs flex items-center gap-1.5"
+                            >
+                                <Edit className="w-3.5 h-3.5" /> Edit WO
+                            </Button>
+                        </Link>
                         <Button
                             variant="outline"
                             size="icon"

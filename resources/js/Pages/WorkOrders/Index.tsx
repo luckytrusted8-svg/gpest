@@ -3,7 +3,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { useState } from 'react';
-import { ClipboardList, Plus, Search, Filter, CheckCircle2, Clock, AlertTriangle, UserCheck, Shield, Trash2 } from 'lucide-react';
+import { ClipboardList, Plus, Search, Filter, CheckCircle2, Clock, AlertTriangle, UserCheck, Shield, Trash2, Edit } from 'lucide-react';
 
 interface WorkOrder {
     id: number;
@@ -179,6 +179,16 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
                                                     <Link href={`/work-orders/${wo.id}`}>
                                                         <Button variant="outline" size="sm" className="text-xs">
                                                             Detail WO
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href={`/work-orders/${wo.id}/edit`}>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-sm"
+                                                            className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                                                            title="Edit Work Order"
+                                                        >
+                                                            <Edit className="w-3.5 h-3.5" />
                                                         </Button>
                                                     </Link>
                                                     <Button

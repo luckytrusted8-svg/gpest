@@ -144,6 +144,43 @@ class WorkOrderController extends Controller
         ]);
     }
 
+    public function edit(WorkOrder $workOrder)
+    {
+        return Inertia::render('WorkOrders/Edit', [
+            'workOrder' => $workOrder,
+            'customers' => Customer::all(['id', 'company_name']),
+            'sites' => Site::all(['id', 'customer_id', 'site_name']),
+            'contracts' => Contract::all(['id', 'contract_number']),
+            'schedules' => Schedule::where('status', 'scheduled')->get(['id', 'schedule_code', 'tanggal']),
+            'technicians' => User::role(['technician', 'supervisor'])->get(['id', 'name']),
+            'statuses' => [
+                'DRAFT', 'ASSIGNED', 'ON_THE_WAY', 'ARRIVED',
+                'IN_PROGRESS', 'COMPLETED', 'PENDING_REVIEW',
+                'APPROVED', 'REJECTED', 'CANCELLED',
+            ],
+        ]);
+    }
+
+    public function update(Request $request, WorkOrder $workOrder)
+    {
+        $validated = $request->validate([
+            'wo_number' => 'required|unique:work_orders,wo_number,'.$workOrder->id,
+            'customer_id' => 'required|exists:customers,id',
+            'site_id' => 'nullable|exists:sites,id',
+            'contract_id' => 'nullable|exists:contracts,id',
+            'schedule_id' => 'nullable|exists:schedules,id',
+            'technician_id' => 'nullable|exists:users,id',
+            'service_type' => 'required|string|max:255',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'instruction' => 'nullable|string',
+            'status' => 'required|in:DRAFT,ASSIGNED,ON_THE_WAY,ARRIVED,IN_PROGRESS,COMPLETED,PENDING_REVIEW,APPROVED,REJECTED,CANCELLED',
+        ]);
+
+        $workOrder->update($validated);
+
+        return redirect()->route('work-orders.index')->with('success', "Work Order {$workOrder->wo_number} berhasil diperbarui.");
+    }
+
     public function updateStatus(Request $request, WorkOrder $workOrder)
     {
         $validated = $request->validate([
