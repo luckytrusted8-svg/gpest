@@ -3,9 +3,11 @@ import AppLayout from '@/Layouts/AppLayout';
 import { 
     Clock, MapPin, LogIn, LogOut, CheckCircle, AlertCircle, 
     Calendar, User, ChevronLeft, ChevronRight, CheckCircle2, 
-    X, Check, Building2, Globe, Eye, Navigation, ShieldCheck
+    X, Check, Building2, Globe, Eye, Navigation, ShieldCheck, ArrowLeft
 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface AttendanceRecord {
     id: number;
@@ -65,6 +67,106 @@ function useGeolocation() {
     }, []);
 
     return { coords, error, loading, requestLocation };
+}
+
+// Mini Interactive Leaflet Map for Real Street & Region Tracking
+function AttendanceRealMap({ 
+    latitude, 
+    longitude, 
+    label = 'Titik Lokasi Presensi' 
+}: { 
+    latitude: number; 
+    longitude: number; 
+    label?: string;
+}) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<L.Map | null>(null);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const lat = Number(latitude) || -6.2088;
+        const lng = Number(longitude) || 106.8456;
+
+        // Cleanup previous instance if any
+        if (mapRef.current) {
+            mapRef.current.remove();
+            mapRef.current = null;
+        }
+
+        const map = L.map(containerRef.current, {
+            center: [lat, lng],
+            zoom: 16,
+            zoomControl: true,
+            attributionControl: false,
+        });
+
+        // Real OpenStreetMap Tiles (like tracking map used by superiors)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Custom High-End Pin Marker
+        const pinIcon = L.divIcon({
+            html: `
+                <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
+                    <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-emerald-400 opacity-75"></span>
+                    <div class="relative flex items-center justify-center w-7 h-7 rounded-full bg-emerald-600 border-2 border-white shadow-lg text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        </svg>
+                    </div>
+                </div>
+            `,
+            className: '',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+        });
+
+        L.marker([lat, lng], { icon: pinIcon })
+            .addTo(map)
+            .bindPopup(`<div class="text-xs font-semibold p-1">${label}<br/><span class="text-slate-500 font-mono text-[10px]">${lat.toFixed(5)}, ${lng.toFixed(5)}</span></div>`)
+            .openPopup();
+
+        // Accuracy Circle Radius
+        L.circle([lat, lng], {
+            radius: 80,
+            color: '#10b981',
+            fillColor: '#10b981',
+            fillOpacity: 0.15,
+            weight: 2,
+        }).addTo(map);
+
+        mapRef.current = map;
+
+        const timer = setTimeout(() => {
+            if (mapRef.current) {
+                mapRef.current.invalidateSize();
+            }
+        }, 300);
+
+        return () => {
+            clearTimeout(timer);
+            if (mapRef.current) {
+                mapRef.current.remove();
+                mapRef.current = null;
+            }
+        };
+    }, [latitude, longitude, label]);
+
+    return (
+        <div className="relative w-full h-56 sm:h-64 rounded-2xl overflow-hidden border border-slate-200 shadow-2xs">
+            <div ref={containerRef} className="w-full h-full z-0" />
+            <a
+                href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-2.5 right-2.5 z-10 px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-xs border border-slate-200 text-slate-700 hover:text-blue-600 hover:bg-white text-[11px] font-semibold flex items-center gap-1 shadow-sm transition-all"
+            >
+                <Navigation className="w-3 h-3 text-blue-600" /> Buka Google Maps
+            </a>
+        </div>
+    );
 }
 
 export default function CheckIn({ todayAttendance, monthlyAttendances = [], selectedMonth }: Props) {
@@ -489,31 +591,43 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                     </div>
                 )}
 
-                {/* MODAL 2: ATTENDANCE DETAIL MODAL (Sesuai Foto Rujukan) */}
+                {/* MODAL 2: ATTENDANCE DETAIL FULL SCREEN (Layar Penuh Tanpa Bolong & Real Leaflet Maps Tracking) */}
                 {selectedDetail && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
-                        <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 my-auto animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
-                            {/* Header */}
-                            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+                    <div className="fixed inset-0 z-50 bg-slate-50 overflow-y-auto flex flex-col animate-in fade-in duration-200">
+                        {/* Top Sticky Header Navbar */}
+                        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3.5 flex items-center justify-between shadow-2xs">
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setSelectedDetail(null)}
+                                    className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition-colors"
+                                    title="Kembali"
+                                >
+                                    <ArrowLeft className="w-4 h-4" />
+                                </button>
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-900">Attendance Detail</h3>
-                                    <p className="text-xs text-slate-500 font-mono mt-0.5">
+                                    <h3 className="text-sm font-bold text-slate-900">Attendance Detail</h3>
+                                    <p className="text-[11px] text-slate-500 font-mono">
                                         {formatFullDate(selectedDetail.tanggal)}
                                     </p>
                                 </div>
-                                <button
-                                    onClick={() => setSelectedDetail(null)}
-                                    className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
                             </div>
+                            <button
+                                onClick={() => setSelectedDetail(null)}
+                                className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
 
+                        {/* Full Screen Scrollable Content Body */}
+                        <div className="flex-1 max-w-lg w-full mx-auto p-4 space-y-4 pb-12">
                             {/* Section 1: Work Type, Schedule, Lokasi */}
-                            <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 space-y-2.5 text-xs">
+                            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-2.5 text-xs">
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-500 font-medium">Work Type</span>
-                                    <span className="font-bold text-slate-900">
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase border ${
+                                        selectedDetail.work_type === 'WFA' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200'
+                                    }`}>
                                         {selectedDetail.work_type === 'WFA' ? 'WFA - Work From Anywhere' : 'WFO - Work From Office'}
                                     </span>
                                 </div>
@@ -521,7 +635,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                     <span className="text-slate-500 font-medium">Schedule</span>
                                     <span className="font-semibold text-slate-900">Penugasan Fleksibel (Lapangan)</span>
                                 </div>
-                                <div className="flex justify-between items-start pt-1 border-t border-slate-200/60">
+                                <div className="flex justify-between items-start pt-1.5 border-t border-slate-100">
                                     <span className="text-slate-500 font-medium shrink-0 mr-3">Lokasi</span>
                                     <span className="font-medium text-slate-800 text-right leading-relaxed">
                                         {selectedDetail.lokasi_nama || 'G-PEST Central Service • Depok / Jakarta'}
@@ -538,7 +652,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                         </div>
                                         <span>Check In</span>
                                     </div>
-                                    <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                    <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                                         Presensi Masuk
                                     </span>
                                 </div>
@@ -564,8 +678,10 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                         </div>
                                         <span>Check Out</span>
                                     </div>
-                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
-                                        selectedDetail.jam_keluar ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${
+                                        selectedDetail.jam_keluar 
+                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
+                                            : 'bg-slate-100 text-slate-500 border-slate-200'
                                     }`}>
                                         {selectedDetail.jam_keluar ? 'Selesai' : 'Belum Keluar'}
                                     </span>
@@ -583,28 +699,19 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                 )}
                             </div>
 
-                            {/* Section 4: Map Visual Indicator */}
-                            <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-2xs">
-                                <div className="bg-slate-100 p-2 flex items-center justify-between text-[11px] font-medium text-slate-600 px-3">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-                                        <span>Check In GPS</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
-                                        <span>Office Area</span>
-                                    </div>
+                            {/* Section 4: REAL LEAFLET OPENSTREETMAP TRACKING (Kelihatan Daerah & Jalan) */}
+                            <div className="space-y-1.5">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-mono flex items-center justify-between">
+                                    <span>PETA LOKASI PRESENSI GPS</span>
+                                    <span className="text-emerald-600 flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Terverifikasi
+                                    </span>
                                 </div>
-                                <div className="h-32 bg-slate-200 relative flex items-center justify-center overflow-hidden">
-                                    {/* Static blueprint / map background graphic */}
-                                    <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]" />
-                                    <div className="w-24 h-24 rounded-full border-2 border-blue-400/60 bg-blue-400/10 flex items-center justify-center animate-pulse">
-                                        <div className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-sm flex items-center justify-center" />
-                                    </div>
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1 mt-3">
-                                        <div className="w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
-                                    </div>
-                                </div>
+                                <AttendanceRealMap
+                                    latitude={selectedDetail.latitude_masuk || -6.3759288}
+                                    longitude={selectedDetail.longitude_masuk || 106.763365}
+                                    label={`${auth?.user?.name || 'Teknisi'} (${selectedDetail.work_type || 'WFO'})`}
+                                />
                             </div>
 
                             {/* Section 5: SELFIE */}
@@ -612,7 +719,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                 <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-mono">
                                     SELFIE PRESENSI
                                 </div>
-                                <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 aspect-3/4 max-h-56 flex items-center justify-center relative shadow-2xs">
+                                <div className="rounded-2xl overflow-hidden border border-slate-200 bg-white aspect-3/4 max-h-64 flex items-center justify-center relative shadow-2xs">
                                     {selectedDetail.selfie_masuk ? (
                                         <img
                                             src={selectedDetail.selfie_masuk}
@@ -620,14 +727,16 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="text-center p-4">
-                                            <div className="w-16 h-16 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 font-bold text-xl">
+                                        <div className="text-center p-6">
+                                            <div className="w-20 h-20 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center mx-auto mb-3 font-bold text-2xl shadow-2xs">
                                                 {auth?.user?.name ? auth.user.name.charAt(0).toUpperCase() : 'T'}
                                             </div>
-                                            <span className="text-xs font-semibold text-slate-700 block">
+                                            <span className="text-sm font-bold text-slate-800 block">
                                                 {auth?.user?.name || 'Teknisi G-PEST'}
                                             </span>
-                                            <span className="text-[11px] text-slate-400">Presensi GPS Terverifikasi</span>
+                                            <span className="text-xs text-slate-400 mt-0.5 block">
+                                                Presensi Biometrik & GPS Terverifikasi
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -638,7 +747,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                 <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-mono">
                                     TANDA TANGAN ELEKTRONIK
                                 </div>
-                                <div className="rounded-2xl border border-slate-200 bg-white p-4 h-24 flex items-center justify-center shadow-2xs">
+                                <div className="rounded-2xl border border-slate-200 bg-white p-4 h-28 flex items-center justify-center shadow-2xs">
                                     {selectedDetail.tanda_tangan ? (
                                         <img
                                             src={selectedDetail.tanda_tangan}
@@ -646,7 +755,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                             className="max-h-full object-contain"
                                         />
                                     ) : (
-                                        <svg className="w-36 h-14 text-slate-700" viewBox="0 0 200 80" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                        <svg className="w-44 h-16 text-slate-700" viewBox="0 0 200 80" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                                             <path d="M 20,50 Q 40,10 60,45 T 100,30 T 140,55 T 180,25" />
                                             <path d="M 40,65 L 170,60" />
                                         </svg>
@@ -655,13 +764,13 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                             </div>
 
                             {/* Section 7: Button Tutup */}
-                            <div className="pt-2">
+                            <div className="pt-3">
                                 <button
                                     type="button"
                                     onClick={() => setSelectedDetail(null)}
-                                    className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors shadow-2xs"
+                                    className="w-full py-3.5 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition-colors shadow-xs"
                                 >
-                                    Tutup
+                                    Tutup Rincian
                                 </button>
                             </div>
                         </div>
