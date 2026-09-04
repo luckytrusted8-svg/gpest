@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { ArrowLeft, Clock, MapPin } from 'lucide-react';
@@ -65,9 +65,11 @@ export default function History({ tracks = [], technician, selectedDate, allTech
             <div className="max-w-7xl mx-auto space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.get('/tracking')}>
-                            <ArrowLeft className="w-4 h-4" />
-                        </Button>
+                        <Link href="/tracking" prefetch>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <ArrowLeft className="w-4 h-4" />
+                            </Button>
+                        </Link>
                         <div>
                             <h1 className="text-display-sm font-semibold text-ink">Riwayat Lokasi</h1>
                             <p className="text-body-sm text-mute mt-0.5">Jalur pergerakan {technician?.name ?? 'Teknisi'}</p>
@@ -75,12 +77,12 @@ export default function History({ tracks = [], technician, selectedDate, allTech
                     </div>
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <div className="flex flex-col sm:flex-row items-center gap-3">
                         <select
                             value={techId}
                             onChange={(e) => setTechId(e.target.value)}
-                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-48"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-48"
                         >
                             {allTechnicians.map((t) => (
                                 <option key={t.id} value={t.id}>{t.name}</option>
@@ -90,23 +92,23 @@ export default function History({ tracks = [], technician, selectedDate, allTech
                             type="date"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
-                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                         />
-                        <Button onClick={applyFilter} variant="outline" className="text-body-sm-strong">
+                        <Button onClick={applyFilter} variant="outline" className="text-body-sm-strong rounded-xl">
                             Tampilkan
                         </Button>
                     </div>
                 </div>
 
-                <div className="h-[450px] rounded-lg overflow-hidden border border-hairline shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] bg-canvas">
+                <div className="h-[450px] rounded-2xl overflow-hidden border border-slate-200/90 shadow-2xs bg-white">
                     {isClient && (
-                        <Suspense fallback={<div className="h-[450px] w-full flex items-center justify-center bg-canvas text-mute text-body-sm">Memuat peta...</div>}>
+                        <Suspense fallback={<div className="h-[450px] w-full flex items-center justify-center bg-white text-mute text-body-sm">Memuat peta...</div>}>
                             <HistoryMap tracks={tracks} />
                         </Suspense>
                     )}
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>

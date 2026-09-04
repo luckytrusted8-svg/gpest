@@ -118,14 +118,14 @@ export default function TrackingIndex({ technicians = [], geofences = [], select
 
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs">
                     <div>
                         <div className="flex items-center gap-2">
-                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="text-xs font-bold text-blue-600 tracking-wide">
                                 Monitoring Lapangan G-PEST
                             </span>
-                            <span className="text-xs text-slate-500 font-mono flex items-center gap-1">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                            <span className="text-slate-300">•</span>
+                            <span className="text-xs text-slate-500 font-mono">
                                 Monitoring Real-Time Presisi
                             </span>
                         </div>
@@ -224,32 +224,32 @@ export default function TrackingIndex({ technicians = [], geofences = [], select
 
                 {/* Geofence Active Zone Live Summary Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex items-center justify-between">
+                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between">
                         <div>
                             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Geofence Aktif</div>
                             <div className="text-2xl font-extrabold text-blue-600 mt-1">{geofences.length} Zona Area</div>
                         </div>
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
                             <Shield className="w-5 h-5" />
                         </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex items-center justify-between">
+                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between">
                         <div>
                             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Teknisi di Dalam Geofence</div>
                             <div className="text-2xl font-extrabold text-emerald-600 mt-1">{techsInsideGeofenceTotal} Personel</div>
                         </div>
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                        <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
                             <Users className="w-5 h-5" />
                         </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex items-center justify-between">
+                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between">
                         <div>
                             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Teknisi di Luar Geofence</div>
                             <div className="text-2xl font-extrabold text-slate-700 mt-1">{technicians.length - techsInsideGeofenceTotal} Personel</div>
                         </div>
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
+                        <div className="w-10 h-10 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">
                             <MapPin className="w-5 h-5" />
                         </div>
                     </div>
@@ -258,7 +258,7 @@ export default function TrackingIndex({ technicians = [], geofences = [], select
                 {/* Tracking Main View Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* Left: Interactive Leaflet Map (3 Span) */}
-                    <div className="lg:col-span-3 bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
+                    <div className="lg:col-span-3 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-4">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
                             <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                                 <Compass className="w-4 h-4 text-blue-600" />
@@ -356,7 +356,7 @@ export default function TrackingIndex({ technicians = [], geofences = [], select
                     </div>
 
                     {/* Right: Technician Status & Geofence Verification Panel (1 Span) */}
-                    <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-4 space-y-4">
+                    <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4 space-y-4">
                         <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                             <div>
                                 <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">

@@ -140,10 +140,10 @@ export default function GeofencePage({ geofences = [], customers = [] }: Props) 
 
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header Section */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs">
                     <div>
                         <div className="flex items-center gap-2">
-                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="text-xs font-bold text-blue-600 tracking-wide">
                                 Geofencing Management
                             </span>
                         </div>
@@ -165,7 +165,7 @@ export default function GeofencePage({ geofences = [], customers = [] }: Props) 
                 </div>
 
                 {/* Geofence Data Table Card */}
-                <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                     <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                         <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-blue-600" />

@@ -123,13 +123,13 @@ export default function Index({ contracts, filters }: IndexProps) {
 
             <div className="max-w-7xl mx-auto space-y-6">
                 {f?.success && (
-                    <div className="bg-[#f0fdf4] border border-[#bbf7d0] text-[#166534] px-4 py-3 rounded-md text-body-sm flex items-center gap-2">
+                    <div className="bg-[#f0fdf4] border border-[#bbf7d0] text-[#166534] px-4 py-3 rounded-2xl text-body-sm flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 shrink-0" />
                         {f.success}
                     </div>
                 )}
                 {f?.error && (
-                    <div className="bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] px-4 py-3 rounded-md text-body-sm flex items-center gap-2">
+                    <div className="bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] px-4 py-3 rounded-2xl text-body-sm flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         {f.error}
                     </div>
@@ -142,7 +142,7 @@ export default function Index({ contracts, filters }: IndexProps) {
                         <p className="text-body-sm text-mute mt-1">Kelola perjanjian pelanggan, jadwal layanan, dan siklus hidup kontrak.</p>
                     </div>
                     <Link href="/contracts/create">
-                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
                             <Plus className="w-4 h-4" />
                             Buat Kontrak
                         </Button>
@@ -150,7 +150,7 @@ export default function Index({ contracts, filters }: IndexProps) {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-center gap-4">
                         <div className="relative flex-1 w-full">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
@@ -159,29 +159,29 @@ export default function Index({ contracts, filters }: IndexProps) {
                                 placeholder="Cari nomor kontrak, customer, lokasi..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9"
+                                className="pl-9 rounded-xl"
                             />
                         </div>
                         <select
                             value={status}
                             onChange={(e) => handleStatusChange(e.target.value)}
-                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-48"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-48"
                         >
                             <option value="">Semua Status</option>
                             <option value="draft">Draft</option>
                             <option value="active">Aktif</option>
                             <option value="expiring_soon">Akan Berakhir</option>
-                            <option value="expired">Berakhir</option>
+                            <option value="expired">Kedaluwarsa</option>
                             <option value="cancelled">Dibatalkan</option>
                         </select>
-                        <Button type="submit" variant="outline" className="text-body-sm-strong w-full sm:w-auto">
+                        <Button type="submit" variant="outline" className="text-body-sm-strong w-full sm:w-auto rounded-xl">
                             Filter
                         </Button>
                     </form>
                 </div>
 
                 {/* Contracts Table */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>

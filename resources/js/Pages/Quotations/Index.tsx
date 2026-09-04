@@ -84,13 +84,13 @@ export default function Index({ quotations, customers = [], filters = {} }: Prop
                         <p className="text-body-sm text-mute mt-0.5">{totalCount} quotation.</p>
                     </div>
                     <Link href="/quotations/create">
-                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
                             <Plus className="w-4 h-4" />Buat Quotation
                         </Button>
                     </Link>
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
                         <div className="relative">
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-mute" />
@@ -99,13 +99,13 @@ export default function Index({ quotations, customers = [], filters = {} }: Prop
                                 onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && applyFilter()}
                                 placeholder="Cari nomor / customer..."
-                                className="w-full h-9 pl-8 pr-3 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="w-full h-9 pl-8 pr-3 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                             />
                         </div>
                         <select
                             value={status}
                             onChange={(e) => { setStatus(e.target.value); setTimeout(applyFilter, 0); }}
-                            className="h-9 rounded-md border border-hairline bg-canvas px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                         >
                             <option value="">Semua Status</option>
                             {['draft', 'dikirim', 'dilihat', 'diterima', 'ditolak', 'kadaluarsa'].map((s) => <option key={s} value={s}>{s}</option>)}
@@ -113,7 +113,7 @@ export default function Index({ quotations, customers = [], filters = {} }: Prop
                         <select
                             value={customerId}
                             onChange={(e) => { setCustomerId(e.target.value); setTimeout(applyFilter, 0); }}
-                            className="h-9 rounded-md border border-hairline bg-canvas px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                         >
                             <option value="">Semua Customer</option>
                             {customers.map((c) => <option key={c.id} value={c.id}>{c.company_name}</option>)}
@@ -122,21 +122,21 @@ export default function Index({ quotations, customers = [], filters = {} }: Prop
                             type="date"
                             value={dateFrom}
                             onChange={(e) => { setDateFrom(e.target.value); setTimeout(applyFilter, 0); }}
-                            className="h-9 rounded-md border border-hairline bg-canvas px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                             placeholder="Dari tanggal"
                         />
                         <input
                             type="date"
                             value={dateTo}
                             onChange={(e) => { setDateTo(e.target.value); setTimeout(applyFilter, 0); }}
-                            className="h-9 rounded-md border border-hairline bg-canvas px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                             placeholder="Sampai tanggal"
                         />
                         <button onClick={clearFilters} className="text-xs text-mute hover:text-ink underline">Reset</button>
                     </div>
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-x-auto">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-x-auto">
                     <table className="w-full text-body-sm">
                         <thead>
                             <tr className="border-b border-hairline bg-canvas-soft">

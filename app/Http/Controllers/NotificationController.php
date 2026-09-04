@@ -22,7 +22,7 @@ class NotificationController extends Controller
 
         $notifications = $query->paginate(15)->withQueryString();
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
             return response()->json($notifications);
         }
 
@@ -40,7 +40,15 @@ class NotificationController extends Controller
 
         $notification->update(['dibaca_pada' => now()]);
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if ($request->header('X-Inertia')) {
+            if ($notification->url_tujuan) {
+                return redirect($notification->url_tujuan);
+            }
+
+            return back()->with('success', 'Notifikasi ditandai sudah dibaca.');
+        }
+
+        if ($request->wantsJson()) {
             return response()->json(['message' => 'Notifikasi ditandai sudah dibaca.']);
         }
 

@@ -4,6 +4,7 @@ import {
     MessageSquare, ClipboardList, Calendar, MapPin, FileText, X, CheckCheck
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { playNotificationChime } from '@/lib/sound';
 
 interface Notification {
     id: number;
@@ -120,14 +121,11 @@ export default function NotificationBell() {
     };
 
     const handleMarkRead = (id: number, urlTujuan: string | null) => {
+        setOpen(false);
         router.post(`/notifications/${id}/read`, {}, {
+            preserveScroll: true,
             onFinish: () => {
                 fetchNotifications();
-                router.reload({ only: ['notifikasi_belum_dibaca'] });
-                if (urlTujuan) {
-                    setOpen(false);
-                    router.visit(urlTujuan);
-                }
             },
         });
     };
@@ -250,6 +248,7 @@ export default function NotificationBell() {
                     <div className="border-t border-slate-100 p-3 bg-slate-50/80">
                         <Link
                             href="/notifications"
+                            prefetch
                             onClick={() => setOpen(false)}
                             className="block text-center text-xs text-blue-600 hover:text-blue-700 font-bold transition-colors"
                         >

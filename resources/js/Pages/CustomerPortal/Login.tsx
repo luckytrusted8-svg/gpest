@@ -36,7 +36,7 @@ export default function CustomerLogin() {
             <div className="hidden lg:flex lg:w-5/12 bg-slate-900 text-white p-12 lg:p-16 flex-col justify-between relative shrink-0">
                 {/* Brand Title */}
                 <div>
-                    <Link href="/" className="inline-block">
+                    <Link href="/" prefetch className="inline-block">
                         <img src="/images/logo.png" alt="G-PEST Logo" className="h-8 w-auto object-contain brightness-0 invert" />
                     </Link>
                 </div>
@@ -158,7 +158,7 @@ export default function CustomerLogin() {
                                 />
                                 <span className="font-medium">Ingat saya</span>
                             </label>
-                            <Link href="/login" className="text-blue-600 font-bold hover:underline">
+                            <Link href="/login" prefetch className="text-blue-600 font-bold hover:underline">
                                 Login Staff / Admin →
                             </Link>
                         </div>
@@ -185,7 +185,7 @@ export default function CustomerLogin() {
                             </span>
                         </div>
 
-                        <Link href="/login" className="block w-full">
+                        <Link href="/login" prefetch className="block w-full">
                             <button
                                 type="button"
                                 className="w-full h-12 border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-2 shadow-2xs active:scale-[0.99]"

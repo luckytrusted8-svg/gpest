@@ -157,16 +157,16 @@ export default function MasterDataIndex({
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a]">
+                    <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                         <div className="p-4 border-b border-hairline flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                             <TabsList className="flex-wrap h-auto gap-1 bg-transparent p-0">
                                 {tabConfig.map((tab) => (
-                                    <TabsTrigger key={tab.value} value={tab.value} className="text-body-sm">
+                                    <TabsTrigger key={tab.value} value={tab.value} className="text-body-sm rounded-xl">
                                         {tab.label}
                                     </TabsTrigger>
                                 ))}
                             </TabsList>
-                            <Button onClick={openCreate} className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
+                            <Button onClick={openCreate} className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
                                 <Plus className="w-4 h-4" />
                                 Tambah
                             </Button>
@@ -206,7 +206,7 @@ export default function MasterDataIndex({
                                                                 <Button
                                                                     variant="outline"
                                                                     size="icon"
-                                                                    className="h-8 w-8 text-body-text hover:text-ink"
+                                                                    className="h-8 w-8 text-body-text hover:text-ink rounded-xl"
                                                                     onClick={() => openEdit(item)}
                                                                 >
                                                                     <Edit className="w-4 h-4" />
@@ -214,7 +214,7 @@ export default function MasterDataIndex({
                                                                 <Button
                                                                     variant="outline"
                                                                     size="icon"
-                                                                    className="h-8 w-8 text-error hover:bg-error/10"
+                                                                    className="h-8 w-8 text-error hover:bg-error/10 rounded-xl"
                                                                     onClick={() => handleDelete(item)}
                                                                 >
                                                                     <Trash2 className="w-4 h-4" />
@@ -242,7 +242,7 @@ export default function MasterDataIndex({
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={closeModal} />
-                    <div className="relative bg-canvas border border-hairline rounded-lg shadow-xl w-full max-w-md mx-4 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="relative bg-canvas border border-hairline rounded-2xl shadow-xl w-full max-w-md mx-4 animate-in fade-in zoom-in-95 duration-200">
                         <div className="flex items-center justify-between p-4 border-b border-hairline">
                             <h2 className="text-body-lg font-semibold text-ink">
                                 {editingItem ? 'Edit' : 'Tambah'} {tabConfig.find(t => t.value === activeTab)?.label}

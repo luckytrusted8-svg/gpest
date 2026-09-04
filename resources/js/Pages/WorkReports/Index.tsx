@@ -95,7 +95,7 @@ export default function Index({ workReports, technicians, filters }: IndexProps)
                         <p className="text-body-sm text-mute mt-1">Dokumentasi pekerjaan lapangan teknisi pest control.</p>
                     </div>
                     <Link href="/work-reports/create">
-                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
                             <Plus className="w-4 h-4" />
                             Buat Laporan Baru
                         </Button>
@@ -103,7 +103,7 @@ export default function Index({ workReports, technicians, filters }: IndexProps)
                 </div>
 
                 {/* Filters */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <form onSubmit={(e) => { e.preventDefault(); applyFilters(); }} className="flex flex-col sm:flex-row flex-wrap items-center gap-3">
                         <div className="relative flex-1 min-w-[200px]">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
@@ -112,19 +112,19 @@ export default function Index({ workReports, technicians, filters }: IndexProps)
                                 placeholder="Cari nomor laporan, layanan, customer..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9"
+                                className="pl-9 rounded-xl"
                             />
                         </div>
                         <Input
                             type="date"
                             value={tanggal}
                             onChange={(e) => { setTanggal(e.target.value); applyFilters({ tanggal: e.target.value }); }}
-                            className="w-full sm:w-40"
+                            className="w-full sm:w-40 rounded-xl"
                         />
                         <select
                             value={technicianId}
                             onChange={(e) => { setTechnicianId(e.target.value); applyFilters({ technician_id: e.target.value }); }}
-                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-44"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-44"
                         >
                             <option value="">Semua Teknisi</option>
                             {technicians.map((t) => (
@@ -134,7 +134,7 @@ export default function Index({ workReports, technicians, filters }: IndexProps)
                         <select
                             value={status}
                             onChange={(e) => { setStatus(e.target.value); applyFilters({ status: e.target.value }); }}
-                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-36"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-36"
                         >
                             <option value="">Semua Status</option>
                             <option value="draft">Draft</option>
@@ -143,13 +143,13 @@ export default function Index({ workReports, technicians, filters }: IndexProps)
                             <option value="revisi">Revisi</option>
                             <option value="selesai">Selesai</option>
                         </select>
-                        <Button type="submit" variant="outline" className="text-body-sm-strong">Filter</Button>
-                        <Button type="button" variant="ghost" onClick={resetFilters} className="text-body-sm text-mute hover:text-ink">Reset</Button>
+                        <Button type="submit" variant="outline" className="text-body-sm-strong rounded-xl">Filter</Button>
+                        <Button type="button" variant="ghost" onClick={resetFilters} className="text-body-sm text-mute hover:text-ink rounded-xl">Reset</Button>
                     </form>
                 </div>
 
                 {/* Table */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>

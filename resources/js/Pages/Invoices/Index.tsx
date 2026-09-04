@@ -84,19 +84,19 @@ export default function Index({ invoices, customers = [], filters = {} }: Props)
                     </div>
                     <div className="flex items-center gap-2">
                         <a href="/invoices/export-csv" target="_blank" rel="noopener noreferrer">
-                            <Button variant="outline" className="text-body-sm-strong flex items-center gap-2">
+                            <Button variant="outline" className="text-body-sm-strong flex items-center gap-2 rounded-xl">
                                 <FileSpreadsheet className="w-4 h-4" />Ekspor CSV
                             </Button>
                         </a>
                         <Link href="/invoices/create">
-                            <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
+                            <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
                                 <Plus className="w-4 h-4" />Buat Invoice
                             </Button>
                         </Link>
                     </div>
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                         <div className="relative">
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-mute" />
@@ -105,13 +105,13 @@ export default function Index({ invoices, customers = [], filters = {} }: Props)
                                 onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && applyFilter()}
                                 placeholder="Cari nomor invoice / customer..."
-                                className="w-full h-9 pl-8 pr-3 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="w-full h-9 pl-8 pr-3 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                             />
                         </div>
                         <select
                             value={status}
                             onChange={(e) => { setStatus(e.target.value); setTimeout(applyFilter, 0); }}
-                            className="h-9 rounded-md border border-hairline bg-canvas px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                         >
                             <option value="">Semua Status Pembayaran</option>
                             {['draft', 'terbit', 'dikirim', 'dibayar_sebagian', 'lunas', 'jatuh_tempo', 'batal'].map((s) => (
@@ -121,7 +121,7 @@ export default function Index({ invoices, customers = [], filters = {} }: Props)
                         <select
                             value={customerId}
                             onChange={(e) => { setCustomerId(e.target.value); setTimeout(applyFilter, 0); }}
-                            className="h-9 rounded-md border border-hairline bg-canvas px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                         >
                             <option value="">Semua Customer</option>
                             {customers.map((c) => <option key={c.id} value={c.id}>{c.company_name}</option>)}
@@ -132,7 +132,7 @@ export default function Index({ invoices, customers = [], filters = {} }: Props)
                     </div>
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md overflow-x-auto shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a]">
+                <div className="bg-white border border-slate-200/90 rounded-2xl overflow-x-auto shadow-2xs">
                     <table className="w-full text-body-sm">
                         <thead>
                             <tr className="border-b border-hairline bg-canvas-soft">

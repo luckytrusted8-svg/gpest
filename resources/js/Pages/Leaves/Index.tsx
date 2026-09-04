@@ -316,79 +316,79 @@ export default function LeavesIndex({ leaves }: Props) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div 
                                 onClick={() => setStatusFilter('all')}
-                                className={`bg-canvas border border-hairline rounded-md p-4 shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] transition-all cursor-pointer ${
-                                    statusFilter === 'all' ? 'border-primary ring-1 ring-primary' : 'hover:border-slate-300'
+                                className={`bg-white border rounded-2xl p-5 shadow-2xs transition-all cursor-pointer ${
+                                    statusFilter === 'all' ? 'border-slate-900 ring-2 ring-slate-900/10' : 'border-slate-200/90 hover:border-slate-300'
                                 }`}
                             >
-                                <div className="flex items-center justify-between">
-                                    <span className="text-body-xs text-mute font-medium">Total Pengajuan</span>
-                                    <div className="p-2 rounded-md bg-slate-500/10 text-slate-600">
-                                        <Users className="w-4 h-4" />
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 font-mono">Total Pengajuan</div>
+                                        <div className="text-3xl font-bold text-slate-900 mt-1 tracking-tight font-mono">{totalCount}</div>
+                                        <div className="text-xs text-slate-500 mt-1">Semua permohonan</div>
                                     </div>
-                                </div>
-                                <div className="mt-2">
-                                    <span className="text-display-xs font-semibold text-ink font-mono">{totalCount}</span>
-                                    <p className="text-caption-mono text-mute mt-0.5">Semua permohonan</p>
+                                    <div className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                                        <Users className="w-5 h-5" />
+                                    </div>
                                 </div>
                             </div>
 
                             <div 
                                 onClick={() => setStatusFilter('menunggu')}
-                                className={`bg-canvas border border-hairline rounded-md p-4 shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] transition-all cursor-pointer ${
-                                    statusFilter === 'menunggu' ? 'border-amber-500 ring-1 ring-amber-500' : 'hover:border-slate-300'
+                                className={`bg-white border rounded-2xl p-5 shadow-2xs transition-all cursor-pointer ${
+                                    statusFilter === 'menunggu' ? 'border-amber-500 ring-2 ring-amber-500/10' : 'border-slate-200/90 hover:border-slate-300'
                                 }`}
                             >
-                                <div className="flex items-center justify-between">
-                                    <span className="text-body-xs text-[#ab570a] font-medium">Menunggu Review</span>
-                                    <div className="p-2 rounded-md bg-[#f5a623]/10 text-[#ab570a]">
-                                        <Clock className="w-4 h-4" />
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 font-mono">Menunggu Review</div>
+                                        <div className="text-3xl font-bold text-amber-600 mt-1 tracking-tight font-mono">{pendingCount}</div>
+                                        <div className="text-xs text-slate-500 mt-1">Perlu tindakan persetujuan</div>
                                     </div>
-                                </div>
-                                <div className="mt-2">
-                                    <span className="text-display-xs font-semibold text-[#ab570a] font-mono">{pendingCount}</span>
-                                    <p className="text-caption-mono text-[#ab570a]/80 mt-0.5">Perlu tindakan persetujuan</p>
+                                    <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+                                        <Clock className="w-5 h-5" />
+                                    </div>
                                 </div>
                             </div>
 
                             <div 
                                 onClick={() => setStatusFilter('disetujui')}
-                                className={`bg-canvas border border-hairline rounded-md p-4 shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] transition-all cursor-pointer ${
-                                    statusFilter === 'disetujui' ? 'border-emerald-500 ring-1 ring-emerald-500' : 'hover:border-slate-300'
+                                className={`bg-white border rounded-2xl p-5 shadow-2xs transition-all cursor-pointer ${
+                                    statusFilter === 'disetujui' ? 'border-emerald-500 ring-2 ring-emerald-500/10' : 'border-slate-200/90 hover:border-slate-300'
                                 }`}
                             >
-                                <div className="flex items-center justify-between">
-                                    <span className="text-body-xs text-emerald-700 font-medium">Disetujui</span>
-                                    <div className="p-2 rounded-md bg-emerald-500/10 text-emerald-600">
-                                        <CheckCircle2 className="w-4 h-4" />
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 font-mono">Disetujui</div>
+                                        <div className="text-3xl font-bold text-emerald-600 mt-1 tracking-tight font-mono">{approvedCount}</div>
+                                        <div className="text-xs text-slate-500 mt-1">Izin diterima</div>
                                     </div>
-                                </div>
-                                <div className="mt-2">
-                                    <span className="text-display-xs font-semibold text-emerald-600 font-mono">{approvedCount}</span>
-                                    <p className="text-caption-mono text-emerald-600/80 mt-0.5">Izin diterima</p>
+                                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                                        <CheckCircle2 className="w-5 h-5" />
+                                    </div>
                                 </div>
                             </div>
 
                             <div 
                                 onClick={() => setStatusFilter('ditolak')}
-                                className={`bg-canvas border border-hairline rounded-md p-4 shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] transition-all cursor-pointer ${
-                                    statusFilter === 'ditolak' ? 'border-rose-500 ring-1 ring-rose-500' : 'hover:border-slate-300'
+                                className={`bg-white border rounded-2xl p-5 shadow-2xs transition-all cursor-pointer ${
+                                    statusFilter === 'ditolak' ? 'border-rose-500 ring-2 ring-rose-500/10' : 'border-slate-200/90 hover:border-slate-300'
                                 }`}
                             >
-                                <div className="flex items-center justify-between">
-                                    <span className="text-body-xs text-rose-700 font-medium">Ditolak</span>
-                                    <div className="p-2 rounded-md bg-rose-500/10 text-rose-600">
-                                        <XCircle className="w-4 h-4" />
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 font-mono">Ditolak</div>
+                                        <div className="text-3xl font-bold text-rose-600 mt-1 tracking-tight font-mono">{rejectedCount}</div>
+                                        <div className="text-xs text-slate-500 mt-1">Izin tidak disetujui</div>
                                     </div>
-                                </div>
-                                <div className="mt-2">
-                                    <span className="text-display-xs font-semibold text-rose-600 font-mono">{rejectedCount}</span>
-                                    <p className="text-caption-mono text-rose-600/80 mt-0.5">Izin tidak disetujui</p>
+                                    <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                                        <XCircle className="w-5 h-5" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Filter Bar */}
-                        <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4 flex flex-col md:flex-row items-center justify-between gap-3">
+                        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5 flex flex-col md:flex-row items-center justify-between gap-3">
                             <div className="relative flex-1 w-full">
                                 <Search className="w-4 h-4 text-mute absolute left-3 top-1/2 -translate-y-1/2" />
                                 <Input
@@ -396,7 +396,7 @@ export default function LeavesIndex({ leaves }: Props) {
                                     placeholder="Cari nama teknisi, alasan, atau jenis izin..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-9"
+                                    className="pl-9 rounded-xl"
                                 />
                             </div>
 
@@ -405,7 +405,7 @@ export default function LeavesIndex({ leaves }: Props) {
                                 <Button
                                     type="button"
                                     variant={selectedTab === 'all' ? 'default' : 'outline'}
-                                    className="h-9 px-3 text-xs"
+                                    className="h-9 px-3 text-xs rounded-xl"
                                     onClick={() => setSelectedTab('all')}
                                 >
                                     Semua ({totalCount})
@@ -413,7 +413,7 @@ export default function LeavesIndex({ leaves }: Props) {
                                 <Button
                                     type="button"
                                     variant={selectedTab === 'sakit' ? 'default' : 'outline'}
-                                    className="h-9 px-3 text-xs"
+                                    className="h-9 px-3 text-xs rounded-xl"
                                     onClick={() => setSelectedTab('sakit')}
                                 >
                                     Sakit
@@ -421,7 +421,7 @@ export default function LeavesIndex({ leaves }: Props) {
                                 <Button
                                     type="button"
                                     variant={selectedTab === 'cuti' ? 'default' : 'outline'}
-                                    className="h-9 px-3 text-xs"
+                                    className="h-9 px-3 text-xs rounded-xl"
                                     onClick={() => setSelectedTab('cuti')}
                                 >
                                     Cuti
@@ -429,7 +429,7 @@ export default function LeavesIndex({ leaves }: Props) {
                                 <Button
                                     type="button"
                                     variant={selectedTab === 'izin' ? 'default' : 'outline'}
-                                    className="h-9 px-3 text-xs"
+                                    className="h-9 px-3 text-xs rounded-xl"
                                     onClick={() => setSelectedTab('izin')}
                                 >
                                     Izin
@@ -438,7 +438,7 @@ export default function LeavesIndex({ leaves }: Props) {
                         </div>
 
                         {/* Desktop Table View */}
-                        <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>

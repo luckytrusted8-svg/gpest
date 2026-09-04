@@ -95,7 +95,7 @@ export default function Index({ users, roles, filters }: Props) {
                         <p className="text-body-sm text-mute mt-1">Kelola daftar akun pengguna dan hak akses peran (Roles & Permissions).</p>
                     </div>
                     <Link href="/users/create">
-                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
                             <Plus className="w-4 h-4" />
                             Tambah User Baru
                         </Button>
@@ -103,7 +103,7 @@ export default function Index({ users, roles, filters }: Props) {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-center gap-4">
                         <div className="relative flex-1 w-full">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
@@ -112,27 +112,27 @@ export default function Index({ users, roles, filters }: Props) {
                                 placeholder="Cari nama pengguna atau email..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9"
+                                className="pl-9 rounded-xl"
                             />
                         </div>
                         <select
                             value={role}
                             onChange={(e) => handleRoleChange(e.target.value)}
-                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-48"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-48"
                         >
                             <option value="">Semua Role</option>
                             {roles.map((r) => (
                                 <option key={r.id} value={r.name}>{r.name}</option>
                             ))}
                         </select>
-                        <Button type="submit" variant="outline" className="text-body-sm-strong w-full sm:w-auto">
+                        <Button type="submit" variant="outline" className="text-body-sm-strong w-full sm:w-auto rounded-xl">
                             Filter
                         </Button>
                     </form>
                 </div>
 
                 {/* Table */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>

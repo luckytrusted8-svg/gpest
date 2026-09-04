@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Button } from '@/Components/ui/button';
-import { X, Clock, MapPin, ExternalLink, Activity, User, Calendar } from 'lucide-react';
-import { router } from '@inertiajs/react';
+import { X, Clock, MapPin, ExternalLink, Activity, User, Calendar, Camera, Globe, Building2 } from 'lucide-react';
+import { router, Link } from '@inertiajs/react';
 import 'leaflet/dist/leaflet.css';
 
 const HistoryMap = React.lazy(() => import('@/Components/HistoryMap'));
@@ -33,6 +33,9 @@ interface Attendance {
     latitude_keluar: number | null;
     longitude_keluar: number | null;
     status: string;
+    work_type?: string | null;
+    lokasi_nama?: string | null;
+    selfie_masuk?: string | null;
     catatan: string | null;
     durasi_kerja: string | null;
 }
@@ -49,6 +52,7 @@ export default function AttendanceTrackingModal({ isOpen, onClose, attendanceId 
     const [tracks, setTracks] = useState<Track[]>([]);
     const [combinedTracks, setCombinedTracks] = useState<Track[]>([]);
     const [isClient, setIsClient] = useState(false);
+    const [photoModalOpen, setPhotoModalOpen] = useState(false);
 
     useEffect(() => {
         setIsClient(true);
@@ -71,9 +75,9 @@ export default function AttendanceTrackingModal({ isOpen, onClose, attendanceId 
 
                 // Build unified track list including check-in, tracking logs, and check-out
                 const list: Track[] = [];
-                const att = data.attendance as Attendance;
+                const att = data.attendance as Attendance | null;
 
-                if (att.latitude_masuk && att.longitude_masuk) {
+                if (att && att.latitude_masuk && att.longitude_masuk) {
                     list.push({
                         id: 999991,
                         latitude: att.latitude_masuk,
@@ -89,7 +93,7 @@ export default function AttendanceTrackingModal({ isOpen, onClose, attendanceId 
                     list.push(t);
                 });
 
-                if (att.latitude_keluar && att.longitude_keluar) {
+                if (att && att.latitude_keluar && att.longitude_keluar) {
                     list.push({
                         id: 999999,
                         latitude: att.latitude_keluar,
@@ -111,22 +115,53 @@ export default function AttendanceTrackingModal({ isOpen, onClose, attendanceId 
 
     if (!isOpen) return null;
 
+    const isWfa = attendance?.work_type === 'WFA' || (!attendance?.work_type && attendance?.lokasi_nama?.includes('WFA'));
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
             <div className="bg-canvas border border-hairline rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas-soft/40">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
-                            <MapPin className="w-5 h-5" />
-                        </div>
+                        {attendance?.selfie_masuk ? (
+                            <div 
+                                onClick={() => setPhotoModalOpen(true)}
+                                className="w-12 h-12 rounded-xl overflow-hidden border-2 border-blue-500/40 shadow-sm cursor-pointer hover:border-blue-600 shrink-0 transition-all"
+                                title="Klik untuk memperbesar foto presensi"
+                            >
+                                <img 
+                                    src={attendance.selfie_masuk} 
+                                    alt="Foto Presensi" 
+                                    className="w-full h-full object-cover" 
+                                />
+                            </div>
+                        ) : (
+                            <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
+                                <MapPin className="w-5 h-5" />
+                            </div>
+                        )}
                         <div>
-                            <h2 className="text-display-xs font-semibold text-ink flex items-center gap-2">
-                                Riwayat Tracking & Lokasi Absensi
-                                {attendance?.technician?.name && (
-                                    <span className="text-body-sm text-mute font-normal">({attendance.technician.name})</span>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-display-xs font-semibold text-ink flex items-center gap-2">
+                                    Riwayat Tracking & Lokasi Absensi
+                                    {attendance?.technician?.name && (
+                                        <span className="text-body-sm text-mute font-normal">({attendance.technician.name})</span>
+                                    )}
+                                </h2>
+                                {attendance?.jam_masuk && (
+                                    isWfa ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                            <Globe className="w-3 h-3" />
+                                            WFA
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <Building2 className="w-3 h-3" />
+                                            WFO
+                                        </span>
+                                    )
                                 )}
-                            </h2>
+                            </div>
                             <p className="text-body-xs text-mute flex items-center gap-3 mt-0.5">
                                 <span className="flex items-center gap-1">
                                     <Calendar className="w-3.5 h-3.5" />
@@ -227,18 +262,20 @@ export default function AttendanceTrackingModal({ isOpen, onClose, attendanceId 
                 {/* Footer */}
                 <div className="px-6 py-3 border-t border-hairline bg-canvas-soft/40 flex items-center justify-between">
                     {attendance?.technician_id && attendance?.tanggal ? (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-2 text-body-xs font-medium"
-                            onClick={() => {
-                                onClose();
-                                router.get(`/tracking/history?technician_id=${attendance.technician_id}&date=${attendance.tanggal}`);
-                            }}
+                        <Link
+                            href={`/tracking/history?technician_id=${attendance.technician_id}&date=${attendance.tanggal}`}
+                            prefetch
+                            onClick={onClose}
                         >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            Buka Tracking Lengkap
-                        </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2 text-body-xs font-medium"
+                            >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                Buka Tracking Lengkap
+                            </Button>
+                        </Link>
                     ) : <div />}
 
                     <Button variant="outline" size="sm" onClick={onClose}>
@@ -246,6 +283,57 @@ export default function AttendanceTrackingModal({ isOpen, onClose, attendanceId 
                     </Button>
                 </div>
             </div>
+
+            {/* Photo Zoom Modal */}
+            {photoModalOpen && attendance?.selfie_masuk && (
+                <div 
+                    className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => setPhotoModalOpen(false)}
+                >
+                    <div 
+                        className="bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200 max-w-md w-full"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Camera className="w-5 h-5 text-blue-400" />
+                                <div>
+                                    <h3 className="text-sm font-bold">Foto Presensi - {attendance.technician?.name || 'Teknisi'}</h3>
+                                    <p className="text-[11px] text-slate-300 font-mono">{attendance.tanggal} • {attendance.jam_masuk} WIB • {isWfa ? 'WFA' : 'WFO'}</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setPhotoModalOpen(false)}
+                                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="p-4 bg-slate-950 flex items-center justify-center max-h-[65vh] overflow-hidden">
+                            <img
+                                src={attendance.selfie_masuk}
+                                alt="Foto Selfie Presensi"
+                                className="max-w-full max-h-[55vh] object-contain rounded-2xl border border-slate-800 shadow-lg"
+                            />
+                        </div>
+                        <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                            <span className="font-semibold text-emerald-600">
+                                ✓ Foto Terverifikasi
+                            </span>
+                            <a
+                                href={attendance.selfie_masuk}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline"
+                            >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                Buka Tab Baru
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

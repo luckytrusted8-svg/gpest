@@ -70,14 +70,14 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
                     </div>
 
                     <Link href="/work-orders/create">
-                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
                             <Plus className="w-4 h-4" /> Buat Work Order
                         </Button>
                     </Link>
                 </div>
 
                 {/* Filter */}
-                <div className="bg-canvas border border-hairline rounded-md p-4 shadow-xs">
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs">
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                         <div className="relative">
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-mute" />
@@ -86,14 +86,14 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
                                 onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && applyFilter()}
                                 placeholder="Cari WO / Pelanggan..."
-                                className="pl-8 text-xs"
+                                className="pl-8 text-xs rounded-xl"
                             />
                         </div>
 
                         <select
                             value={status}
                             onChange={(e) => { setStatus(e.target.value); setTimeout(applyFilter, 0); }}
-                            className="h-9 rounded-md border border-hairline bg-canvas px-3 py-1 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 rounded-xl border border-slate-200 bg-white px-3 py-1 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                         >
                             <option value="">Semua Status WO</option>
                             {statuses.map((st) => (
@@ -104,7 +104,7 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
                         <select
                             value={technicianId}
                             onChange={(e) => { setTechnicianId(e.target.value); setTimeout(applyFilter, 0); }}
-                            className="h-9 rounded-md border border-hairline bg-canvas px-3 py-1 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="h-9 rounded-xl border border-slate-200 bg-white px-3 py-1 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-slate-900"
                         >
                             <option value="">Semua Teknisi</option>
                             {technicians.map((t) => (
@@ -113,7 +113,7 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
                         </select>
 
                         <div className="flex items-center gap-2">
-                            <Button onClick={applyFilter} variant="outline" className="text-xs">Filter</Button>
+                            <Button onClick={applyFilter} variant="outline" className="text-xs rounded-xl">Filter</Button>
                             <button onClick={() => { setSearch(''); setStatus(''); setTechnicianId(''); router.get('/work-orders'); }} className="text-xs text-mute hover:text-ink underline">
                                 Reset
                             </button>
@@ -122,7 +122,7 @@ export default function WorkOrdersIndex({ workOrders, technicians, statuses, fil
                 </div>
 
                 {/* WO Table */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-xs overflow-x-auto">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-x-auto">
                     <table className="w-full text-left text-body-sm">
                         <thead>
                             <tr className="border-b border-hairline bg-canvas-soft text-caption-mono uppercase text-mute">

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class AttendanceController extends Controller
@@ -169,20 +170,43 @@ class AttendanceController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
             'work_type' => 'nullable|in:WFO,WFA',
             'lokasi_nama' => 'nullable|string',
+            'selfie_masuk' => 'nullable|string',
         ]);
 
-        $workType = $validated['work_type'] ?? 'WFO';
+        $workType = $validated['work_type'] ?? 'WFA';
         $lokasiNama = $validated['lokasi_nama'] ?? ($workType === 'WFO' ? 'G-PEST Central Service • Head Office' : 'Titik Tugas Lapangan (WFA)');
 
+        // Handle selfie photo upload (base64 image or url)
+        $selfieUrl = null;
+        if (! empty($validated['selfie_masuk'])) {
+            $selfieData = $validated['selfie_masuk'];
+            if (str_starts_with($selfieData, 'data:image')) {
+                @[$type, $selfieData] = explode(';', $selfieData);
+                @[, $selfieData] = explode(',', $selfieData);
+                $decoded = base64_decode($selfieData);
+                if ($decoded) {
+                    $filename = 'selfies/selfie_'.$user->id.'_'.time().'_'.uniqid().'.jpg';
+                    Storage::disk('public')->put($filename, $decoded);
+                    $selfieUrl = '/storage/'.$filename;
+                }
+            } else {
+                $selfieUrl = $validated['selfie_masuk'];
+            }
+        }
+
         if ($existing) {
-            $existing->update([
+            $updateData = [
                 'jam_masuk' => now()->format('H:i:s'),
                 'latitude_masuk' => $validated['latitude'],
                 'longitude_masuk' => $validated['longitude'],
                 'work_type' => $workType,
                 'lokasi_nama' => $lokasiNama,
                 'status' => 'hadir',
-            ]);
+            ];
+            if ($selfieUrl) {
+                $updateData['selfie_masuk'] = $selfieUrl;
+            }
+            $existing->update($updateData);
 
             app(NotificationService::class)->checkInTeknisi($existing);
         } else {
@@ -194,6 +218,7 @@ class AttendanceController extends Controller
                 'longitude_masuk' => $validated['longitude'],
                 'work_type' => $workType,
                 'lokasi_nama' => $lokasiNama,
+                'selfie_masuk' => $selfieUrl,
                 'status' => 'hadir',
             ]);
 
@@ -207,7 +232,7 @@ class AttendanceController extends Controller
             'status_teknisi' => 'aktif',
         ]);
 
-        return back()->with('success', 'Check-in berhasil. Selamat bekerja!');
+        return back()->with('success', 'Presensi masuk (Check-In '.$workType.') berhasil dicatat beserta foto kehadiran.');
     }
 
     public function checkOut(Request $request)
@@ -246,9 +271,23 @@ class AttendanceController extends Controller
         return back()->with('success', 'Check-out berhasil. Selamat istirahat!');
     }
 
-    public function tracks(int $id)
+    public function tracks($id)
     {
-        $attendance = Attendance::with('technician')->findOrFail($id);
+        if (! is_numeric($id) || (int) $id <= 0) {
+            return response()->json([
+                'attendance' => null,
+                'tracks' => [],
+            ]);
+        }
+
+        $attendance = Attendance::with('technician')->find($id);
+
+        if (! $attendance) {
+            return response()->json([
+                'attendance' => null,
+                'tracks' => [],
+            ]);
+        }
 
         $tracks = LocationTrack::where('technician_id', $attendance->technician_id)
             ->whereDate('created_at', $attendance->tanggal)
@@ -261,9 +300,19 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function show(Request $request, int $id)
+    public function show(Request $request, $id)
     {
-        $attendance = Attendance::with('technician')->findOrFail($id);
+        if (! is_numeric($id) || (int) $id <= 0) {
+            return redirect()->route('attendance.index')
+                ->with('error', 'Catatan absensi tidak ditemukan atau teknisi belum melakukan presensi masuk (Check-In).');
+        }
+
+        $attendance = Attendance::with('technician')->find($id);
+
+        if (! $attendance) {
+            return redirect()->route('attendance.index')
+                ->with('error', 'Data absensi tidak ditemukan.');
+        }
 
         $dailyRecords = Attendance::with('technician')
             ->where('technician_id', $attendance->technician_id)

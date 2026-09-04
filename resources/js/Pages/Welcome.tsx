@@ -44,6 +44,7 @@ export default function Welcome({
                     <div className="flex items-center gap-2">
                         <Link
                             href="/portal/login"
+                            prefetch
                             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
                         >
                             <Building2 className="w-3.5 h-3.5 text-slate-400" />
@@ -53,6 +54,7 @@ export default function Welcome({
                         {auth.user ? (
                             <Link
                                 href="/dashboard"
+                                prefetch
                                 className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-full shadow-xs transition-colors"
                             >
                                 <span>Dashboard</span>
@@ -61,6 +63,7 @@ export default function Welcome({
                         ) : (
                             <Link
                                 href="/login"
+                                prefetch
                                 className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-full shadow-xs transition-colors"
                             >
                                 <span>Masuk</span>
@@ -94,6 +97,7 @@ export default function Welcome({
                         {auth.user ? (
                             <Link
                                 href="/dashboard"
+                                prefetch
                                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors"
                             >
                                 <span>Buka Workspace</span>
@@ -102,6 +106,7 @@ export default function Welcome({
                         ) : (
                             <Link
                                 href="/login"
+                                prefetch
                                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors"
                             >
                                 <span>Masuk ke Sistem</span>
@@ -111,6 +116,7 @@ export default function Welcome({
 
                         <Link
                             href="/portal/login"
+                            prefetch
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition-colors"
                         >
                             <Building2 className="w-4 h-4 text-slate-400" />
@@ -488,6 +494,7 @@ export default function Welcome({
 
                         <Link
                             href="/login"
+                            prefetch
                             className="mt-8 w-full py-2.5 px-4 text-center text-xs font-medium text-slate-900 bg-white hover:bg-slate-100 rounded-xl transition-colors block font-semibold"
                         >
                             Hubungi Konsultan Kami
@@ -511,6 +518,7 @@ export default function Welcome({
 
                         <Link
                             href="/login"
+                            prefetch
                             className="mt-8 w-full py-2.5 px-4 text-center text-xs font-medium text-slate-800 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors block"
                         >
                             Konsultasi Custom
@@ -546,8 +554,8 @@ export default function Welcome({
                                 Akses Portal
                             </div>
                             <ul className="space-y-2 text-xs">
-                                <li><Link href="/login" className="hover:text-slate-900 transition-colors">Masuk ke Sistem</Link></li>
-                                <li><Link href="/portal/login" className="hover:text-slate-900 transition-colors">Portal Pelanggan</Link></li>
+                                <li><Link href="/login" prefetch className="hover:text-slate-900 transition-colors">Masuk ke Sistem</Link></li>
+                                <li><Link href="/portal/login" prefetch className="hover:text-slate-900 transition-colors">Portal Pelanggan</Link></li>
                                 <li><a href="#paket" className="hover:text-slate-900 transition-colors">Daftar Paket</a></li>
                             </ul>
                         </div>

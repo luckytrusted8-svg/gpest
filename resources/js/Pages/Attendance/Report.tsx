@@ -80,7 +80,7 @@ export default function Report({ reportData, technicians, month, year }: Props) 
                     </a>
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <div className="flex flex-col sm:flex-row items-center gap-3">
                         <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-mute" />
@@ -89,7 +89,7 @@ export default function Report({ reportData, technicians, month, year }: Props) 
                         <select
                             value={selectedMonth}
                             onChange={(e) => setSelectedMonth(e.target.value)}
-                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-36"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-36"
                         >
                             {MONTHS.map((m) => (
                                 <option key={m.value} value={m.value}>{m.label}</option>
@@ -98,13 +98,13 @@ export default function Report({ reportData, technicians, month, year }: Props) 
                         <select
                             value={selectedYear}
                             onChange={(e) => setSelectedYear(e.target.value)}
-                            className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-24"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-24"
                         >
                             {YEARS.map((y) => (
                                 <option key={y} value={y}>{y}</option>
                             ))}
                         </select>
-                        <Button onClick={applyFilter} variant="outline" className="text-body-sm-strong">
+                        <Button onClick={applyFilter} variant="outline" className="text-body-sm-strong rounded-xl">
                             Tampilkan
                         </Button>
                     </div>
@@ -112,22 +112,22 @@ export default function Report({ reportData, technicians, month, year }: Props) 
 
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                     {[
-                        { label: 'Total Hadir', value: totalHadir, color: 'text-[#0070f3]', bg: 'bg-[#0070f3]/10' },
-                        { label: 'Tidak Hadir', value: totalTidakHadir, color: 'text-[#ee0000]', bg: 'bg-[#ee0000]/10' },
-                        { label: 'Izin', value: totalIzin, color: 'text-[#ab570a]', bg: 'bg-[#f5a623]/10' },
-                        { label: 'Sakit', value: totalSakit, color: 'text-[#7928ca]', bg: 'bg-[#7928ca]/10' },
-                        { label: 'Total Jam Kerja', value: totalJamKerja.toFixed(1), color: 'text-ink', bg: 'bg-canvas-soft', suffix: 'jam' },
+                        { label: 'Total Hadir', value: totalHadir, color: 'text-blue-600', bg: 'bg-white' },
+                        { label: 'Tidak Hadir', value: totalTidakHadir, color: 'text-rose-600', bg: 'bg-white' },
+                        { label: 'Izin', value: totalIzin, color: 'text-amber-600', bg: 'bg-white' },
+                        { label: 'Sakit', value: totalSakit, color: 'text-purple-600', bg: 'bg-white' },
+                        { label: 'Total Jam Kerja', value: totalJamKerja.toFixed(1), color: 'text-slate-900', bg: 'bg-white', suffix: 'jam' },
                     ].map((item) => (
-                        <div key={item.label} className={`${item.bg} border border-hairline rounded-md p-4 text-center`}>
-                            <div className="text-caption text-mute uppercase tracking-wider mb-1">{item.label}</div>
-                            <div className={`text-display-sm font-bold ${item.color} font-mono`}>
+                        <div key={item.label} className={`${item.bg} border border-slate-200/90 rounded-2xl p-5 text-center shadow-2xs hover:border-slate-300 transition-all`}>
+                            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 font-mono">{item.label}</div>
+                            <div className={`text-2xl sm:text-3xl font-bold ${item.color} font-mono tracking-tight`}>
                                 {item.value}{item.suffix ? ` ${item.suffix}` : ''}
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                     <div className="p-4 border-b border-hairline">
                         <h2 className="text-body-md-strong text-ink flex items-center gap-2">
                             <User className="w-4 h-4 text-mute" />

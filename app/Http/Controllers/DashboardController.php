@@ -10,6 +10,7 @@ use App\Models\CustomerRequest;
 use App\Models\Invoice;
 use App\Models\Schedule;
 use App\Models\Technician;
+use App\Models\User;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -40,6 +41,7 @@ class DashboardController extends Controller
 
             $todaySchedules = Schedule::with(['customer', 'technician'])
                 ->where('technician_id', $user->id)
+                ->whereDate('tanggal', $todayDate)
                 ->orderByRaw("FIELD(status, 'sedang_dikerjakan', 'tiba', 'dalam_perjalanan', 'ditugaskan', 'dijadwalkan', 'selesai', 'dibatalkan') ASC")
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -48,18 +50,60 @@ class DashboardController extends Controller
         } else {
             $todaySchedules = Schedule::with(['customer', 'technician'])
                 ->whereDate('tanggal', $todayDate)
+                ->orderByRaw("FIELD(status, 'sedang_dikerjakan', 'tiba', 'dalam_perjalanan', 'ditugaskan', 'dijadwalkan', 'selesai', 'dibatalkan') ASC")
                 ->orderBy('created_at', 'desc')
-                ->take(10)
+                ->take(15)
                 ->get()
                 ->unique('id')
                 ->values();
         }
 
+        // Distinct technician user IDs
+        $techUserIds = User::whereHas('technician', function ($q) {
+            $q->where('status', 'aktif');
+        })->orWhereHas('roles', function ($q) {
+            $q->where('name', 'technician');
+        })->pluck('id')->unique();
+
+        $totalTechsCount = $techUserIds->count();
+
+        // Checked in today and has not checked out yet
+        $checkedInTechIds = Attendance::whereIn('technician_id', $techUserIds)
+            ->whereDate('tanggal', $todayDate)
+            ->whereNotNull('jam_masuk')
+            ->whereNull('jam_keluar')
+            ->pluck('technician_id')
+            ->unique()
+            ->toArray();
+
+        // Technicians currently on duty / working on a schedule today
+        $workingTechIds = Schedule::whereDate('tanggal', $todayDate)
+            ->whereIn('status', ['sedang_dikerjakan', 'tiba', 'dalam_perjalanan'])
+            ->whereIn('technician_id', $techUserIds)
+            ->pluck('technician_id')
+            ->unique()
+            ->toArray();
+
+        // Technicians who completed schedules today and not currently working on another
+        $completedTechIds = Schedule::whereDate('tanggal', $todayDate)
+            ->where('status', 'selesai')
+            ->whereIn('technician_id', $techUserIds)
+            ->whereNotIn('technician_id', $workingTechIds)
+            ->pluck('technician_id')
+            ->unique()
+            ->toArray();
+
+        $workingCount = count($workingTechIds);
+        $onlineStandbyCount = count(array_diff($checkedInTechIds, $workingTechIds));
+        $completedTodayCount = count($completedTechIds);
+        $offlineCount = max(0, $totalTechsCount - count($checkedInTechIds));
+
         $technicianCounts = [
-            'online' => Technician::where('status', 'aktif')->count(),
-            'working' => Schedule::whereDate('tanggal', $todayDate)->whereIn('status', ['sedang_dikerjakan', 'tiba', 'dalam_perjalanan'])->count(),
-            'completedToday' => Schedule::whereDate('tanggal', $todayDate)->where('status', 'selesai')->count(),
-            'offline' => Technician::where('status', '!=', 'aktif')->count(),
+            'online' => $onlineStandbyCount,
+            'working' => $workingCount,
+            'completedToday' => $completedTodayCount,
+            'offline' => $offlineCount,
+            'total' => $totalTechsCount,
         ];
 
         $recentRequests = CustomerRequest::with('customer')

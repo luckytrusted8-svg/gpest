@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import NotificationBell from '@/Components/NotificationBell';
+import { playNotificationChime } from '@/lib/sound';
+import { requestNotificationPermission, sendDesktopNotification, setAppBadgeCount } from '@/lib/osNotification';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -31,11 +33,52 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const auth = props.auth as AuthProps;
     const flash = props.flash as FlashProps;
     const pendingRequestsCount = (props.pending_requests_count as number) ?? 0;
+    const pendingLeavesCount = (props.pending_leaves_count as number) ?? 0;
+    const pendingWorkOrdersCount = (props.pending_work_orders_count as number) ?? 0;
+    const unreadNotifCount = (props.notifikasi_belum_dibaca as number) ?? 0;
 
     const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const sidebarNavRef = useRef<HTMLElement>(null);
+    const prevNotifCountRef = useRef<number>(unreadNotifCount);
+
+    const totalBadgeCount = unreadNotifCount + pendingLeavesCount + pendingRequestsCount;
+
+    // Request OS Desktop Notification Permission on mount
+    useEffect(() => {
+        requestNotificationPermission();
+    }, []);
+
+    // Update Desktop Taskbar Icon Badge & Tab Title whenever count changes
+    useEffect(() => {
+        setAppBadgeCount(totalBadgeCount);
+    }, [totalBadgeCount]);
+
+    // Play chime and send Native OS Desktop Notification when new item arrives
+    useEffect(() => {
+        if (unreadNotifCount > prevNotifCountRef.current) {
+            playNotificationChime('chime');
+            sendDesktopNotification('Pemberitahuan Baru G-PEST', {
+                body: `Anda memiliki ${unreadNotifCount} notifikasi baru atau permintaan tugas yang belum dibaca.`,
+                url: '/notifications',
+            });
+        }
+        prevNotifCountRef.current = unreadNotifCount;
+    }, [unreadNotifCount]);
+
+    // Silent Real-Time Auto-Polling (Zero Manual Refresh Needed)
+    useEffect(() => {
+        const pollInterval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                router.reload({
+                    only: ['notifikasi_belum_dibaca', 'pending_requests_count', 'pending_leaves_count', 'pending_work_orders_count'],
+                });
+            }
+        }, 12000);
+
+        return () => clearInterval(pollInterval);
+    }, []);
 
     // Restore sidebar scroll position across Inertia page transitions
     useEffect(() => {
@@ -52,11 +95,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
     useEffect(() => {
         if (flash?.success) {
             setNotification({ type: 'success', message: flash.success });
+            playNotificationChime('success');
             const t = setTimeout(() => setNotification(null), 5000);
             return () => clearTimeout(t);
         }
         if (flash?.error) {
             setNotification({ type: 'error', message: flash.error });
+            playNotificationChime('alert');
             const t = setTimeout(() => setNotification(null), 6000);
             return () => clearTimeout(t);
         }
@@ -106,13 +151,27 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {
             label: 'PERMINTAAN KLIEN',
             items: [
-                { name: 'Tiket Request Klien', href: '/customer-requests', icon: MessageSquare, permission: 'customer-requests.view' },
+                { 
+                    name: 'Tiket Request Klien', 
+                    href: '/customer-requests', 
+                    icon: MessageSquare, 
+                    permission: 'customer-requests.view',
+                    badgeCount: pendingRequestsCount,
+                    badgeColor: 'bg-blue-600 text-white'
+                },
             ],
         },
         {
             label: 'LAYANAN & WORK ORDER',
             items: [
-                { name: 'Perintah Kerja (WO)', href: '/work-orders', icon: ClipboardList, permission: 'work-orders.view' },
+                { 
+                    name: 'Perintah Kerja (WO)', 
+                    href: '/work-orders', 
+                    icon: ClipboardList, 
+                    permission: 'work-orders.view',
+                    badgeCount: pendingWorkOrdersCount,
+                    badgeColor: 'bg-purple-600 text-white'
+                },
                 { name: 'Jadwal Layanan', href: '/schedules', icon: Calendar, permission: 'schedules.view' },
             ],
         },
@@ -142,7 +201,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
             label: 'HUMAN RESOURCES',
             items: [
                 { name: 'Absensi Teknisi', href: '/attendance', icon: MapPin, permission: 'attendance.view' },
-                { name: 'Pengajuan Cuti & Izin', href: '/leaves', icon: Shield },
+                { 
+                    name: 'Pengajuan Cuti & Izin', 
+                    href: '/leaves', 
+                    icon: Shield,
+                    badgeCount: pendingLeavesCount,
+                    badgeColor: 'bg-amber-500 text-white font-bold shadow-xs'
+                },
                 { name: 'Data Teknisi', href: '/technicians', icon: Users, permission: 'technicians.view' },
             ],
         },
@@ -174,7 +239,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
         { name: 'Jadwal', href: '/schedules', icon: Calendar },
         { name: 'Absen', href: '/attendance/check-in', icon: MapPin, isCenter: true },
         { name: 'Laporan', href: '/work-reports', icon: ClipboardList },
-        { name: 'Cuti', href: '/leaves', icon: Shield },
+        { 
+            name: 'Cuti', 
+            href: '/leaves', 
+            icon: Shield,
+            badgeCount: pendingLeavesCount 
+        },
     ];
 
     const handleLogout = () => {
@@ -226,11 +296,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                     {section.items.map((item) => {
                                         const Icon = item.icon;
                                         const isActive = item.href === '/dashboard' ? url === item.href : url.startsWith(item.href);
-                                        const isRequestMenu = item.href === '/customer-requests';
+                                        const badgeCount = item.badgeCount ?? 0;
                                         return (
                                             <Link
                                                 key={item.name}
                                                 href={item.href}
+                                                prefetch
                                                 preserveScroll
                                                 className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
                                                     isActive
@@ -240,9 +311,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                             >
                                                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                                                 <span className="flex-1 truncate">{item.name}</span>
-                                                {isRequestMenu && pendingRequestsCount > 0 && (
-                                                    <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full bg-slate-900 text-white border border-slate-700">
-                                                        {pendingRequestsCount}
+                                                {badgeCount > 0 && (
+                                                    <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded-full ${item.badgeColor || 'bg-rose-600 text-white'} shadow-xs`}>
+                                                        {badgeCount > 99 ? '99+' : badgeCount}
                                                     </span>
                                                 )}
                                             </Link>
@@ -276,7 +347,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-30">
                     <div className="flex items-center gap-4">
                         {/* Logo visible for technicians ALWAYS and for non-technicians on mobile */}
-                        <Link href="/dashboard" className={`flex items-center ${!isTechnician ? 'md:hidden' : ''}`}>
+                        <Link href="/dashboard" prefetch className={`flex items-center ${!isTechnician ? 'md:hidden' : ''}`}>
                             <img src="/images/logo.png" alt="G-PEST Logo" className="h-8 w-auto object-contain" />
                         </Link>
 
@@ -315,6 +386,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                                     </div>
                                     <Link
                                         href="/profile"
+                                        prefetch
                                         className="w-full px-4 py-2 text-left text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium flex items-center gap-2 transition-colors"
                                     >
                                         <UserIcon className="w-4 h-4 text-slate-400" /> Pengaturan Profil
@@ -344,12 +416,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 {mobileTapItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = item.href === '/dashboard' ? url === item.href : url.startsWith(item.href);
+                    const badgeCount = item.badgeCount ?? 0;
 
                     if (item.isCenter) {
                         return (
                             <Link
                                 key={item.name}
                                 href={item.href}
+                                prefetch
                                 className="flex flex-col items-center group -mt-5"
                             >
                                 <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95 ${
@@ -370,11 +444,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         <Link
                             key={item.name}
                             href={item.href}
-                            className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+                            prefetch
+                            className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors relative ${
                                 isActive ? 'text-slate-900 font-semibold' : 'text-slate-400 hover:text-slate-900'
                             }`}
                         >
-                            <Icon className={`w-5 h-5 ${isActive ? 'text-slate-900' : 'text-slate-400'}`} />
+                            <div className="relative">
+                                <Icon className={`w-5 h-5 ${isActive ? 'text-slate-900' : 'text-slate-400'}`} />
+                                {badgeCount > 0 && (
+                                    <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 rounded-full bg-amber-500 text-white text-[9px] font-extrabold flex items-center justify-center shadow-xs animate-pulse">
+                                        {badgeCount > 99 ? '99+' : badgeCount}
+                                    </span>
+                                )}
+                            </div>
                             <span className="text-[10px] mt-1">{item.name}</span>
                         </Link>
                     );

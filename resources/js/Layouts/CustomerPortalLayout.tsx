@@ -72,6 +72,7 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
                                     <Link
                                         key={item.name}
                                         href={item.href}
+                                        prefetch
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                                             isActive
                                                 ? 'bg-primary text-white shadow-xs'
@@ -103,7 +104,7 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
 
                             <button
                                 onClick={handleLogout}
-                                className="text-xs font-medium text-primary hover:text-primary-hover hover:bg-error-soft border border-hairline hover:border-error-soft rounded-lg flex items-center gap-1.5 h-8 px-3 transition-colors"
+                                className="text-xs font-medium text-primary hover:text-primary-hover hover:bg-error-soft border border-hairline hover:border-error-soft rounded-lg flex items-center gap-1.5 h-8 px-3 transition-colors cursor-pointer"
                             >
                                 <LogOut className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Keluar</span>
@@ -120,6 +121,7 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
                                 <Link
                                     key={item.name}
                                     href={item.href}
+                                    prefetch
                                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all ${
                                         isActive
                                             ? 'bg-primary text-white shadow-xs'
@@ -127,7 +129,7 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
                                     }`}
                                 >
                                     <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-mute'}`} />
-                                    {item.name}
+                                    <span>{item.name}</span>
                                 </Link>
                             );
                         })}

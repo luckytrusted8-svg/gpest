@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Models\CustomerRequest;
+use App\Models\Leave;
 use App\Models\Notification;
+use App\Models\WorkOrder;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -45,6 +47,26 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'pending_requests_count' => fn () => CustomerRequest::whereIn('status', ['baru', 'ditinjau'])->count(),
+            'pending_leaves_count' => function () use ($user) {
+                if (! $user) {
+                    return 0;
+                }
+                if ($user->hasRole('technician')) {
+                    return Leave::where('user_id', $user->id)->where('status', 'menunggu')->count();
+                }
+
+                return Leave::where('status', 'menunggu')->count();
+            },
+            'pending_work_orders_count' => function () use ($user) {
+                if (! $user) {
+                    return 0;
+                }
+                if ($user->hasRole('technician')) {
+                    return WorkOrder::where('technician_id', $user->id)->whereIn('status', ['ASSIGNED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS'])->count();
+                }
+
+                return WorkOrder::whereIn('status', ['DRAFT', 'ASSIGNED', 'PENDING_REVIEW'])->count();
+            },
             'notifikasi_belum_dibaca' => fn () => $user ? Notification::where('user_id', $user->id)->whereNull('dibaca_pada')->count() : 0,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

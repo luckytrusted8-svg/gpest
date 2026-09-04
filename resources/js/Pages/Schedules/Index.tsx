@@ -170,6 +170,14 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
         );
     };
 
+    const handleReset = () => {
+        setSearch('');
+        setTanggal('');
+        setTechnicianId('');
+        setStatus('');
+        router.get('/schedules', {}, { preserveState: true, replace: true });
+    };
+
     const handleDelete = (id: number, code: string) => {
         if (confirm(`Apakah Anda yakin ingin menghapus jadwal "${code}"?`)) {
             router.delete(`/schedules/${id}`);
@@ -188,7 +196,7 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                         <p className="text-body-sm text-mute mt-1">Kelola dan pantau penugasan jadwal teknisi lapangan.</p>
                     </div>
                     <Link href="/schedules/create">
-                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
                             <Plus className="w-4 h-4" />
                             Buat Jadwal Baru
                         </Button>
@@ -196,7 +204,7 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                 </div>
 
                 {/* Filter Controls */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <form onSubmit={handleFilter} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                         <div className="relative">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
@@ -205,7 +213,7 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                                 placeholder="Cari kode, customer, lokasi..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9 text-body-sm"
+                                className="pl-9 text-body-sm rounded-xl"
                             />
                         </div>
 
@@ -214,7 +222,7 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                                 type="date"
                                 value={tanggal}
                                 onChange={(e) => setTanggal(e.target.value)}
-                                className="text-body-sm"
+                                className="text-body-sm rounded-xl"
                             />
                         </div>
 
@@ -222,7 +230,7 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                             <select
                                 value={technicianId}
                                 onChange={(e) => setTechnicianId(e.target.value)}
-                                className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full"
+                                className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full"
                             >
                                 <option value="">Semua Teknisi</option>
                                 {technicians.map((tech) => (
@@ -237,7 +245,7 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                             <select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
-                                className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full"
+                                className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full"
                             >
                                 <option value="">Semua Status</option>
                                 <option value="dijadwalkan">Dijadwalkan</option>
@@ -251,22 +259,16 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                             </select>
                         </div>
 
-                        <div className="flex gap-2">
-                            <Button type="submit" variant="outline" className="text-body-sm-strong flex-1">
+                        <div className="flex items-center gap-2">
+                            <Button type="submit" variant="outline" className="text-body-sm-strong w-full rounded-xl">
                                 Filter
                             </Button>
                             {(search || tanggal || technicianId || status) && (
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    className="text-body-sm text-mute"
-                                    onClick={() => {
-                                        setSearch('');
-                                        setTanggal('');
-                                        setTechnicianId('');
-                                        setStatus('');
-                                        router.get('/schedules');
-                                    }}
+                                    className="text-body-sm text-mute rounded-xl"
+                                    onClick={handleReset}
                                 >
                                     Reset
                                 </Button>
@@ -276,7 +278,7 @@ export default function Index({ schedules, technicians, filters }: IndexProps) {
                 </div>
 
                 {/* Table */}
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>

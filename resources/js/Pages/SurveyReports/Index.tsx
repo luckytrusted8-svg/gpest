@@ -81,43 +81,43 @@ export default function Index({ surveyReports, technicians, filters }: Props) {
                         <p className="text-body-sm text-mute mt-1">Inspeksi dan survey area sebelum treatment dilakukan.</p>
                     </div>
                     <Link href="/survey-reports/create">
-                        <Button className="bg-slate-900 text-white hover:bg-slate-800 font-semibold flex items-center gap-2">
+                        <Button className="bg-slate-900 text-white hover:bg-slate-800 font-semibold flex items-center gap-2 rounded-xl text-xs">
                             <Plus className="w-4 h-4" /> Buat Survey Baru
                         </Button>
                     </Link>
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] p-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
                     <form onSubmit={(e) => { e.preventDefault(); applyFilters(); }} className="flex flex-col sm:flex-row flex-wrap items-center gap-3">
                         <div className="relative flex-1 min-w-[200px]">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
-                            <Input placeholder="Cari nomor survey, customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+                            <Input placeholder="Cari nomor survey, customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 rounded-xl" />
                         </div>
-                        <Input type="date" value={tanggal} onChange={(e) => { setTanggal(e.target.value); applyFilters({ tanggal: e.target.value }); }} className="w-full sm:w-40" />
-                        <select value={technicianId} onChange={(e) => { setTechnicianId(e.target.value); applyFilters({ technician_id: e.target.value }); }} className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-40">
+                        <Input type="date" value={tanggal} onChange={(e) => { setTanggal(e.target.value); applyFilters({ tanggal: e.target.value }); }} className="w-full sm:w-40 rounded-xl" />
+                        <select value={technicianId} onChange={(e) => { setTechnicianId(e.target.value); applyFilters({ technician_id: e.target.value }); }} className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-40">
                             <option value="">Semua Teknisi</option>
                             {technicians.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                         </select>
-                        <select value={risiko} onChange={(e) => { setRisiko(e.target.value); applyFilters({ tingkat_risiko: e.target.value }); }} className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-32">
+                        <select value={risiko} onChange={(e) => { setRisiko(e.target.value); applyFilters({ tingkat_risiko: e.target.value }); }} className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-32">
                             <option value="">Semua Risiko</option>
                             <option value="rendah">Rendah</option>
                             <option value="sedang">Sedang</option>
                             <option value="tinggi">Tinggi</option>
                             <option value="kritis">Kritis</option>
                         </select>
-                        <select value={status} onChange={(e) => { setStatus(e.target.value); applyFilters({ status: e.target.value }); }} className="h-9 px-3 py-1 rounded-md border border-hairline bg-canvas text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-primary w-full sm:w-32">
+                        <select value={status} onChange={(e) => { setStatus(e.target.value); applyFilters({ status: e.target.value }); }} className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-32">
                             <option value="">Semua Status</option>
                             <option value="draft">Draft</option>
                             <option value="dikirim">Dikirim</option>
                             <option value="disetujui">Disetujui</option>
                             <option value="selesai">Selesai</option>
                         </select>
-                        <Button type="submit" variant="outline" className="text-body-sm-strong">Filter</Button>
-                        <Button type="button" variant="ghost" onClick={resetFilters} className="text-body-sm text-mute hover:text-ink">Reset</Button>
+                        <Button type="submit" variant="outline" className="text-body-sm-strong rounded-xl">Filter</Button>
+                        <Button type="button" variant="ghost" onClick={resetFilters} className="text-body-sm text-mute hover:text-ink rounded-xl">Reset</Button>
                     </form>
                 </div>
 
-                <div className="bg-canvas border border-hairline rounded-md shadow-[0px_1px_1px_#00000005,0px_2px_2px_#0000000a] overflow-hidden">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>

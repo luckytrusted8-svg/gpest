@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contract;
 use App\Models\Customer;
+use App\Models\Notification;
 use App\Models\Schedule;
 use App\Models\Site;
 use App\Models\User;
@@ -82,6 +83,17 @@ class WorkOrderController extends Controller
         ]);
 
         $workOrder = WorkOrder::create($validated);
+
+        if ($workOrder->technician_id) {
+            Notification::create([
+                'user_id' => $workOrder->technician_id,
+                'judul' => 'Penugasan Perintah Kerja (WO: '.$workOrder->wo_number.')',
+                'pesan' => 'Anda ditugaskan pada Perintah Kerja '.$workOrder->wo_number.' untuk layanan: '.$workOrder->service_type,
+                'jenis' => 'info',
+                'modul' => 'work-orders',
+                'url_tujuan' => '/work-orders/'.$workOrder->id,
+            ]);
+        }
 
         // Auto-link to existing schedule or create schedule for technician if not linked
         if ($workOrder->technician_id && ! $workOrder->schedule_id) {
@@ -189,6 +201,23 @@ class WorkOrderController extends Controller
         ]);
 
         $workOrder->update($validated);
+
+        if (in_array($validated['status'], ['COMPLETED', 'PENDING_REVIEW'])) {
+            $adminUserIds = User::whereHas('roles', function ($q) {
+                $q->whereIn('name', ['super_admin', 'admin', 'supervisor']);
+            })->pluck('id')->unique();
+
+            foreach ($adminUserIds as $adminId) {
+                Notification::create([
+                    'user_id' => $adminId,
+                    'judul' => 'Work Order Selesai Dikerjakan ('.$workOrder->wo_number.')',
+                    'pesan' => 'Teknisi telah menyelesaikan pengerjaan Work Order '.$workOrder->wo_number.' dan menunggu verifikasi.',
+                    'jenis' => 'sukses',
+                    'modul' => 'work-orders',
+                    'url_tujuan' => '/work-orders/'.$workOrder->id,
+                ]);
+            }
+        }
 
         return back()->with('success', "Status Work Order {$workOrder->wo_number} berhasil diperbarui.");
     }
