@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Contract;
 use App\Models\CustomerRequest;
+use App\Models\CustomerUser;
 use App\Models\Invoice;
 use App\Models\Notification;
 use App\Models\Schedule;
 use App\Models\User;
 use App\Models\WorkReport;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Laravel\Socialite\Facades\Socialite;
 
 class CustomerPortalController extends Controller
 {
@@ -49,6 +52,51 @@ class CustomerPortalController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('portal.login');
+    }
+
+    public function googleRedirect(): RedirectResponse
+    {
+        return Socialite::driver('google')
+            ->scopes(['openid', 'profile', 'email'])
+            ->redirect();
+    }
+
+    public function googleCallback(): RedirectResponse
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Exception $e) {
+            return redirect()->route('portal.login')->withErrors([
+                'email' => 'Gagal terhubung ke Google. Silakan coba lagi.',
+            ]);
+        }
+
+        // Find existing customer user by google_id first, then by email
+        $customerUser = CustomerUser::where('google_id', $googleUser->getId())->first()
+            ?? CustomerUser::where('email', $googleUser->getEmail())->first();
+
+        if (! $customerUser) {
+            return redirect()->route('portal.login')->withErrors([
+                'email' => 'Email Google Anda ('.$googleUser->getEmail().') tidak terdaftar sebagai pelanggan. Hubungi admin G-PEST.',
+            ]);
+        }
+
+        if ($customerUser->status !== 'active') {
+            return redirect()->route('portal.login')->withErrors([
+                'email' => 'Akun pelanggan Anda tidak aktif. Hubungi admin G-PEST.',
+            ]);
+        }
+
+        // Update google_id and avatar if not yet set
+        $customerUser->update([
+            'google_id' => $googleUser->getId(),
+            'avatar' => $googleUser->getAvatar(),
+        ]);
+
+        Auth::guard('customer')->login($customerUser, true);
+        request()->session()->regenerate();
+
+        return redirect()->intended(route('portal.dashboard'));
     }
 
     public function dashboard()

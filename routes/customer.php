@@ -8,6 +8,10 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/login', [CustomerPortalController::class, 'loginForm'])->name('login');
     Route::post('/login', [CustomerPortalController::class, 'login']);
 
+    // Google OAuth routes
+    Route::get('/auth/google', [CustomerPortalController::class, 'googleRedirect'])->name('auth.google');
+    Route::get('/auth/google/callback', [CustomerPortalController::class, 'googleCallback'])->name('auth.google.callback');
+
     // Authenticated customer portal routes
     Route::middleware('auth:customer')->group(function () {
         Route::post('/logout', [CustomerPortalController::class, 'logout'])->name('logout');

@@ -16,6 +16,8 @@ class CustomerUser extends Authenticatable
         'nama',
         'email',
         'password',
+        'google_id',
+        'avatar',
         'status',
     ];
 
