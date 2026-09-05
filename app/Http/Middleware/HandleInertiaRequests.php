@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\CustomerRequest;
+use App\Models\CustomerUser;
 use App\Models\Leave;
 use App\Models\Notification;
 use App\Models\WorkOrder;
@@ -34,6 +35,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $isCustomer = $user instanceof CustomerUser;
 
         return [
             ...parent::share($request),
@@ -46,28 +48,28 @@ class HandleInertiaRequests extends Middleware
                     'permissions' => method_exists($user, 'getAllPermissions') ? $user->getAllPermissions()->pluck('name') : [],
                 ] : null,
             ],
-            'pending_requests_count' => fn () => CustomerRequest::whereIn('status', ['baru', 'ditinjau'])->count(),
-            'pending_leaves_count' => function () use ($user) {
-                if (! $user) {
+            'pending_requests_count' => fn () => $isCustomer ? 0 : CustomerRequest::whereIn('status', ['baru', 'ditinjau'])->count(),
+            'pending_leaves_count' => function () use ($user, $isCustomer) {
+                if (! $user || $isCustomer) {
                     return 0;
                 }
-                if ($user->hasRole('technician')) {
+                if (method_exists($user, 'hasRole') && $user->hasRole('technician')) {
                     return Leave::where('user_id', $user->id)->where('status', 'menunggu')->count();
                 }
 
                 return Leave::where('status', 'menunggu')->count();
             },
-            'pending_work_orders_count' => function () use ($user) {
-                if (! $user) {
+            'pending_work_orders_count' => function () use ($user, $isCustomer) {
+                if (! $user || $isCustomer) {
                     return 0;
                 }
-                if ($user->hasRole('technician')) {
+                if (method_exists($user, 'hasRole') && $user->hasRole('technician')) {
                     return WorkOrder::where('technician_id', $user->id)->whereIn('status', ['ASSIGNED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS'])->count();
                 }
 
                 return WorkOrder::whereIn('status', ['DRAFT', 'ASSIGNED', 'PENDING_REVIEW'])->count();
             },
-            'notifikasi_belum_dibaca' => fn () => $user ? Notification::where('user_id', $user->id)->whereNull('dibaca_pada')->count() : 0,
+            'notifikasi_belum_dibaca' => fn () => ($user && ! $isCustomer) ? Notification::where('user_id', $user->id)->whereNull('dibaca_pada')->count() : 0,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
