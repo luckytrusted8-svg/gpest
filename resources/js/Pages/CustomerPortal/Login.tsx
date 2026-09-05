@@ -253,14 +253,25 @@ export default function CustomerLogin({ errors: pageErrors, flash }: Props) {
                             <div className="border-t border-slate-200 w-full" />
                         </div>
 
-                        <Link href="/login" prefetch className="block w-full">
-                            <button
-                                type="button"
-                                className="w-full h-12 border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-2 shadow-2xs active:scale-[0.99]"
-                            >
-                                <span>Masuk sebagai Staff / Teknisi</span>
-                            </button>
-                        </Link>
+                        <div className="space-y-2">
+                            <Link href="/portal/register" prefetch className="block w-full">
+                                <button
+                                    type="button"
+                                    className="w-full h-11 border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-2 shadow-2xs active:scale-[0.99] cursor-pointer"
+                                >
+                                    <span>Belum Punya Akun? Daftar Pelanggan & Lokasi</span>
+                                </button>
+                            </Link>
+
+                            <Link href="/login" prefetch className="block w-full">
+                                <button
+                                    type="button"
+                                    className="w-full h-11 border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-2xl transition-all flex items-center justify-center gap-2 shadow-2xs active:scale-[0.99] cursor-pointer"
+                                >
+                                    <span>Masuk sebagai Staff / Teknisi</span>
+                                </button>
+                            </Link>
+                        </div>
                     </form>
                 </div>
             </div>

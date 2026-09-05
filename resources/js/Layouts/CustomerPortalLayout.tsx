@@ -1,11 +1,11 @@
 import { Link, usePage, router } from '@inertiajs/react';
-import { LogOut, LayoutDashboard, FileText, CalendarCheck, ClipboardList, User, CreditCard, MessageSquare, Building2 } from 'lucide-react';
-import { Button } from '@/Components/ui/button';
+import { LogOut, LayoutDashboard, FileText, CalendarCheck, ClipboardList, User, CreditCard, MessageSquare, Building2, MapPin } from 'lucide-react';
 
 interface CustomerUser {
     id: number;
     nama: string;
     email: string;
+    avatar?: string;
     customer?: {
         id: number;
         customer_id: string;
@@ -26,11 +26,13 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
 
     const navItems = [
         { name: 'Dashboard', href: '/portal/dashboard', icon: LayoutDashboard },
+        { name: 'Titik Lokasi (Site)', href: '/portal/sites', icon: MapPin },
         { name: 'Kontrak Saya', href: '/portal/contracts', icon: FileText },
         { name: 'Jadwal Layanan', href: '/portal/schedules', icon: CalendarCheck },
         { name: 'Laporan Kerja', href: '/portal/work-reports', icon: ClipboardList },
         { name: 'Tagihan Invoice', href: '/portal/invoices', icon: CreditCard },
-        { name: 'Request & Komplain', href: '/portal/requests', icon: MessageSquare },
+        { name: 'Request Layanan', href: '/portal/requests', icon: MessageSquare },
+        { name: 'Profil Perusahaan', href: '/portal/profile', icon: Building2 },
     ];
 
     const handleLogout = () => {
@@ -64,7 +66,7 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
                         </div>
 
                         {/* Desktop Navigation */}
-                        <nav className="hidden lg:flex items-center space-x-1">
+                        <nav className="hidden xl:flex items-center space-x-1">
                             {navItems.map((item) => {
                                 const Icon = item.icon;
                                 const isActive = item.href === '/portal/dashboard' ? url === item.href : url.startsWith(item.href);
@@ -73,13 +75,13 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
                                         key={item.name}
                                         href={item.href}
                                         prefetch
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                                             isActive
                                                 ? 'bg-primary text-white shadow-xs'
                                                 : 'text-body hover:bg-canvas-soft-2 hover:text-ink'
                                         }`}
                                     >
-                                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-mute'}`} />
+                                        <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-mute'}`} />
                                         <span>{item.name}</span>
                                     </Link>
                                 );
@@ -88,23 +90,34 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
 
                         {/* User Info & Logout */}
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2.5 text-right pl-2">
-                                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-semibold shrink-0 shadow-xs">
-                                    {customerUser?.nama ? customerUser.nama.slice(0, 2).toUpperCase() : <User className="w-4 h-4" />}
-                                </div>
+                            <Link
+                                href="/portal/profile"
+                                className="flex items-center gap-2.5 text-right pl-2 group hover:opacity-90 transition-opacity"
+                            >
+                                {customerUser?.avatar ? (
+                                    <img
+                                        src={customerUser.avatar}
+                                        alt={customerUser.nama}
+                                        className="w-8 h-8 rounded-full object-cover border border-hairline"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-semibold shrink-0 shadow-xs">
+                                        {customerUser?.nama ? customerUser.nama.slice(0, 2).toUpperCase() : <User className="w-4 h-4" />}
+                                    </div>
+                                )}
                                 <div className="hidden sm:block text-xs text-left">
-                                    <div className="font-semibold text-ink leading-snug truncate max-w-[140px]">
+                                    <div className="font-semibold text-ink leading-snug truncate max-w-[140px] group-hover:text-primary transition-colors">
                                         {customerUser?.nama || displayCompanyName}
                                     </div>
                                     <div className="text-[11px] text-mute truncate max-w-[140px]">
                                         {customerUser?.email || ''}
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
 
                             <button
                                 onClick={handleLogout}
-                                className="text-xs font-medium text-primary hover:text-primary-hover hover:bg-error-soft border border-hairline hover:border-error-soft rounded-lg flex items-center gap-1.5 h-8 px-3 transition-colors cursor-pointer"
+                                className="text-xs font-medium text-error hover:text-error-hover hover:bg-error-soft border border-hairline hover:border-error-soft rounded-lg flex items-center gap-1.5 h-8 px-3 transition-colors cursor-pointer"
                             >
                                 <LogOut className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Keluar</span>
@@ -113,7 +126,7 @@ export default function CustomerPortalLayout({ children, customerUser, customerN
                     </div>
 
                     {/* Navigation bar for Tablet / Small Screen */}
-                    <div className="flex lg:hidden border-t border-hairline py-2 overflow-x-auto gap-1.5 no-scrollbar scroll-smooth">
+                    <div className="flex xl:hidden border-t border-hairline py-2 overflow-x-auto gap-1.5 no-scrollbar scroll-smooth">
                         {navItems.map((item) => {
                             const Icon = item.icon;
                             const isActive = item.href === '/portal/dashboard' ? url === item.href : url.startsWith(item.href);
