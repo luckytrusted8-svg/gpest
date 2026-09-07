@@ -33,7 +33,7 @@ export default function LeafletLocationPicker({
     const numLat = !isNaN(Number(lat)) && Number(lat) !== 0 ? Number(lat) : -6.2088;
     const numLng = !isNaN(Number(lng)) && Number(lng) !== 0 ? Number(lng) : 106.8456;
 
-    // Helper to extract clean location area (e.g., "Ciledug", "Jakarta Selatan", "Tangerang")
+    // Helper to extract clean location area (e.g., "Ciledug", "Karang Tengah", "Jakarta Selatan", "Tangerang")
     const extractLocationArea = (addr: any): string => {
         if (!addr) return '';
         return (
@@ -49,6 +49,66 @@ export default function LeafletLocationPicker({
         );
     };
 
+    // Helper to format clean, detailed, and precise Indonesian address
+    const formatAddressString = (addr: any, displayName: string): string => {
+        if (!addr) return displayName || '';
+        const parts: string[] = [];
+
+        // Building / Place
+        if (addr.building || addr.house_name || addr.amenity) {
+            parts.push(addr.building || addr.house_name || addr.amenity);
+        }
+
+        // Road & house number
+        if (addr.road) {
+            let road = addr.road;
+            if (addr.house_number) {
+                road += ` No. ${addr.house_number}`;
+            }
+            parts.push(road);
+        }
+
+        // Village / Kelurahan / Suburb
+        if (addr.village || addr.suburb || addr.neighbourhood || addr.quarter) {
+            const sub = addr.village || addr.suburb || addr.neighbourhood || addr.quarter;
+            if (!parts.includes(sub)) {
+                parts.push(sub);
+            }
+        }
+
+        // District / Kecamatan
+        if (addr.city_district || addr.district) {
+            const dist = addr.city_district || addr.district;
+            if (!parts.includes(`Kec. ${dist}`) && !parts.includes(dist)) {
+                parts.push(`Kec. ${dist}`);
+            }
+        }
+
+        // City / Kota / Kabupaten
+        if (addr.city || addr.town || addr.municipality || addr.county) {
+            const city = addr.city || addr.town || addr.municipality || addr.county;
+            if (!parts.includes(city)) {
+                parts.push(city);
+            }
+        }
+
+        // Province / State
+        if (addr.state && !parts.includes(addr.state)) {
+            parts.push(addr.state);
+        }
+
+        // Postcode
+        if (addr.postcode) {
+            parts.push(addr.postcode);
+        }
+
+        if (parts.length >= 2) {
+            return parts.join(', ');
+        }
+
+        return displayName || '';
+    };
+
     // Reverse geocode lat/lng to get address and area
     const fetchReverseGeocode = async (latitude: number, longitude: number) => {
         if (!onLocationSelect) return;
@@ -60,7 +120,8 @@ export default function LeafletLocationPicker({
             const data = await res.json();
             if (data && data.address) {
                 const area = extractLocationArea(data.address);
-                onLocationSelect(latitude, longitude, data.display_name, area);
+                const fullAddress = formatAddressString(data.address, data.display_name);
+                onLocationSelect(latitude, longitude, fullAddress, area);
             } else {
                 onLocationSelect(latitude, longitude);
             }
@@ -183,7 +244,8 @@ export default function LeafletLocationPicker({
                 const foundLat = parseFloat(first.lat);
                 const foundLng = parseFloat(first.lon);
                 const area = extractLocationArea(first.address);
-                onLocationSelect?.(foundLat, foundLng, first.display_name, area);
+                const fullAddress = formatAddressString(first.address, first.display_name);
+                onLocationSelect?.(foundLat, foundLng, fullAddress, area);
             } else {
                 alert('Lokasi tidak ditemukan. Coba kata kunci yang lebih spesifik.');
             }
@@ -239,7 +301,7 @@ export default function LeafletLocationPicker({
                         ) : (
                             <Compass className="w-4 h-4" />
                         )}
-                        <span>{loadingGps ? 'Mendeteksi GPS...' : reverseGeocoding ? 'Mengambil Alamat...' : 'Gunakan GPS Saya'}</span>
+                        <span>{loadingGps ? 'Mendeteksi GPS...' : reverseGeocoding ? 'Mengambil Alamat Presisi...' : 'Gunakan GPS Saya'}</span>
                     </button>
                 </div>
             )}
@@ -256,7 +318,7 @@ export default function LeafletLocationPicker({
 
             {!readonly && (
                 <p className="text-[11px] text-slate-500 italic">
-                    * Geser peta atau klik di mana saja pada peta untuk menyesuaikan titik lokasi & wilayah secara otomatis.
+                    * Geser peta atau klik di mana saja pada peta untuk memperbarui titik koordinat dan mengisi alamat lengkap secara otomatis & presisi.
                 </p>
             )}
         </div>
