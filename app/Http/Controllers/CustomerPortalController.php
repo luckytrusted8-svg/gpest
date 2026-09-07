@@ -468,7 +468,40 @@ class CustomerPortalController extends Controller
 
         $customerUser->update($userUpdate);
 
-        return back()->with('success', 'Profil, titik koordinat peta & lokasi perusahaan Anda berhasil diperbarui.');
+        // Auto create or synchronize primary site (Kantor Pusat)
+        $primarySite = Site::where('customer_id', $customer->id)
+            ->where(function ($query) {
+                $query->where('site_name', 'like', 'Kantor Pusat%')
+                    ->orWhere('site_name', 'like', 'Lokasi Utama%');
+            })
+            ->first();
+
+        if (! $primarySite) {
+            $primarySite = Site::where('customer_id', $customer->id)->orderBy('id', 'asc')->first();
+        }
+
+        if ($primarySite) {
+            $primarySite->update([
+                'site_name' => 'Kantor Pusat ('.$validated['company_name'].')',
+                'address' => $validated['address'],
+                'pic_name' => $validated['pic_name'],
+                'phone' => $validated['phone'],
+                'latitude' => $validated['latitude'] ?? $primarySite->latitude,
+                'longitude' => $validated['longitude'] ?? $primarySite->longitude,
+            ]);
+        } else {
+            Site::create([
+                'customer_id' => $customer->id,
+                'site_name' => 'Kantor Pusat ('.$validated['company_name'].')',
+                'address' => $validated['address'],
+                'pic_name' => $validated['pic_name'],
+                'phone' => $validated['phone'],
+                'latitude' => $validated['latitude'] ?? null,
+                'longitude' => $validated['longitude'] ?? null,
+            ]);
+        }
+
+        return back()->with('success', 'Profil perusahaan & titik lokasi Kantor Pusat berhasil diperbarui otomatis.');
     }
 
     public function contracts()
