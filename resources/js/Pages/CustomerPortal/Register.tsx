@@ -19,32 +19,6 @@ export default function Register() {
         longitude: '106.8456',
     });
 
-    const handleGetLocation = () => {
-        if (!navigator.geolocation) {
-            alert('Browser Anda tidak mendukung geolokasi.');
-            return;
-        }
-
-        setGpsLoading(true);
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setData((prev) => ({
-                    ...prev,
-                    latitude: position.coords.latitude.toString(),
-                    longitude: position.coords.longitude.toString(),
-                }));
-                setGpsLoading(false);
-                setGpsSuccess(true);
-            },
-            (error) => {
-                console.error('Geolocation error:', error);
-                alert('Gagal mengambil koordinat GPS. Pastikan izin lokasi diizinkan di browser.');
-                setGpsLoading(false);
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
-    };
-
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post('/portal/register');
