@@ -2,9 +2,10 @@ import { useState, FormEventHandler } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import CustomerPortalLayout from '@/Layouts/CustomerPortalLayout';
 import { Button } from '@/Components/ui/button';
+import LeafletLocationPicker from '@/Components/LeafletLocationPicker';
 import { 
     MapPin, Plus, Edit2, Trash2, Crosshair, CheckCircle2, 
-    Building2, Phone, User, ExternalLink, X, Loader2, Search, AlertCircle 
+    Building2, Phone, User, ExternalLink, X, Loader2, Search, AlertCircle, Sparkles 
 } from 'lucide-react';
 
 interface Site {
@@ -376,34 +377,12 @@ export default function Sites({ customerUser, sites }: Props) {
                                 </div>
                             </div>
 
-                            {/* GPS Geolocation helper */}
-                            <div className="bg-canvas-soft/80 p-3 rounded-xl border border-hairline space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-xs font-semibold text-ink flex items-center gap-1.5">
-                                        <Crosshair className="w-3.5 h-3.5 text-primary" />
-                                        Titik Koordinat GPS
-                                    </label>
-                                    <button
-                                        type="button"
-                                        onClick={handleGetGPS}
-                                        disabled={gpsLoading}
-                                        className="text-xs font-medium text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                                    >
-                                        {gpsLoading ? (
-                                            <>
-                                                <Loader2 className="w-3 h-3 animate-spin" />
-                                                Mendeteksi GPS...
-                                            </>
-                                        ) : gpsSuccess ? (
-                                            <>
-                                                <CheckCircle2 className="w-3 h-3 text-success" />
-                                                GPS Diperbarui
-                                            </>
-                                        ) : (
-                                            <>Ambil Koordinat Saya (GPS)</>
-                                        )}
-                                    </button>
-                                </div>
+                            {/* Leaflet Interactive Map & GPS */}
+                            <div className="bg-canvas-soft/80 p-3 rounded-xl border border-hairline space-y-2.5">
+                                <label className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                                    <MapPin className="w-3.5 h-3.5 text-primary" />
+                                    Peta & Titik Koordinat GPS Lokasi
+                                </label>
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <input
@@ -419,6 +398,22 @@ export default function Sites({ customerUser, sites }: Props) {
                                         onChange={(e) => setData('longitude', e.target.value)}
                                         placeholder="Longitude (cth: 106.8456)"
                                         className="w-full px-2.5 py-1.5 text-xs bg-canvas border border-hairline rounded-lg font-mono outline-hidden"
+                                    />
+                                </div>
+
+                                <div className="pt-1">
+                                    <LeafletLocationPicker
+                                        lat={data.latitude || -6.2088}
+                                        lng={data.longitude || 106.8456}
+                                        height="220px"
+                                        onLocationSelect={(lat, lng, addressSuggestion) => {
+                                            setData((prev) => ({
+                                                ...prev,
+                                                latitude: lat.toString(),
+                                                longitude: lng.toString(),
+                                                address: addressSuggestion && !prev.address ? addressSuggestion : prev.address,
+                                            }));
+                                        }}
                                     />
                                 </div>
                             </div>

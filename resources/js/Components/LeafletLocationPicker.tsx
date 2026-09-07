@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Compass, Search } from 'lucide-react';
+import { MapPin, Compass, Search, Loader2 } from 'lucide-react';
 
 interface LeafletLocationPickerProps {
     lat: number | string;
     lng: number | string;
     radius?: number;
-    onLocationSelect?: (lat: number, lng: number, addressSuggestion?: string) => void;
+    onLocationSelect?: (lat: number, lng: number, addressSuggestion?: string, locationArea?: string) => void;
     height?: string;
     readonly?: boolean;
 }
@@ -28,9 +28,48 @@ export default function LeafletLocationPicker({
     const [loadingGps, setLoadingGps] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searching, setSearching] = useState(false);
+    const [reverseGeocoding, setReverseGeocoding] = useState(false);
 
     const numLat = !isNaN(Number(lat)) && Number(lat) !== 0 ? Number(lat) : -6.2088;
     const numLng = !isNaN(Number(lng)) && Number(lng) !== 0 ? Number(lng) : 106.8456;
+
+    // Helper to extract clean location area (e.g., "Ciledug", "Jakarta Selatan", "Tangerang")
+    const extractLocationArea = (addr: any): string => {
+        if (!addr) return '';
+        return (
+            addr.city_district ||
+            addr.suburb ||
+            addr.neighbourhood ||
+            addr.quarter ||
+            addr.city ||
+            addr.municipality ||
+            addr.town ||
+            addr.county ||
+            ''
+        );
+    };
+
+    // Reverse geocode lat/lng to get address and area
+    const fetchReverseGeocode = async (latitude: number, longitude: number) => {
+        if (!onLocationSelect) return;
+        setReverseGeocoding(true);
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+            );
+            const data = await res.json();
+            if (data && data.address) {
+                const area = extractLocationArea(data.address);
+                onLocationSelect(latitude, longitude, data.display_name, area);
+            } else {
+                onLocationSelect(latitude, longitude);
+            }
+        } catch {
+            onLocationSelect(latitude, longitude);
+        } finally {
+            setReverseGeocoding(false);
+        }
+    };
 
     // Initialize Vanilla Leaflet Map (Pure Leaflet JS, no react-leaflet context dependency)
     useEffect(() => {
@@ -51,7 +90,7 @@ export default function LeafletLocationPicker({
         // Click Handler on Map (only when not readonly)
         if (!readonly && onLocationSelect) {
             map.on('click', (e: L.LeafletMouseEvent) => {
-                onLocationSelect(e.latlng.lat, e.latlng.lng);
+                fetchReverseGeocode(e.latlng.lat, e.latlng.lng);
             });
         }
 
@@ -120,7 +159,7 @@ export default function LeafletLocationPicker({
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 setLoadingGps(false);
-                onLocationSelect?.(pos.coords.latitude, pos.coords.longitude);
+                fetchReverseGeocode(pos.coords.latitude, pos.coords.longitude);
             },
             (err) => {
                 setLoadingGps(false);
@@ -136,14 +175,15 @@ export default function LeafletLocationPicker({
         setSearching(true);
         try {
             const res = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
+                `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(searchQuery)}`
             );
             const data = await res.json();
             if (data && data.length > 0) {
                 const first = data[0];
                 const foundLat = parseFloat(first.lat);
                 const foundLng = parseFloat(first.lon);
-                onLocationSelect?.(foundLat, foundLng, first.display_name);
+                const area = extractLocationArea(first.address);
+                onLocationSelect?.(foundLat, foundLng, first.display_name, area);
             } else {
                 alert('Lokasi tidak ditemukan. Coba kata kunci yang lebih spesifik.');
             }
@@ -171,7 +211,7 @@ export default function LeafletLocationPicker({
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="Cari nama jalan / lokasi di peta..."
+                                placeholder="Cari nama jalan / gedung / wilayah di peta..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={handleKeyDownSearch}
@@ -182,20 +222,24 @@ export default function LeafletLocationPicker({
                             type="button"
                             onClick={handleSearchAddress}
                             disabled={searching}
-                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold shrink-0 transition-colors disabled:opacity-50"
+                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold shrink-0 transition-colors disabled:opacity-50 cursor-pointer"
                         >
-                            {searching ? 'Cari...' : 'Cari di Peta'}
+                            {searching ? 'Mencari...' : 'Cari di Peta'}
                         </button>
                     </div>
 
                     <button
                         type="button"
                         onClick={handleGetCurrentLocation}
-                        disabled={loadingGps}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-xs"
+                        disabled={loadingGps || reverseGeocoding}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-xs cursor-pointer"
                     >
-                        <Compass className={`w-4 h-4 ${loadingGps ? 'animate-spin' : ''}`} />
-                        <span>{loadingGps ? 'Mengambil GPS...' : 'Gunakan GPS Saya'}</span>
+                        {loadingGps || reverseGeocoding ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Compass className="w-4 h-4" />
+                        )}
+                        <span>{loadingGps ? 'Mendeteksi GPS...' : reverseGeocoding ? 'Mengambil Alamat...' : 'Gunakan GPS Saya'}</span>
                     </button>
                 </div>
             )}
@@ -212,7 +256,7 @@ export default function LeafletLocationPicker({
 
             {!readonly && (
                 <p className="text-[11px] text-slate-500 italic">
-                    * Klik di mana saja pada peta Leaflet untuk menentukan titik lokasi koordinat GPS secara presisi.
+                    * Geser peta atau klik di mana saja pada peta untuk menyesuaikan titik lokasi & wilayah secara otomatis.
                 </p>
             )}
         </div>

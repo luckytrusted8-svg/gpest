@@ -81,6 +81,23 @@ class CustomerPortalController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
 
+        $location = $request->input('location');
+        if (empty($location)) {
+            $address = $validated['address'];
+            $knownAreas = [
+                'Ciledug', 'Karang Tengah', 'Pinang', 'Cipondoh', 'Bintaro', 'BSD', 'Serpong',
+                'Jakarta Selatan', 'Jakarta Utara', 'Jakarta Barat', 'Jakarta Timur', 'Jakarta Pusat',
+                'Tangerang Selatan', 'Tangerang', 'Bekasi', 'Depok', 'Bogor', 'Bandung', 'Surabaya',
+                'Cikarang', 'Karawang', 'Semarang', 'Yogyakarta', 'Solo', 'Malang', 'Bali', 'Denpasar',
+            ];
+            foreach ($knownAreas as $area) {
+                if (stripos($address, $area) !== false) {
+                    $location = $area;
+                    break;
+                }
+            }
+        }
+
         // 1. Create Customer record
         $customer = Customer::create([
             'company_name' => $validated['company_name'],
@@ -88,7 +105,7 @@ class CustomerPortalController extends Controller
             'email' => $validated['email'],
             'phone' => $validated['phone'],
             'address' => $validated['address'],
-            'location' => $validated['address'],
+            'location' => $location ?: 'Jabodetabek',
             'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
             'status' => 'active',
@@ -406,15 +423,38 @@ class CustomerPortalController extends Controller
             'pic_name' => 'required|string|max:255',
             'phone' => 'required|string|max:30',
             'address' => 'required|string|max:500',
+            'location' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'npwp' => 'nullable|string|max:50',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
+
+        $location = $validated['location'] ?? null;
+        if (empty($location)) {
+            $address = $validated['address'];
+            $knownAreas = [
+                'Ciledug', 'Karang Tengah', 'Pinang', 'Cipondoh', 'Bintaro', 'BSD', 'Serpong',
+                'Jakarta Selatan', 'Jakarta Utara', 'Jakarta Barat', 'Jakarta Timur', 'Jakarta Pusat',
+                'Tangerang Selatan', 'Tangerang', 'Bekasi', 'Depok', 'Bogor', 'Bandung', 'Surabaya',
+                'Cikarang', 'Karawang', 'Semarang', 'Yogyakarta', 'Solo', 'Malang', 'Bali', 'Denpasar',
+            ];
+            foreach ($knownAreas as $area) {
+                if (stripos($address, $area) !== false) {
+                    $location = $area;
+                    break;
+                }
+            }
+        }
 
         $customer->update([
             'company_name' => $validated['company_name'],
             'pic_name' => $validated['pic_name'],
             'phone' => $validated['phone'],
             'address' => $validated['address'],
+            'location' => $location ?: $customer->location ?: 'Jabodetabek',
+            'latitude' => $validated['latitude'] ?? $customer->latitude,
+            'longitude' => $validated['longitude'] ?? $customer->longitude,
             'npwp' => $validated['npwp'] ?? null,
         ]);
 
@@ -428,7 +468,7 @@ class CustomerPortalController extends Controller
 
         $customerUser->update($userUpdate);
 
-        return back()->with('success', 'Profil & data perusahaan Anda berhasil diperbarui.');
+        return back()->with('success', 'Profil, titik koordinat peta & lokasi perusahaan Anda berhasil diperbarui.');
     }
 
     public function contracts()

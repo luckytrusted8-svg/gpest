@@ -1,12 +1,10 @@
 import { FormEventHandler, useState } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
-import { Mail, Lock, Building2, User, Phone, MapPin, ArrowRight, ShieldCheck, CheckCircle2, Crosshair, Loader2 } from 'lucide-react';
+import { Mail, Lock, Building2, User, Phone, MapPin, ArrowRight, ShieldCheck, CheckCircle2, Crosshair, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import LeafletLocationPicker from '@/Components/LeafletLocationPicker';
 
 export default function Register() {
-    const [gpsLoading, setGpsLoading] = useState(false);
-    const [gpsSuccess, setGpsSuccess] = useState(false);
-
     const { data, setData, post, processing, errors } = useForm({
         company_name: '',
         pic_name: '',
@@ -15,9 +13,10 @@ export default function Register() {
         password: '',
         password_confirmation: '',
         address: '',
+        location: '',
         site_name: '',
-        latitude: '',
-        longitude: '',
+        latitude: '-6.2088',
+        longitude: '106.8456',
     });
 
     const handleGetLocation = () => {
@@ -274,33 +273,20 @@ export default function Register() {
                                 <p className="mt-1 text-[11px] text-mute">Jika dikosongkan, otomatis menggunakan nama perusahaan Anda.</p>
                             </div>
 
-                            {/* GPS Geolocation helper */}
-                            <div className="pt-1">
-                                <div className="flex items-center justify-between mb-2">
+                            {/* Leaflet Interactive Map & GPS helper */}
+                            <div className="pt-1 space-y-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                     <label className="text-xs font-semibold text-ink flex items-center gap-1.5">
-                                        <Crosshair className="w-3.5 h-3.5 text-primary" />
-                                        Koordinat GPS Lokasi (Opsional untuk Akurasi Teknisi)
+                                        <MapPin className="w-3.5 h-3.5 text-primary" />
+                                        Peta Lokasi & Koordinat GPS (Geser Pin Peta)
                                     </label>
-                                    <button
-                                        type="button"
-                                        onClick={handleGetLocation}
-                                        disabled={gpsLoading}
-                                        className="text-xs font-medium text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                                    >
-                                        {gpsLoading ? (
-                                            <>
-                                                <Loader2 className="w-3 h-3 animate-spin" />
-                                                Mengambil GPS...
-                                            </>
-                                        ) : gpsSuccess ? (
-                                            <>
-                                                <CheckCircle2 className="w-3 h-3 text-success" />
-                                                GPS Berhasil Diambil
-                                            </>
-                                        ) : (
-                                            <>Ambil Lokasi Saat Ini (GPS)</>
-                                        )}
-                                    </button>
+
+                                    {data.location && (
+                                        <span className="inline-flex items-center gap-1 bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-full text-[11px] font-semibold">
+                                            <Sparkles className="w-3 h-3" />
+                                            Wilayah: <strong>{data.location}</strong>
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
@@ -317,6 +303,23 @@ export default function Register() {
                                         onChange={(e) => setData('longitude', e.target.value)}
                                         placeholder="Longitude (cth: 106.8456)"
                                         className="w-full px-3 py-1.5 text-xs bg-canvas border border-hairline rounded-lg text-ink focus:border-primary outline-hidden font-mono"
+                                    />
+                                </div>
+
+                                <div className="pt-1">
+                                    <LeafletLocationPicker
+                                        lat={data.latitude || -6.2088}
+                                        lng={data.longitude || 106.8456}
+                                        height="240px"
+                                        onLocationSelect={(lat, lng, addressSuggestion, locationArea) => {
+                                            setData((prev) => ({
+                                                ...prev,
+                                                latitude: lat.toString(),
+                                                longitude: lng.toString(),
+                                                location: locationArea || prev.location || '',
+                                                address: addressSuggestion && !prev.address ? addressSuggestion : prev.address,
+                                            }));
+                                        }}
                                     />
                                 </div>
                             </div>
