@@ -18,6 +18,12 @@ class Customer extends Model
             if (empty($customer->customer_id)) {
                 $customer->customer_id = static::generateCustomerId();
             }
+            if (empty($customer->location)) {
+                $customer->location = 'Jabodetabek';
+            }
+            if (empty($customer->status)) {
+                $customer->status = 'active';
+            }
         });
     }
 

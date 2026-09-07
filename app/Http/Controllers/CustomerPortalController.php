@@ -204,6 +204,7 @@ class CustomerPortalController extends Controller
                     'email' => $googleUser->getEmail(),
                     'phone' => '-',
                     'address' => 'Belum dilengkapi',
+                    'location' => 'Jabodetabek',
                     'status' => 'active',
                 ]);
 
