@@ -5,7 +5,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Plus, Trash2, Edit, X, Shield, MapPin, Building2, CheckCircle2, AlertCircle } from 'lucide-react';
-import GeofenceModalMap from '@/Components/GeofenceModalMap';
+import LeafletLocationPicker from '@/Components/LeafletLocationPicker';
 
 interface GeofenceData {
     id: number;
@@ -21,6 +21,10 @@ interface GeofenceData {
 interface Customer {
     id: number;
     company_name: string;
+    address?: string | null;
+    latitude?: number | string | null;
+    longitude?: number | string | null;
+    location?: string | null;
 }
 
 interface Props {
@@ -84,14 +88,43 @@ export default function GeofencePage({ geofences = [], customers = [] }: Props) 
         reset();
     };
 
-    const handleMapClick = (lat: number, lng: number) => {
+    const handleLocationSelect = (lat: number, lng: number, addressSuggestion?: string, locationArea?: string) => {
         setFormLat(lat);
         setFormLng(lng);
         setData((prev) => ({
             ...prev,
             latitude_pusat: lat,
             longitude_pusat: lng,
+            nama: !prev.nama && (locationArea || addressSuggestion)
+                ? `Area ${locationArea || 'Lokasi Baru'}`
+                : prev.nama,
         }));
+    };
+
+    const handleCustomerChange = (customerIdStr: string) => {
+        setData('customer_id', customerIdStr);
+        if (customerIdStr) {
+            const found = customers.find((c) => String(c.id) === customerIdStr);
+            if (found) {
+                if (!data.nama || data.nama.startsWith('Site ') || data.nama.startsWith('Pusat ') || data.nama.startsWith('Area ')) {
+                    setData((prev) => ({
+                        ...prev,
+                        nama: `Site ${found.company_name}${found.location ? ` - ${found.location}` : ''}`,
+                    }));
+                }
+                if (found.latitude && found.longitude) {
+                    const lat = Number(found.latitude);
+                    const lng = Number(found.longitude);
+                    setFormLat(lat);
+                    setFormLng(lng);
+                    setData((prev) => ({
+                        ...prev,
+                        latitude_pusat: lat,
+                        longitude_pusat: lng,
+                    }));
+                }
+            }
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -310,7 +343,7 @@ export default function GeofencePage({ geofences = [], customers = [] }: Props) 
                                         <select
                                             id="customer_id"
                                             value={data.customer_id}
-                                            onChange={(e) => setData('customer_id', e.target.value)}
+                                            onChange={(e) => handleCustomerChange(e.target.value)}
                                             className="flex h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1 text-xs text-slate-900 focus:ring-blue-500 focus:border-blue-500"
                                         >
                                             <option value="">Umum (Semua Klien)</option>
@@ -370,16 +403,20 @@ export default function GeofencePage({ geofences = [], customers = [] }: Props) 
                                     </div>
                                 </div>
 
-                                {/* Direct Vanilla Leaflet Map Picker Component */}
+                                {/* Direct Leaflet Location Picker with GPS & Search */}
                                 <div className="space-y-1.5 pt-1">
-                                    <Label className="text-xs font-bold text-slate-800">
-                                        Pilih Titik Lokasi Pusat Geofence Pada Peta Leaflet:
+                                    <Label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                                        <span>Pilih Titik Lokasi Pusat Geofence Pada Peta Leaflet:</span>
+                                        <span className="text-[11px] font-normal text-blue-600">
+                                            Bisa geser peta, cari alamat, atau gunakan GPS
+                                        </span>
                                     </Label>
-                                    <GeofenceModalMap
+                                    <LeafletLocationPicker
                                         lat={formLat}
                                         lng={formLng}
-                                        radius={data.radius_meter}
-                                        onMapClick={handleMapClick}
+                                        radius={Number(data.radius_meter) || 100}
+                                        onLocationSelect={handleLocationSelect}
+                                        height="280px"
                                     />
                                 </div>
 

@@ -15,7 +15,7 @@ class GeofenceController extends Controller
 
         return Inertia::render('Tracking/Geofence', [
             'geofences' => $geofences,
-            'customers' => Customer::select('id', 'company_name')->orderBy('company_name')->get(),
+            'customers' => Customer::select('id', 'company_name', 'address', 'latitude', 'longitude', 'location')->orderBy('company_name')->get(),
         ]);
     }
 
