@@ -116,15 +116,52 @@
         </div>
         @endif
 
+        @php
+            $getImageBase64 = function($path) {
+                if (empty($path)) return null;
+                if (str_starts_with($path, 'data:image')) return $path;
+                
+                $cleanPath = ltrim($path, '/');
+                if (str_starts_with($cleanPath, 'storage/')) {
+                    $storageRelative = substr($cleanPath, 8);
+                    $fullPath = storage_path('app/public/' . $storageRelative);
+                    if (file_exists($fullPath)) {
+                        $ext = pathinfo($fullPath, PATHINFO_EXTENSION);
+                        if ($ext === 'svg') $ext = 'svg+xml';
+                        return 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($fullPath));
+                    }
+                }
+                
+                $pubPath = public_path($cleanPath);
+                if (file_exists($pubPath)) {
+                    $ext = pathinfo($pubPath, PATHINFO_EXTENSION);
+                    if ($ext === 'svg') $ext = 'svg+xml';
+                    return 'data:image/' . $ext . ';base64,' . base64_encode(file_get_contents($pubPath));
+                }
+                
+                return null;
+            };
+        @endphp
+
         @if($surveyReport->photos && $surveyReport->photos->count() > 0)
-        <div class="section-title">Dokumentasi Foto</div>
-        <div class="photo-grid">
-            @foreach($surveyReport->photos->take(3) as $photo)
-                <div class="col">
-                    <div class="photo-placeholder">Foto: {{ $photo->keterangan ?? 'Dokumentasi' }}</div>
-                </div>
-            @endforeach
-        </div>
+        <div class="section-title">Dokumentasi Foto Survey</div>
+        <table style="width: 100%; border-collapse: separate; border-spacing: 8px; margin-bottom: 15px;">
+            <tr>
+                @foreach($surveyReport->photos->take(4) as $photo)
+                    @php $imgSrc = $getImageBase64($photo->path_foto); @endphp
+                    <td style="width: 25%; vertical-align: top; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 6px; text-align: center;">
+                        @if($imgSrc)
+                            <img src="{{ $imgSrc }}" style="width: 100%; max-height: 110px; border-radius: 3px; border: 1px solid #ccc;" />
+                        @else
+                            <div style="height: 60px; background: #eee; border: 1px dashed #ccc; line-height: 60px; font-size: 8px; color: #888;">Foto tidak tersedia</div>
+                        @endif
+                        @if($photo->keterangan)
+                            <div style="font-size: 8.5px; color: #444; margin-top: 3px;">{{ $photo->keterangan }}</div>
+                        @endif
+                    </td>
+                @endforeach
+            </tr>
+        </table>
         @endif
 
         <div class="signatures">

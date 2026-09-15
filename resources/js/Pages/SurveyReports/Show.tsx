@@ -93,7 +93,7 @@ export default function Show({ surveyReport, previousSurveys }: Props) {
                     </div>
                     <div className="flex items-center gap-2">
                         {surveyReport.status === 'draft' && <Link href={`/survey-reports/${surveyReport.id}/edit`}><Button variant="outline" className="text-body-sm-strong flex items-center gap-2"><Edit className="w-4 h-4" /> Edit</Button></Link>}
-                        {(roles.includes('super_admin') || roles.includes('supervisor')) && surveyReport.status === 'dikirim' && (
+                        {(roles.includes('admin') || roles.includes('super_admin') || roles.includes('supervisor')) && surveyReport.status === 'dikirim' && (
                             <Button onClick={handleApprove} disabled={approving} className="bg-[#0070f3] hover:bg-[#0060df] text-white text-body-sm-strong flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {approving ? 'Menyetujui...' : 'Setujui'}</Button>
                         )}
                         <a href={route('survey-reports.pdf', surveyReport.id)} target="_blank" rel="noopener noreferrer">

@@ -206,8 +206,42 @@ export default function Edit({ technician, users }: Props) {
                                     type="text"
                                     value={data.area_tugas}
                                     onChange={(e) => setData('area_tugas', e.target.value)}
+                                    placeholder="Contoh: Depok, Jakarta Selatan"
                                     className="mt-1"
                                 />
+                                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                                        Pilih Zona:
+                                    </span>
+                                    {['Jakarta Pusat', 'Jakarta Selatan', 'Jakarta Barat', 'Jakarta Timur', 'Jakarta Utara', 'Depok', 'Tangerang', 'Bekasi', 'Bogor'].map((ar) => {
+                                        const isIncluded = data.area_tugas?.toLowerCase().includes(ar.toLowerCase());
+                                        return (
+                                            <button
+                                                key={ar}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isIncluded) {
+                                                        const parts = (data.area_tugas || '')
+                                                            .split(',')
+                                                            .map((p) => p.trim())
+                                                            .filter((p) => p.toLowerCase() !== ar.toLowerCase() && p !== '');
+                                                        setData('area_tugas', parts.join(', '));
+                                                    } else {
+                                                        const current = data.area_tugas ? data.area_tugas.trim() : '';
+                                                        setData('area_tugas', current ? `${current}, ${ar}` : ar);
+                                                    }
+                                                }}
+                                                className={`px-2 py-0.5 rounded-md text-[11px] font-semibold border transition-colors cursor-pointer ${
+                                                    isIncluded
+                                                        ? 'bg-blue-600 text-white border-blue-600'
+                                                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
+                                                }`}
+                                            >
+                                                {isIncluded ? `✓ ${ar}` : `+ ${ar}`}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                                 {errors.area_tugas && <div className="text-error text-sm mt-1">{errors.area_tugas}</div>}
                             </div>
 

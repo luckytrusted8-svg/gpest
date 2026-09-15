@@ -2,16 +2,21 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui/button';
 import { useState } from 'react';
-import { Search, Eye, Trash2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Search, Eye, Trash2, CheckCircle, AlertTriangle, MapPin } from 'lucide-react';
 
 interface CustomerRequestItem {
     id: number;
     request_number: string;
     customer: { id: number; company_name: string } | null;
+    site?: { id: number; site_name: string } | null;
+    lokasi?: string | null;
+    pic_name?: string | null;
+    pic_phone?: string | null;
     jenis_layanan: string;
     prioritas: string;
     deskripsi: string;
     tanggal_permintaan: string | null;
+    waktu_layanan?: string | null;
     status: string;
     created_at: string;
 }
@@ -137,6 +142,7 @@ export default function Index({ requests, filters = {} }: Props) {
                             <tr className="border-b border-hairline bg-canvas-soft">
                                 <th className="text-left py-3 px-4 text-body-sm-strong text-ink font-medium">Nomor</th>
                                 <th className="text-left py-3 px-4 text-body-sm-strong text-ink font-medium">Customer</th>
+                                <th className="text-left py-3 px-4 text-body-sm-strong text-ink font-medium">Lokasi / Cabang</th>
                                 <th className="text-left py-3 px-4 text-body-sm-strong text-ink font-medium">Layanan Requested</th>
                                 <th className="text-left py-3 px-4 text-body-sm-strong text-ink font-medium">Prioritas</th>
                                 <th className="text-left py-3 px-4 text-body-sm-strong text-ink font-medium">Waktu Kirim</th>
@@ -153,6 +159,15 @@ export default function Index({ requests, filters = {} }: Props) {
                                         </Link>
                                     </td>
                                     <td className="py-3 px-4 text-sm font-medium">{req.customer?.company_name ?? '-'}</td>
+                                    <td className="py-3 px-4 text-xs font-medium text-slate-800">
+                                        <div className="flex items-center gap-1 text-slate-900 font-semibold">
+                                            <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                            <span>{req.lokasi || req.site?.site_name || 'Kantor Utama'}</span>
+                                        </div>
+                                        {req.pic_name && (
+                                            <div className="text-[11px] text-slate-500 pl-4">PIC: {req.pic_name}</div>
+                                        )}
+                                    </td>
                                     <td className="py-3 px-4 font-medium text-ink">{req.jenis_layanan}</td>
                                     <td className="py-3 px-4"><PriorityBadge prioritas={req.prioritas} /></td>
                                     <td className="py-3 px-4 text-xs text-mute">

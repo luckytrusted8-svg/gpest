@@ -29,7 +29,7 @@ class DashboardController extends Controller
         ];
 
         $user = auth()->user();
-        $isTechnician = $user && $user->roles->pluck('name')->contains('technician');
+        $isTechnician = $user && ($user->roles->pluck('name')->contains('karyawan') || $user->roles->pluck('name')->contains('technician'));
         $hasCheckedIn = false;
         $todayAttendance = null;
 
@@ -62,7 +62,7 @@ class DashboardController extends Controller
         $techUserIds = User::whereHas('technician', function ($q) {
             $q->where('status', 'aktif');
         })->orWhereHas('roles', function ($q) {
-            $q->where('name', 'technician');
+            $q->whereIn('name', ['karyawan', 'technician']);
         })->pluck('id')->unique();
 
         $totalTechsCount = $techUserIds->count();

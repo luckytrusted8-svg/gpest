@@ -34,7 +34,7 @@ class MobileApiController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->roles->pluck('name')->first() ?? 'technician',
+                'role' => $user->roles->pluck('name')->first() ?? 'karyawan',
             ],
         ]);
     }

@@ -39,18 +39,17 @@ interface Props {
 
 export const RoleBadge = ({ roleName }: { roleName: string }) => {
     switch (roleName) {
-        case 'super_admin':
-            return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#7928ca]/15 text-[#7928ca]">Super Admin</span>;
-        case 'management':
-            return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#0070f3]/15 text-[#0070f3]">Management</span>;
         case 'admin':
-            return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#0070f3]/15 text-[#0070f3]">Admin</span>;
-        case 'supervisor':
-            return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#f5a623]/15 text-[#ab570a]">Supervisor</span>;
+        case 'super_admin':
+            return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#7928ca]/15 text-[#7928ca]">Admin</span>;
+        case 'karyawan':
         case 'technician':
-            return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-canvas-soft-2 text-ink border border-hairline">Technician</span>;
+        case 'supervisor':
+        case 'management':
+            return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#0070f3]/15 text-[#0070f3]">Karyawan</span>;
         case 'customer':
-            return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-canvas-soft-2 text-mute border border-hairline">Customer</span>;
+        case 'costumer':
+            return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Customer</span>;
         default:
             return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-canvas-soft text-body-text">{roleName}</span>;
     }
@@ -122,7 +121,9 @@ export default function Index({ users, roles, filters }: Props) {
                         >
                             <option value="">Semua Role</option>
                             {roles.map((r) => (
-                                <option key={r.id} value={r.name}>{r.name}</option>
+                                <option key={r.id} value={r.name}>
+                                    {r.name === 'admin' ? 'Admin' : r.name === 'karyawan' ? 'Karyawan' : (r.name === 'customer' || r.name === 'costumer') ? 'Customer' : r.name}
+                                </option>
                             ))}
                         </select>
                         <Button type="submit" variant="outline" className="text-body-sm-strong w-full sm:w-auto rounded-xl">

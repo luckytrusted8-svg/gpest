@@ -119,8 +119,8 @@ export default function Dashboard({ kpiData, todaySchedules = [], technicianCoun
     const page = usePage();
     const auth = page.props.auth as any;
     const userRoles: string[] = auth?.user?.roles || [];
-    const isTechnician = userRoles.includes('technician');
-    const userName = auth?.user?.name || 'Teknisi';
+    const isTechnician = userRoles.includes('karyawan') || userRoles.includes('technician');
+    const userName = auth?.user?.name || 'Karyawan';
 
     const [showCheckInAlertModal, setShowCheckInAlertModal] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);

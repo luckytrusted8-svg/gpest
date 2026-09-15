@@ -6,7 +6,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import { useMemo, useState } from 'react';
-import { Clock, MapPin, Sparkles, Building2, UserCheck, ShieldCheck } from 'lucide-react';
+import { Clock, MapPin, Sparkles, Building2, UserCheck, ShieldCheck, AlertCircle, CheckCircle2, Zap, Star, PenLine } from 'lucide-react';
 
 interface SiteItem {
     id: number;
@@ -31,11 +31,59 @@ interface Contract {
     service_type: string;
 }
 
+interface TechnicianProfile {
+    id: number;
+    user_id: number;
+    employee_id: string;
+    nama: string;
+    area_tugas: string | null;
+    status: 'aktif' | 'tidak_aktif' | 'cuti';
+    keahlian: string[] | null;
+    telepon: string | null;
+}
+
 interface UserStaff {
     id: number;
     name: string;
     email: string;
+    technician?: TechnicianProfile | null;
 }
+
+const KNOWN_AREAS = [
+    'Jakarta Pusat',
+    'Jakarta Selatan',
+    'Jakarta Barat',
+    'Jakarta Timur',
+    'Jakarta Utara',
+    'Depok',
+    'Tangerang Selatan',
+    'Tangerang',
+    'Bekasi',
+    'Bogor',
+    'Cikarang',
+    'Karawang',
+    'Bintaro',
+    'BSD',
+    'Serpong',
+];
+
+const detectAreaFromText = (text?: string): string => {
+    if (!text) return '';
+    const lower = text.toLowerCase();
+    for (const a of KNOWN_AREAS) {
+        if (lower.includes(a.toLowerCase())) {
+            return a;
+        }
+    }
+    return '';
+};
+
+const isAreaMatch = (techArea?: string | null, targetArea?: string): boolean => {
+    if (!techArea || !targetArea) return false;
+    const tLower = techArea.toLowerCase();
+    const targetLower = targetArea.toLowerCase();
+    return tLower.includes(targetLower) || targetLower.includes(tLower);
+};
 
 interface Props {
     customers: Customer[];
@@ -43,6 +91,13 @@ interface Props {
     technicians: UserStaff[];
     supervisors: UserStaff[];
     users?: UserStaff[];
+    prefilled?: {
+        customer_id?: string;
+        service?: string;
+        priority?: string;
+        notes?: string;
+        request_id?: string;
+    };
 }
 
 interface FormData {
@@ -61,27 +116,72 @@ interface FormData {
     catatan: string;
 }
 
-export default function Create({ customers = [], contracts = [], technicians = [], supervisors = [] }: Props) {
+const normalizeService = (svc?: string): string => {
+    if (!svc) return 'General Pest Control';
+    const s = svc.toLowerCase();
+    if (s.includes('fumi')) return 'Fumigasi';
+    if (s.includes('termite') || s.includes('rayap')) return 'Termite Control';
+    if (s.includes('rodent') || s.includes('tikus')) return 'Rodent Control';
+    if (s.includes('insect') || s.includes('serangga') || s.includes('nyamuk')) return 'Insect Control';
+    if (s.includes('disinfek') || s.includes('disinfection')) return 'Disinfection';
+    if (s.includes('inspect') || s.includes('survey') || s.includes('survei')) return 'Inspection / Survey';
+    if (s.includes('komplain')) return 'Komplain Penanganan';
+    return svc;
+};
+
+const normalizePriority = (prio?: string): 'rendah' | 'normal' | 'tinggi' | 'urgent' => {
+    if (!prio) return 'normal';
+    const p = prio.toLowerCase();
+    if (p === 'sedang' || p === 'normal' || p === 'medium') return 'normal';
+    if (p === 'rendah' || p === 'low') return 'rendah';
+    if (p === 'tinggi' || p === 'high') return 'tinggi';
+    if (p === 'urgent' || p === 'darurat') return 'urgent';
+    return 'normal';
+};
+
+export default function Create({ customers = [], contracts = [], technicians = [], supervisors = [], prefilled }: Props) {
     const today = new Date().toISOString().split('T')[0];
-    const initialCustomer = customers.length > 0 ? customers[0] : null;
-    const initialAddress = initialCustomer?.address || initialCustomer?.location || '';
+
+    // Read query parameters as fallback
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const reqCustomerId = prefilled?.customer_id || searchParams?.get('customer_id') || '';
+    const reqService = prefilled?.service || searchParams?.get('service') || '';
+    const reqPriority = prefilled?.priority || searchParams?.get('priority') || searchParams?.get('prioritas') || '';
+    const reqNotes = prefilled?.notes || searchParams?.get('notes') || searchParams?.get('catatan') || '';
+    const reqId = prefilled?.request_id || searchParams?.get('request_id') || '';
+    const reqLocation = searchParams?.get('lokasi') || '';
+    const reqSiteId = searchParams?.get('site_id') || '';
+
+    // Auto-select target customer
+    const initialCustomer = reqCustomerId
+        ? customers.find((c) => String(c.id) === String(reqCustomerId)) || (customers.length > 0 ? customers[0] : null)
+        : (customers.length > 0 ? customers[0] : null);
+
+    const initialAddress = reqLocation || initialCustomer?.address || initialCustomer?.location || '';
+    const initialService = reqService ? normalizeService(reqService) : 'General Pest Control';
+    const initialPriority = reqPriority ? normalizePriority(reqPriority) : 'normal';
+    const initialNotes = reqNotes ? (reqId ? `[Permintaan Tiket #${reqId}]: ${reqNotes}` : reqNotes) : '';
 
     const [is24HoursFlexible, setIs24HoursFlexible] = useState(false);
+    const [locationSelection, setLocationSelection] = useState<string>(
+        reqSiteId ? `site_${reqSiteId}` : reqLocation ? 'custom' : 'main'
+    );
+    const [isCustomLocation, setIsCustomLocation] = useState(Boolean(reqLocation && !reqSiteId));
 
     const { data, setData, post, processing, errors } = useForm<FormData>({
         schedule_code: `SCH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(100 + Math.random() * 900)}`,
         customer_id: initialCustomer ? String(initialCustomer.id) : '',
         contract_id: '',
         lokasi: initialAddress,
-        jenis_layanan: 'General Pest Control',
+        jenis_layanan: initialService,
         technician_id: '',
         supervisor_id: '',
         tanggal: today,
         jam_mulai: '08:00',
         jam_selesai: '17:00',
-        prioritas: 'normal',
+        prioritas: initialPriority,
         status: 'dijadwalkan',
-        catatan: '',
+        catatan: initialNotes,
     });
 
     // Dynamic contracts filtered by selected customer
@@ -95,6 +195,36 @@ export default function Create({ customers = [], contracts = [], technicians = [
         return customers.find((c) => String(c.id) === String(data.customer_id));
     }, [customers, data.customer_id]);
 
+    // Smart Area Matching: detect area from lokasi, site, or customer address
+    const detectedJobArea = useMemo(() => {
+        return (
+            detectAreaFromText(data.lokasi) ||
+            detectAreaFromText(selectedCustomer?.location) ||
+            detectAreaFromText(selectedCustomer?.address) ||
+            ''
+        );
+    }, [data.lokasi, selectedCustomer]);
+
+    const { recommendedTechnicians, otherTechnicians } = useMemo(() => {
+        if (!detectedJobArea) {
+            return { recommendedTechnicians: [], otherTechnicians: technicians };
+        }
+        const rec: UserStaff[] = [];
+        const oth: UserStaff[] = [];
+        technicians.forEach((t) => {
+            if (isAreaMatch(t.technician?.area_tugas, detectedJobArea)) {
+                rec.push(t);
+            } else {
+                oth.push(t);
+            }
+        });
+        return { recommendedTechnicians: rec, otherTechnicians: oth };
+    }, [technicians, detectedJobArea]);
+
+    const selectedTech = useMemo(() => {
+        return technicians.find((t) => String(t.id) === String(data.technician_id));
+    }, [technicians, data.technician_id]);
+
     const handleCustomerChange = (val: string) => {
         const cust = customers.find((c) => String(c.id) === val);
         const autoAddress = cust?.address || cust?.location || '';
@@ -105,6 +235,27 @@ export default function Create({ customers = [], contracts = [], technicians = [
             contract_id: '', // reset contract when customer changes
             lokasi: autoAddress || prev.lokasi, // auto fill lokasi from customer
         }));
+        setLocationSelection('main');
+        setIsCustomLocation(false);
+    };
+
+    const handleLocationSelect = (val: string) => {
+        if (val === 'main') {
+            const mainAddress = selectedCustomer?.address || selectedCustomer?.location || '';
+            setData('lokasi', mainAddress);
+            setLocationSelection('main');
+            setIsCustomLocation(false);
+        } else if (val === 'custom') {
+            setLocationSelection('custom');
+            setIsCustomLocation(true);
+        } else if (val.startsWith('site_')) {
+            const siteId = Number(val.replace('site_', ''));
+            const site = selectedCustomer?.sites?.find((s) => s.id === siteId);
+            const siteAddr = site ? (site.address ? `${site.site_name} - ${site.address}` : site.site_name) : '';
+            setData('lokasi', siteAddr);
+            setLocationSelection(val);
+            setIsCustomLocation(false);
+        }
     };
 
     const handleToggleFlexibleTime = (checked: boolean) => {
@@ -145,6 +296,25 @@ export default function Create({ customers = [], contracts = [], technicians = [
                         </Button>
                     </Link>
                 </div>
+
+                {reqId && (
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl flex items-start gap-3 shadow-xs">
+                        <div className="p-2 rounded-xl bg-blue-600 text-white shrink-0 mt-0.5">
+                            <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div className="text-xs space-y-1">
+                            <div className="font-bold text-blue-950 flex items-center gap-2">
+                                <span>Konversi Otomatis dari Tiket Request Klien #{reqId}</span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-200/80 text-blue-800 font-bold uppercase">
+                                    {data.jenis_layanan}
+                                </span>
+                            </div>
+                            <p className="text-blue-800 leading-relaxed">
+                                Pelanggan, jenis layanan, tingkat prioritas, dan catatan keluhan telah disesuaikan secara otomatis sesuai permintaan klien.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <div className="bg-white border border-slate-200/90 rounded-2xl shadow-sm p-6 sm:p-8">
                     <form onSubmit={submit} className="space-y-6">
@@ -206,46 +376,131 @@ export default function Create({ customers = [], contracts = [], technicians = [
                                 {errors.contract_id && <div className="text-rose-600 text-xs mt-1">{errors.contract_id}</div>}
                             </div>
 
-                            {/* Lokasi Pekerjaan (Otomatis dari Customer) */}
+                            {/* Lokasi Pekerjaan (Dropdown Rapi Membedakan Lokasi Utama vs Cabang) */}
                             <div>
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="lokasi" className="text-xs font-semibold text-slate-700">Lokasi Pekerjaan</Label>
-                                    {selectedCustomer && (selectedCustomer.address || selectedCustomer.location) && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setData('lokasi', selectedCustomer.address || selectedCustomer.location || '')}
-                                            className="text-[11px] text-slate-500 hover:text-slate-900 inline-flex items-center gap-1 font-medium"
-                                            title="Gunakan alamat utama pelanggan"
-                                        >
-                                            <Sparkles className="w-3 h-3 text-amber-500" />
-                                            <span>Pakai Alamat Customer</span>
-                                        </button>
+                                    <Label htmlFor="lokasi" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                        <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                                        <span>Lokasi Pekerjaan</span>
+                                    </Label>
+                                    <span className="text-[10px] text-slate-400 font-medium">Pilihan Dropdown</span>
+                                </div>
+
+                                <div className="mt-1.5 space-y-2">
+                                    <Select
+                                        value={locationSelection}
+                                        onValueChange={handleLocationSelect}
+                                    >
+                                        <SelectTrigger className="text-xs">
+                                            <SelectValue placeholder="Pilih Lokasi Pekerjaan" />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-72">
+                                            {/* Grup 1: Lokasi Utama Perusahaan */}
+                                            <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-b border-slate-100 flex items-center gap-1.5">
+                                                <Building2 className="w-3 h-3 text-blue-600" />
+                                                <span>Lokasi Utama Perusahaan</span>
+                                            </div>
+                                            <SelectItem value="main" className="cursor-pointer py-2">
+                                                <div className="flex flex-col text-left">
+                                                    <span className="font-semibold text-slate-900 flex items-center gap-1.5 text-xs">
+                                                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 text-blue-800 font-bold">LOKASI UTAMA</span>
+                                                        Kantor Pusat
+                                                    </span>
+                                                    <span className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                                                        {selectedCustomer?.address || selectedCustomer?.location || 'Alamat Kantor Utama Customer'}
+                                                    </span>
+                                                </div>
+                                            </SelectItem>
+
+                                            {/* Grup 2: Cabang / Titik Lokasi (Sites) */}
+                                            {selectedCustomer?.sites && selectedCustomer.sites.length > 0 ? (
+                                                <>
+                                                    <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-y border-slate-100 flex items-center gap-1.5 mt-1">
+                                                        <MapPin className="w-3 h-3 text-emerald-600" />
+                                                        <span>Cabang / Titik Lokasi ({selectedCustomer.sites.length} Cabang)</span>
+                                                    </div>
+                                                    {selectedCustomer.sites.map((site) => (
+                                                        <SelectItem key={`site_${site.id}`} value={`site_${site.id}`} className="cursor-pointer py-2">
+                                                            <div className="flex flex-col text-left">
+                                                                <span className="font-semibold text-slate-900 flex items-center gap-1.5 text-xs">
+                                                                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-bold">CABANG</span>
+                                                                    {site.site_name}
+                                                                </span>
+                                                                {site.address && (
+                                                                    <span className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                                                                        {site.address}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                </>
+                                            ) : (
+                                                <div className="px-3 py-1.5 text-[11px] text-slate-400 italic bg-slate-50/50">
+                                                    * Pelanggan ini belum memiliki data cabang / site terdaftar
+                                                </div>
+                                            )}
+
+                                            {/* Grup 3: Manual Input */}
+                                            <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 border-y border-slate-100 flex items-center gap-1.5 mt-1">
+                                                <Sparkles className="w-3 h-3 text-amber-500" />
+                                                <span>Alamat Khusus Lainnya</span>
+                                            </div>
+                                            <SelectItem value="custom" className="cursor-pointer py-2 text-xs font-medium text-slate-700">
+                                                <span className="flex items-center gap-1.5">
+                                                    <PenLine className="w-3.5 h-3.5 text-slate-500" />
+                                                    Tulis Alamat Manual / Lokasi Khusus...
+                                                </span>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    {/* Preview Alamat Terpilih atau Input Manual */}
+                                    {isCustomLocation ? (
+                                        <div className="space-y-1 pt-1">
+                                            <Input
+                                                id="lokasi"
+                                                type="text"
+                                                value={data.lokasi}
+                                                onChange={(e) => setData('lokasi', e.target.value)}
+                                                placeholder="Tuliskan alamat lengkap lokasi pekerjaan..."
+                                                className="text-xs"
+                                                required
+                                            />
+                                            <div className="flex items-center justify-between text-[11px] text-slate-500">
+                                                <span>Masukkan alamat khusus atau area spesifik</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleLocationSelect('main')}
+                                                    className="text-blue-600 hover:text-blue-800 font-medium"
+                                                >
+                                                    Kembali ke Alamat Utama
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl flex items-start justify-between gap-2 text-xs">
+                                            <div className="space-y-0.5">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                                    Alamat Lengkap Terpilih:
+                                                </span>
+                                                <p className="text-slate-800 font-medium leading-relaxed">
+                                                    {data.lokasi || 'Belum ada alamat lokasi'}
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setLocationSelection('custom');
+                                                    setIsCustomLocation(true);
+                                                }}
+                                                className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold shrink-0"
+                                            >
+                                                Edit Manual
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
-                                <Input
-                                    id="lokasi"
-                                    type="text"
-                                    value={data.lokasi}
-                                    onChange={(e) => setData('lokasi', e.target.value)}
-                                    placeholder="Alamat / Gedung / Titik Area Lokasi"
-                                    className="mt-1.5 text-xs"
-                                    required
-                                />
-                                {selectedCustomer?.sites && selectedCustomer.sites.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                                        <span className="text-[10px] text-slate-400 font-mono">Pilih Titik Site:</span>
-                                        {selectedCustomer.sites.map((site) => (
-                                            <button
-                                                key={site.id}
-                                                type="button"
-                                                onClick={() => setData('lokasi', `${site.site_name} - ${site.address || site.location || ''}`)}
-                                                className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] text-slate-700 font-medium transition-colors"
-                                            >
-                                                {site.site_name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
                                 {errors.lokasi && <div className="text-rose-600 text-xs mt-1">{errors.lokasi}</div>}
                             </div>
 
@@ -260,56 +515,131 @@ export default function Create({ customers = [], contracts = [], technicians = [
                                         <SelectValue placeholder="Pilih Jenis Layanan" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="General Pest Control">General Pest Control</SelectItem>
-                                        <SelectItem value="Termite Control">Termite Control</SelectItem>
-                                        <SelectItem value="Rodent Control">Rodent Control</SelectItem>
-                                        <SelectItem value="Insect Control">Insect Control</SelectItem>
-                                        <SelectItem value="Fumigation">Fumigation</SelectItem>
-                                        <SelectItem value="Disinfection">Disinfection</SelectItem>
+                                        <SelectItem value="General Pest Control">General Pest Control (Hama Umum)</SelectItem>
+                                        <SelectItem value="Termite Control">Termite Control (Rayap)</SelectItem>
+                                        <SelectItem value="Rodent Control">Rodent Control (Tikus)</SelectItem>
+                                        <SelectItem value="Insect Control">Insect Control (Serangga/Nyamuk)</SelectItem>
+                                        <SelectItem value="Fumigasi">Fumigasi</SelectItem>
+                                        <SelectItem value="Disinfection">Disinfection (Disinfeksi)</SelectItem>
                                         <SelectItem value="Inspection / Survey">Inspection / Survey</SelectItem>
+                                        <SelectItem value="Komplain Penanganan">Komplain Penanganan</SelectItem>
+                                        {!['General Pest Control', 'Termite Control', 'Rodent Control', 'Insect Control', 'Fumigasi', 'Disinfection', 'Inspection / Survey', 'Komplain Penanganan'].includes(data.jenis_layanan) && data.jenis_layanan && (
+                                            <SelectItem value={data.jenis_layanan}>{data.jenis_layanan}</SelectItem>
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 {errors.jenis_layanan && <div className="text-rose-600 text-xs mt-1">{errors.jenis_layanan}</div>}
                             </div>
 
-                            {/* Teknisi Lapangan (Hanya Teknisi Terdaftar) */}
-                            <div>
-                                <Label htmlFor="technician_id" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                    <UserCheck className="w-3.5 h-3.5 text-slate-500" />
-                                    <span>Teknisi Lapangan</span>
-                                </Label>
+                            {/* Teknisi Lapangan (Hanya Karyawan Lapangan) */}
+                            <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="technician_id" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                        <UserCheck className="w-3.5 h-3.5 text-slate-500" />
+                                        <span>Teknisi Pelaksana Lapangan</span>
+                                    </Label>
+                                    {detectedJobArea && (
+                                        <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 flex items-center gap-1">
+                                            <MapPin className="w-3 h-3 text-blue-600" /> Zona Lokasi: {detectedJobArea}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {detectedJobArea && recommendedTechnicians.length > 0 && !data.technician_id && (
+                                    <div className="p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-xl text-xs flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-1.5 text-emerald-900 font-medium">
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                            <span>
+                                                Teknisi siap untuk area <strong>{detectedJobArea}</strong>:{' '}
+                                                <strong>{recommendedTechnicians[0].name}</strong> ({recommendedTechnicians[0].technician?.area_tugas || detectedJobArea})
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('technician_id', String(recommendedTechnicians[0].id))}
+                                            className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[11px] font-bold transition-colors cursor-pointer shrink-0 shadow-2xs flex items-center gap-1"
+                                        >
+                                            <Zap className="w-3 h-3 fill-white" /> Tugaskan Otomatis
+                                        </button>
+                                    </div>
+                                )}
+
                                 <Select
                                     value={data.technician_id}
                                     onValueChange={(val: string) => setData('technician_id', val)}
                                 >
-                                    <SelectTrigger className="mt-1.5 text-xs">
-                                        <SelectValue placeholder="Pilih Teknisi Lapangan" />
+                                    <SelectTrigger className="text-xs">
+                                        <SelectValue placeholder="Pilih Teknisi Pelaksana Lapangan" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {technicians.map((u) => (
-                                            <SelectItem key={u.id} value={String(u.id)}>
-                                                {u.name} ({u.email})
+                                        {recommendedTechnicians.length > 0 && (
+                                            <>
+                                                <div className="px-2 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border-y border-emerald-100 flex items-center gap-1 uppercase tracking-wider">
+                                                    <span className="flex items-center gap-1">
+                                                        <Star className="w-3 h-3 text-emerald-600 fill-emerald-600" />
+                                                        REKOMENDASI SESUAI ZONA ({detectedJobArea})
+                                                    </span>
+                                                </div>
+                                                {recommendedTechnicians.map((u) => (
+                                                    <SelectItem key={u.id} value={String(u.id)} className="cursor-pointer py-2">
+                                                        <div className="flex items-center justify-between gap-2 w-full">
+                                                            <span className="font-semibold text-slate-900">{u.name}</span>
+                                                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                                                                Area: {u.technician?.area_tugas || detectedJobArea} (Siap)
+                                                            </span>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                                <div className="px-2 py-1 text-[10px] font-bold text-slate-400 bg-slate-50 border-y border-slate-100 flex items-center gap-1 uppercase tracking-wider mt-1">
+                                                    <span>TEKNISI ZONA LAINNYA</span>
+                                                </div>
+                                            </>
+                                        )}
+                                        {otherTechnicians.map((u) => (
+                                            <SelectItem key={u.id} value={String(u.id)} className="cursor-pointer py-2">
+                                                <div className="flex items-center justify-between gap-2 w-full">
+                                                    <span className="text-slate-800">{u.name}</span>
+                                                    <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                        {u.technician?.area_tugas ? `Area: ${u.technician.area_tugas}` : 'Area Umum'}
+                                                    </span>
+                                                </div>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
+
+                                {selectedTech && detectedJobArea && !isAreaMatch(selectedTech.technician?.area_tugas, detectedJobArea) && (
+                                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2 mt-1.5">
+                                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <span className="font-semibold">Catatan Perbedaan Wilayah:</span> Teknisi <strong>{selectedTech.name}</strong> memiliki area tugas di <strong>{selectedTech.technician?.area_tugas || 'Belum Ditentukan'}</strong>, sedangkan lokasi pekerjaan client berada di <strong>{detectedJobArea}</strong>. Tetap lanjutkan jika sedang rolling tugas antar zona.
+                                        </div>
+                                    </div>
+                                )}
+
                                 {errors.technician_id && <div className="text-rose-600 text-xs mt-1">{errors.technician_id}</div>}
                             </div>
 
-                            {/* Supervisor (Hanya Supervisor / Admin) */}
+                            {/* Koordinator / Supervisor Lapangan */}
                             <div>
-                                <Label htmlFor="supervisor_id" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                    <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
-                                    <span>Supervisor (Opsional)</span>
+                                <Label htmlFor="supervisor_id" className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                        <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+                                        <span>Koordinator / Supervisor Lapangan</span>
+                                    </div>
+                                    <span className="text-[10px] text-slate-400 font-normal">Opsional (Boleh Kosong)</span>
                                 </Label>
                                 <Select
-                                    value={data.supervisor_id}
-                                    onValueChange={(val: string) => setData('supervisor_id', val)}
+                                    value={data.supervisor_id || 'none'}
+                                    onValueChange={(val: string) => setData('supervisor_id', val === 'none' ? '' : val)}
                                 >
                                     <SelectTrigger className="mt-1.5 text-xs">
-                                        <SelectValue placeholder="Pilih Supervisor Penanggung Jawab" />
+                                        <SelectValue placeholder="Pilih Koordinator / Supervisor (Opsional)" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="none" className="italic text-slate-500">
+                                            -- Tanpa Koordinator (Teknisi Mandiri) --
+                                        </SelectItem>
                                         {supervisors.map((u) => (
                                             <SelectItem key={u.id} value={String(u.id)}>
                                                 {u.name} ({u.email})
@@ -317,6 +647,9 @@ export default function Create({ customers = [], contracts = [], technicians = [
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                    Petugas pengawas lapangan yang bertugas mendampingi & memverifikasi laporan kerja. Kosongkan jika pekerjaan rutin tanpa supervisi.
+                                </p>
                                 {errors.supervisor_id && <div className="text-rose-600 text-xs mt-1">{errors.supervisor_id}</div>}
                             </div>
 
@@ -400,7 +733,7 @@ export default function Create({ customers = [], contracts = [], technicians = [
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="rendah">Rendah</SelectItem>
-                                        <SelectItem value="normal">Normal</SelectItem>
+                                        <SelectItem value="normal">Normal (Sedang)</SelectItem>
                                         <SelectItem value="tinggi">Tinggi</SelectItem>
                                         <SelectItem value="urgent">Urgent / Darurat</SelectItem>
                                     </SelectContent>

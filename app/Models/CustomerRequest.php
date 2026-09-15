@@ -12,13 +12,24 @@ class CustomerRequest extends Model
     protected $fillable = [
         'request_number',
         'customer_id',
+        'site_id',
+        'lokasi',
+        'alamat_detail',
+        'pic_name',
+        'pic_phone',
         'jenis_layanan',
         'prioritas',
         'deskripsi',
         'tanggal_permintaan',
+        'waktu_layanan',
         'status',
         'catatan_admin',
     ];
+
+    public function site()
+    {
+        return $this->belongsTo(Site::class);
+    }
 
     protected static function boot()
     {

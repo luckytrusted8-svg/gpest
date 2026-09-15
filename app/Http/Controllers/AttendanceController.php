@@ -24,7 +24,7 @@ class AttendanceController extends Controller
             ->where(function ($q) {
                 $q->whereHas('technician')
                     ->orWhereHas('attendances')
-                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['technician', 'supervisor', 'staff']))
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['karyawan', 'technician', 'supervisor', 'staff']))
                     ->orWhere('email', 'like', '%teknisi%')
                     ->orWhere('email', 'like', '%staff%');
             })

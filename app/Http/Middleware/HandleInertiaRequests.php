@@ -53,7 +53,7 @@ class HandleInertiaRequests extends Middleware
                 if (! $user || $isCustomer) {
                     return 0;
                 }
-                if (method_exists($user, 'hasRole') && $user->hasRole('technician')) {
+                if (method_exists($user, 'hasRole') && $user->hasRole('karyawan')) {
                     return Leave::where('user_id', $user->id)->where('status', 'menunggu')->count();
                 }
 
@@ -63,13 +63,22 @@ class HandleInertiaRequests extends Middleware
                 if (! $user || $isCustomer) {
                     return 0;
                 }
-                if (method_exists($user, 'hasRole') && $user->hasRole('technician')) {
+                if (method_exists($user, 'hasRole') && $user->hasRole('karyawan')) {
                     return WorkOrder::where('technician_id', $user->id)->whereIn('status', ['ASSIGNED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS'])->count();
                 }
 
                 return WorkOrder::whereIn('status', ['DRAFT', 'ASSIGNED', 'PENDING_REVIEW'])->count();
             },
-            'notifikasi_belum_dibaca' => fn () => ($user && ! $isCustomer) ? Notification::where('user_id', $user->id)->whereNull('dibaca_pada')->count() : 0,
+            'notifikasi_belum_dibaca' => function () use ($user, $isCustomer) {
+                if (! $user) {
+                    return 0;
+                }
+                if ($isCustomer) {
+                    return Notification::where('customer_user_id', $user->id)->whereNull('dibaca_pada')->count();
+                }
+
+                return Notification::where('user_id', $user->id)->whereNull('dibaca_pada')->count();
+            },
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

@@ -133,7 +133,7 @@ export default function TrackingMap({ data = [], geofences = [], height = '560px
                 const popupContent = `
                     <div style="font-family: system-ui, sans-serif; font-size: 12px; min-width: 210px; padding: 4px;">
                         <div style="font-size: 13px; font-weight: bold; color: #1e3a8a; display: flex; align-items: center; gap: 4px;">
-                            🛡️ Area Geofence: ${gf.nama}
+                            Area Geofence: ${gf.nama}
                         </div>
                         <div style="color: #475569; font-size: 11px; margin-top: 3px;">
                             ${gf.customer?.company_name ? `Klien: <strong>${gf.customer.company_name}</strong><br/>` : ''}
@@ -142,7 +142,7 @@ export default function TrackingMap({ data = [], geofences = [], height = '560px
                         </div>
                         <div style="margin-top: 8px; padding: 6px 8px; background: ${isAnyTechInside ? '#ecfdf5' : '#f8fafc'}; border-radius: 8px; border: 1px solid ${isAnyTechInside ? '#a7f3d0' : '#e2e8f0'};">
                             <div style="font-weight: bold; color: ${isAnyTechInside ? '#047857' : '#475569'}; font-size: 11px;">
-                                👥 Personel di Dalam Area (${techsInside.length} Orang):
+                                Personel di Dalam Area (${techsInside.length} Orang):
                             </div>
                             ${techsInside.length > 0
                                 ? techsInside.map(t => `<div style="font-size: 11px; font-weight: 600; color: #0f172a; margin-top: 3px;">• ${t.name} <span style="font-size: 10px; color: #059669;">(${t.status_teknisi.toUpperCase()})</span></div>`).join('')
@@ -206,7 +206,7 @@ export default function TrackingMap({ data = [], geofences = [], height = '560px
                     <div style="font-family: system-ui, sans-serif; font-size: 12px; padding: 2px;">
                         <strong style="font-size: 13px; color: #0f172a;">${tech.name}</strong><br/>
                         <span style="color: ${statusColor}; font-weight: bold; text-transform: uppercase;">Status: ${tech.status_teknisi}</span><br/>
-                        ${insideGeofenceName ? `<div style="margin-top: 4px; padding: 4px 6px; background: #ecfdf5; border-radius: 6px; border: 1px solid #a7f3d0; color: #047857; font-weight: bold; font-size: 10px;">🛡️ Lokasi Presisi: Didalam Geofence "${insideGeofenceName}" (${insideDistance}m dari pusat)</div>` : ''}
+                        ${insideGeofenceName ? `<div style="margin-top: 4px; padding: 4px 6px; background: #ecfdf5; border-radius: 6px; border: 1px solid #a7f3d0; color: #047857; font-weight: bold; font-size: 10px;">Lokasi Presisi: Didalam Geofence "${insideGeofenceName}" (${insideDistance}m dari pusat)</div>` : ''}
                         ${tech.schedule ? `<div style="color: #2563eb; font-size: 11px; margin-top: 4px;">Tugas: <strong>${tech.schedule.schedule_code}</strong> - ${tech.schedule.lokasi}</div>` : ''}
                     </div>
                 `;

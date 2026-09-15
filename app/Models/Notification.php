@@ -13,6 +13,7 @@ class Notification extends Model
 
     protected $fillable = [
         'user_id',
+        'customer_user_id',
         'judul',
         'pesan',
         'jenis',
@@ -28,6 +29,11 @@ class Notification extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function customerUser(): BelongsTo
+    {
+        return $this->belongsTo(CustomerUser::class);
     }
 
     public function getSudahDibacaAttribute(): bool

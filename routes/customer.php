@@ -38,5 +38,10 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/invoices', [CustomerPortalController::class, 'invoices'])->name('invoices');
         Route::get('/requests', [CustomerPortalController::class, 'requests'])->name('requests');
         Route::post('/requests', [CustomerPortalController::class, 'storeRequest'])->name('requests.store');
+
+        // Customer Notifications
+        Route::get('/notifications', [CustomerPortalController::class, 'notifications'])->name('notifications');
+        Route::post('/notifications/{notification}/read', [CustomerPortalController::class, 'markNotificationRead'])->name('notifications.read');
+        Route::post('/notifications/read-all', [CustomerPortalController::class, 'markAllNotificationsRead'])->name('notifications.read-all');
     });
 });

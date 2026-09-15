@@ -24,7 +24,7 @@ interface Props {
 }
 
 export default function Edit({ user, roles }: Props) {
-    const currentRole = user.roles && user.roles.length > 0 ? user.roles[0].name : (roles[0]?.name || 'technician');
+    const currentRole = user.roles && user.roles.length > 0 ? user.roles[0].name : (roles[0]?.name || 'karyawan');
 
     const { data, setData, put, processing, errors } = useForm({
         name: user.name || '',
@@ -37,6 +37,16 @@ export default function Edit({ user, roles }: Props) {
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route('users.update', user.id));
+    };
+
+    const getRoleLabel = (roleName: string) => {
+        switch (roleName) {
+            case 'admin': return 'Admin (Akses Penuh)';
+            case 'karyawan': return 'Karyawan (Operasional & Lapangan)';
+            case 'customer':
+            case 'costumer': return 'Customer (Portal Pelanggan)';
+            default: return roleName;
+        }
     };
 
     return (
@@ -110,7 +120,7 @@ export default function Edit({ user, roles }: Props) {
                                     <SelectContent>
                                         {roles.map((r) => (
                                             <SelectItem key={r.id} value={r.name}>
-                                                {r.name}
+                                                {getRoleLabel(r.name)}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

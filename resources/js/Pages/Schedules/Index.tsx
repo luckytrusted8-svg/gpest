@@ -75,26 +75,26 @@ export const PriorityBadge = ({ prioritas }: { prioritas: Schedule['prioritas'] 
     switch (prioritas) {
         case 'urgent':
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#ee0000]/15 text-[#ee0000]">
+                <span className="font-bold text-xs text-rose-600">
                     Urgent
                 </span>
             );
         case 'tinggi':
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f5a623]/15 text-[#ab570a]">
+                <span className="font-semibold text-xs text-amber-600">
                     Tinggi
                 </span>
             );
         case 'normal':
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#0070f3]/15 text-[#0070f3]">
+                <span className="font-medium text-xs text-blue-600">
                     Normal
                 </span>
             );
         case 'rendah':
         default:
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-canvas-soft-2 text-body-text border border-hairline">
+                <span className="font-medium text-xs text-slate-500">
                     Rendah
                 </span>
             );
@@ -105,50 +105,50 @@ export const StatusBadge = ({ status }: { status: Schedule['status'] }) => {
     switch (status) {
         case 'selesai':
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#0070f3]/15 text-[#0070f3]">
+                <span className="font-bold text-xs text-emerald-600">
                     Selesai
                 </span>
             );
         case 'sedang_dikerjakan':
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f5a623]/15 text-[#ab570a]">
+                <span className="font-bold text-xs text-blue-600">
                     Sedang Dikerjakan
-                </span>
-            );
-        case 'dalam_perjalanan':
-            return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f5a623]/15 text-[#ab570a]">
-                    Dalam Perjalanan
                 </span>
             );
         case 'tiba':
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f5a623]/15 text-[#ab570a]">
+                <span className="font-bold text-xs text-teal-600">
                     Tiba di Lokasi
                 </span>
             );
-        case 'dibatalkan':
+        case 'dalam_perjalanan':
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#ee0000]/15 text-[#ee0000]">
-                    Dibatalkan
-                </span>
-            );
-        case 'dijadwal_ulang':
-            return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#7928ca]/15 text-[#4c2889]">
-                    Dijadwal Ulang
+                <span className="font-bold text-xs text-amber-600">
+                    Dalam Perjalanan
                 </span>
             );
         case 'ditugaskan':
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-canvas-soft-2 text-ink border border-hairline font-medium">
+                <span className="font-bold text-xs text-indigo-600">
                     Ditugaskan
+                </span>
+            );
+        case 'dijadwal_ulang':
+            return (
+                <span className="font-bold text-xs text-purple-600">
+                    Dijadwal Ulang
+                </span>
+            );
+        case 'dibatalkan':
+            return (
+                <span className="font-bold text-xs text-rose-600">
+                    Dibatalkan
                 </span>
             );
         case 'dijadwalkan':
         default:
             return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-canvas-soft-2 text-body-text border border-hairline">
+                <span className="font-medium text-xs text-slate-600">
                     Dijadwalkan
                 </span>
             );

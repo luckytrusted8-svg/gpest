@@ -14,71 +14,49 @@ class UserSeeder extends Seeder
     {
         $password = Hash::make('password');
 
-        // 1. Super Admin
-        $superAdmin = User::updateOrCreate(
+        // 1. Admin Utama
+        $admin = User::updateOrCreate(
             ['email' => 'admin@gpest.id'],
             [
-                'name' => 'Super Admin G-PEST',
-                'password' => $password,
-                'status' => 'aktif',
-            ]
-        );
-        $superAdmin->syncRoles(['super_admin']);
-
-        // 2. Management
-        $management = User::updateOrCreate(
-            ['email' => 'management@gpest.id'],
-            [
-                'name' => 'Manager G-PEST',
-                'password' => $password,
-                'status' => 'aktif',
-            ]
-        );
-        $management->syncRoles(['management']);
-
-        // 3. Admin / Customer Service
-        $admin = User::updateOrCreate(
-            ['email' => 'cs@gpest.id'],
-            [
-                'name' => 'Admin CS G-PEST',
+                'name' => 'Administrator G-PEST',
                 'password' => $password,
                 'status' => 'aktif',
             ]
         );
         $admin->syncRoles(['admin']);
 
-        // 4. Supervisor
-        $supervisor = User::updateOrCreate(
-            ['email' => 'supervisor@gpest.id'],
+        // 2. Admin Operasional / CS
+        $adminCs = User::updateOrCreate(
+            ['email' => 'cs@gpest.id'],
             [
-                'name' => 'Supervisor Lapangan',
+                'name' => 'Admin Operasional G-PEST',
                 'password' => $password,
                 'status' => 'aktif',
             ]
         );
-        $supervisor->syncRoles(['supervisor']);
+        $adminCs->syncRoles(['admin']);
 
-        // 5. Teknisi 1
-        $teknisi1 = User::updateOrCreate(
-            ['email' => 'teknisi1@gpest.id'],
+        // 3. Karyawan 1 (Supervisor/Koordinator)
+        $karyawan1 = User::updateOrCreate(
+            ['email' => 'karyawan1@gpest.id'],
             [
-                'name' => 'Budi Teknisi',
+                'name' => 'Budi Karyawan',
                 'password' => $password,
                 'status' => 'aktif',
             ]
         );
-        $teknisi1->syncRoles(['technician']);
+        $karyawan1->syncRoles(['karyawan']);
 
-        // 6. Teknisi 2
-        $teknisi2 = User::updateOrCreate(
-            ['email' => 'teknisi2@gpest.id'],
+        // 4. Karyawan 2 (Petugas Lapangan)
+        $karyawan2 = User::updateOrCreate(
+            ['email' => 'karyawan2@gpest.id'],
             [
-                'name' => 'Andi Teknisi',
+                'name' => 'Andi Karyawan',
                 'password' => $password,
                 'status' => 'aktif',
             ]
         );
-        $teknisi2->syncRoles(['technician']);
+        $karyawan2->syncRoles(['karyawan']);
 
         // 7. Customer Portal User (terhubung ke customer pertama jika ada)
         $customer = Customer::first();

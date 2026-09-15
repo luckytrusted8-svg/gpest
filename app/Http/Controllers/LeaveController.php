@@ -17,7 +17,7 @@ class LeaveController extends Controller
         $query = Leave::with(['user', 'approver']);
 
         $user = Auth::user();
-        if ($user->hasRole('technician')) {
+        if ($user->hasRole('karyawan')) {
             $query->where('user_id', $user->id);
         }
 
@@ -64,7 +64,7 @@ class LeaveController extends Controller
 
         // Send notification to Supervisors and Admins
         try {
-            $approvers = User::role(['super_admin', 'admin', 'supervisor'])->pluck('id')->unique();
+            $approvers = User::role('admin')->pluck('id')->unique();
             $userName = Auth::user()->name;
             $notifService = app(NotificationService::class);
             foreach ($approvers as $adminId) {
@@ -72,7 +72,7 @@ class LeaveController extends Controller
                     $notifService->kirimKeUser(
                         userId: $adminId,
                         judul: "Pengajuan {$leave->jenis_izin} Baru",
-                        pesan: "Teknisi {$userName} mengajukan permohonan {$leave->jenis_izin} ({$leave->tanggal_mulai} s/d {$leave->tanggal_selesai}) dan menunggu persetujuan.",
+                        pesan: "Karyawan {$userName} mengajukan permohonan {$leave->jenis_izin} ({$leave->tanggal_mulai} s/d {$leave->tanggal_selesai}) dan menunggu persetujuan.",
                         jenis: 'warning',
                         modul: 'leaves',
                         urlTujuan: '/leaves'
@@ -125,11 +125,11 @@ class LeaveController extends Controller
     public function update(Request $request, Leave $leave)
     {
         $user = Auth::user();
-        if ($user->hasRole('technician') && $leave->user_id !== $user->id) {
+        if ($user->hasRole('karyawan') && $leave->user_id !== $user->id) {
             abort(403, 'Akses ditolak.');
         }
 
-        if ($user->hasRole('technician') && $leave->status !== 'menunggu') {
+        if ($user->hasRole('karyawan') && $leave->status !== 'menunggu') {
             return back()->with('error', 'Pengajuan yang sudah diproses oleh atasan tidak dapat diubah.');
         }
 
@@ -163,7 +163,7 @@ class LeaveController extends Controller
     public function destroy(Leave $leave)
     {
         $user = Auth::user();
-        $canDelete = $user->hasRole(['super_admin', 'admin', 'supervisor']) || $leave->user_id === $user->id;
+        $canDelete = $user->hasRole('admin') || $leave->user_id === $user->id;
 
         if (! $canDelete) {
             abort(403, 'Akses ditolak.');

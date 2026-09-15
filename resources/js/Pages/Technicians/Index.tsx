@@ -49,7 +49,9 @@ interface IndexProps {
     filters: {
         search?: string;
         status?: string;
+        area?: string;
     };
+    areaStats?: Record<string, number>;
 }
 
 export const StatusBadge = ({ status }: { status: Technician['status'] }) => {
@@ -81,18 +83,36 @@ export const StatusBadge = ({ status }: { status: Technician['status'] }) => {
     }
 };
 
-export default function Index({ technicians, filters }: IndexProps) {
+const OPERATIONAL_AREAS = [
+    'Jakarta Pusat',
+    'Jakarta Selatan',
+    'Jakarta Barat',
+    'Jakarta Timur',
+    'Jakarta Utara',
+    'Depok',
+    'Tangerang',
+    'Bekasi',
+    'Bogor',
+];
+
+export default function Index({ technicians, filters, areaStats }: IndexProps) {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
+    const [area, setArea] = useState(filters.area || '');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        router.get('/technicians', { search, status }, { preserveState: true, replace: true });
+        router.get('/technicians', { search, status, area }, { preserveState: true, replace: true });
     };
 
     const handleStatusChange = (newStatus: string) => {
         setStatus(newStatus);
-        router.get('/technicians', { search, status: newStatus }, { preserveState: true, replace: true });
+        router.get('/technicians', { search, status: newStatus, area }, { preserveState: true, replace: true });
+    };
+
+    const handleAreaChange = (newArea: string) => {
+        setArea(newArea);
+        router.get('/technicians', { search, status, area: newArea }, { preserveState: true, replace: true });
     };
 
     const handleDelete = (id: number, nama: string) => {
@@ -109,8 +129,10 @@ export default function Index({ technicians, filters }: IndexProps) {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h1 className="text-display-sm font-semibold text-ink">Manajemen Teknisi</h1>
-                        <p className="text-body-sm text-mute mt-1">Kelola data teknisi lapangan, keahlian, dan area operasional.</p>
+                        <h1 className="text-display-sm font-semibold text-ink">Manajemen Teknisi & Wilayah Operasional</h1>
+                        <p className="text-body-sm text-mute mt-1">
+                            Kelola data teknisi lapangan, pembagian zona area tugas, dan kesiapan penugasan client.
+                        </p>
                     </div>
                     <Link href="/technicians/create">
                         <Button className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold flex items-center gap-2 rounded-xl">
@@ -120,9 +142,72 @@ export default function Index({ technicians, filters }: IndexProps) {
                     </Link>
                 </div>
 
+                {/* Ringkasan Zona Wilayah Operasional & Kesiapan Teknisi */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-4 sm:p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                            <MapPin className="w-4 h-4 text-blue-600" />
+                            <span>Kesiapan Teknisi per Zona Wilayah Operasional</span>
+                        </div>
+                        {area && (
+                            <button
+                                type="button"
+                                onClick={() => handleAreaChange('')}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-semibold"
+                            >
+                                Reset Filter Wilayah
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                        <button
+                            type="button"
+                            onClick={() => handleAreaChange('')}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border ${
+                                !area
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                            }`}
+                        >
+                            <span>Semua Wilayah</span>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20">
+                                {technicians.total}
+                            </span>
+                        </button>
+
+                        {OPERATIONAL_AREAS.map((ar) => {
+                            const count = areaStats ? (areaStats[ar] ?? 0) : 0;
+                            const isSelected = area === ar;
+                            return (
+                                <button
+                                    key={ar}
+                                    type="button"
+                                    onClick={() => handleAreaChange(isSelected ? '' : ar)}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border ${
+                                        isSelected
+                                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                            : count > 0
+                                            ? 'bg-blue-50/60 text-blue-900 hover:bg-blue-100/80 border-blue-200'
+                                            : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border-slate-200 opacity-70'
+                                    }`}
+                                >
+                                    <MapPin className="w-3 h-3" />
+                                    <span>{ar}</span>
+                                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                                        isSelected ? 'bg-white/25 text-white' : count > 0 ? 'bg-blue-200/80 text-blue-900' : 'bg-slate-200 text-slate-500'
+                                    }`}>
+                                        {count}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 {/* Filters */}
                 <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
-                    <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-center gap-4">
+                    <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-center gap-3">
                         <div className="relative flex-1 w-full">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
                             <Input
@@ -133,16 +218,31 @@ export default function Index({ technicians, filters }: IndexProps) {
                                 className="pl-9 rounded-xl"
                             />
                         </div>
+
+                        {/* Filter Area Tugas */}
+                        <select
+                            value={area}
+                            onChange={(e) => handleAreaChange(e.target.value)}
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-48"
+                        >
+                            <option value="">Semua Area Tugas</option>
+                            {OPERATIONAL_AREAS.map((ar) => (
+                                <option key={ar} value={ar}>{ar}</option>
+                            ))}
+                        </select>
+
+                        {/* Filter Status */}
                         <select
                             value={status}
                             onChange={(e) => handleStatusChange(e.target.value)}
-                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-48"
+                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-ink focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-40"
                         >
                             <option value="">Semua Status</option>
                             <option value="aktif">Aktif</option>
                             <option value="tidak_aktif">Tidak Aktif</option>
                             <option value="cuti">Cuti</option>
                         </select>
+
                         <Button type="submit" variant="outline" className="text-body-sm-strong w-full sm:w-auto rounded-xl">
                             Filter
                         </Button>
@@ -215,12 +315,12 @@ export default function Index({ technicians, filters }: IndexProps) {
                                             </td>
                                             <td className="py-3 px-4 text-body-text">
                                                 {tech.area_tugas ? (
-                                                    <div className="flex items-center gap-1.5">
-                                                        <MapPin className="w-3.5 h-3.5 text-mute shrink-0" />
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                                                        <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
                                                         <span className="truncate max-w-[150px]">{tech.area_tugas}</span>
-                                                    </div>
+                                                    </span>
                                                 ) : (
-                                                    <span className="text-mute italic">-</span>
+                                                    <span className="text-slate-400 italic text-xs">Belum diatur</span>
                                                 )}
                                             </td>
                                             <td className="py-3 px-4">

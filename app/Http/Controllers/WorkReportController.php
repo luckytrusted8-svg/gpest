@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\WorkReport;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class WorkReportController extends Controller
@@ -49,12 +51,23 @@ class WorkReportController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $customers = Customer::select('id', 'customer_id', 'company_name')->orderBy('company_name')->get();
-        $technicians = User::select('id', 'name')->orderBy('name')->get();
+        $technicians = User::role('karyawan')->select('id', 'name')->orderBy('name')->get();
+        if ($technicians->isEmpty()) {
+            $technicians = User::select('id', 'name')->orderBy('name')->get();
+        }
         $contracts = Contract::with('customer')->select('id', 'contract_number', 'customer_id', 'contract_type')->get();
-        $schedules = Schedule::with('customer')->select('id', 'schedule_code', 'customer_id', 'tanggal', 'jenis_layanan')->orderBy('tanggal', 'desc')->get();
+        $schedules = Schedule::with(['customer', 'technician', 'contract'])
+            ->select('id', 'schedule_code', 'customer_id', 'technician_id', 'contract_id', 'tanggal', 'jenis_layanan', 'jam_mulai', 'jam_selesai')
+            ->orderBy('tanggal', 'desc')
+            ->get();
+
+        $selectedSchedule = null;
+        if ($request->filled('schedule_id')) {
+            $selectedSchedule = $schedules->firstWhere('id', (int) $request->schedule_id);
+        }
 
         $nomorLaporan = 'WR-'.now()->format('Ymd').'-'.str_pad(WorkReport::withTrashed()->whereDate('created_at', today())->count() + 1, 3, '0', STR_PAD_LEFT);
 
@@ -64,6 +77,16 @@ class WorkReportController extends Controller
             'contracts' => $contracts,
             'schedules' => $schedules,
             'nomorLaporan' => $nomorLaporan,
+            'prefilled' => [
+                'schedule_id' => $selectedSchedule?->id ? (string) $selectedSchedule->id : ($request->schedule_id ? (string) $request->schedule_id : ''),
+                'customer_id' => $selectedSchedule?->customer_id ? (string) $selectedSchedule->customer_id : '',
+                'technician_id' => $selectedSchedule?->technician_id ? (string) $selectedSchedule->technician_id : (string) auth()->id(),
+                'contract_id' => $selectedSchedule?->contract_id ? (string) $selectedSchedule->contract_id : '',
+                'jenis_layanan' => $selectedSchedule?->jenis_layanan ?? 'General Pest Control',
+                'tanggal' => $selectedSchedule?->tanggal ? Carbon::parse($selectedSchedule->tanggal)->toDateString() : now()->toDateString(),
+                'jam_mulai' => $selectedSchedule?->jam_mulai ? substr($selectedSchedule->jam_mulai, 0, 5) : '08:00',
+                'jam_selesai' => $selectedSchedule?->jam_selesai ? substr($selectedSchedule->jam_selesai, 0, 5) : '',
+            ],
         ]);
     }
 
@@ -103,7 +126,13 @@ class WorkReportController extends Controller
         $workReport = WorkReport::create($validated);
 
         foreach ($photos as $photo) {
-            $workReport->photos()->create($photo);
+            $path = $this->processPhotoPath($photo['path_foto']);
+
+            $workReport->photos()->create([
+                'jenis_foto' => $photo['jenis_foto'],
+                'path_foto' => $path,
+                'keterangan' => $photo['keterangan'] ?? null,
+            ]);
         }
 
         if ($workReport->schedule_id) {
@@ -134,6 +163,11 @@ class WorkReportController extends Controller
 
     public function edit(WorkReport $workReport)
     {
+        if (auth()->user()->hasRole('admin')) {
+            return redirect()->route('work-reports.show', $workReport)
+                ->with('error', 'Admin tidak dapat mengubah laporan kerja teknisi. Gunakan fitur Minta Revisi.');
+        }
+
         if (! in_array($workReport->status, ['draft', 'revisi'])) {
             return redirect()->route('work-reports.show', $workReport)
                 ->with('error', 'Laporan ini tidak dapat diedit karena statusnya '.$workReport->status.'.');
@@ -157,6 +191,10 @@ class WorkReportController extends Controller
 
     public function update(Request $request, WorkReport $workReport)
     {
+        if ($request->user()->hasRole('admin')) {
+            abort(403, 'Admin tidak dapat mengubah laporan kerja teknisi. Gunakan fitur Minta Revisi.');
+        }
+
         if (! in_array($workReport->status, ['draft', 'revisi'])) {
             return redirect()->route('work-reports.show', $workReport)
                 ->with('error', 'Laporan ini tidak dapat diedit.');
@@ -193,13 +231,40 @@ class WorkReportController extends Controller
         $photos = $validated['photos'] ?? null;
         unset($validated['photos']);
 
+        $wasRevisi = $workReport->status === 'revisi';
+
         $workReport->update($validated);
 
         if ($photos !== null) {
             $workReport->photos()->delete();
             foreach ($photos as $photo) {
-                $workReport->photos()->create($photo);
+                $path = $this->processPhotoPath($photo['path_foto']);
+                $workReport->photos()->create([
+                    'jenis_foto' => $photo['jenis_foto'],
+                    'path_foto' => $path,
+                    'keterangan' => $photo['keterangan'] ?? null,
+                ]);
             }
+        }
+
+        if ($wasRevisi && $workReport->status === 'dikirim') {
+            $adminUsers = User::whereHas('roles', function ($q) {
+                $q->where('name', 'admin');
+            })->get();
+
+            foreach ($adminUsers as $admin) {
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'judul' => 'Laporan Hasil Revisi Dikirim',
+                    'pesan' => 'Teknisi '.(auth()->user()->name ?? 'Teknisi').' telah memperbaiki laporan '.$workReport->nomor_laporan.' dan mengirimkannya untuk peninjauan.',
+                    'jenis' => 'info',
+                    'modul' => 'work-reports',
+                    'url_tujuan' => '/work-reports/'.$workReport->id,
+                ]);
+            }
+
+            return redirect()->route('work-reports.show', $workReport)
+                ->with('success', 'Laporan berhasil diperbaiki dan dikirim ulang ke Admin untuk persetujuan.');
         }
 
         return redirect()->route('work-reports.show', $workReport)
@@ -216,6 +281,10 @@ class WorkReportController extends Controller
 
     public function approve(Request $request, WorkReport $workReport)
     {
+        if (! $request->user()->hasRole('admin')) {
+            abort(403, 'Hanya Admin yang berhak menyetujui laporan kerja.');
+        }
+
         $request->validate([
             'catatan_supervisor' => 'nullable|string',
         ]);
@@ -237,6 +306,10 @@ class WorkReportController extends Controller
 
     public function requestRevision(Request $request, WorkReport $workReport)
     {
+        if (! $request->user()->hasRole('admin')) {
+            abort(403, 'Hanya Admin yang berhak meminta revisi laporan kerja.');
+        }
+
         $request->validate([
             'catatan_supervisor' => 'required|string',
         ]);
@@ -248,5 +321,28 @@ class WorkReportController extends Controller
 
         return redirect()->route('work-reports.show', $workReport)
             ->with('success', 'Permintaan revisi berhasil dikirim ke teknisi.');
+    }
+
+    protected function processPhotoPath(string $path): string
+    {
+        if (str_starts_with($path, 'data:image/')) {
+            try {
+                preg_match('/^data:image\/(\w+);base64,/', $path, $typeMatches);
+                $imageContent = substr($path, strpos($path, ',') + 1);
+                $decodedImage = base64_decode($imageContent);
+                $ext = strtolower($typeMatches[1] ?? 'jpg');
+                if ($ext === 'jpeg') {
+                    $ext = 'jpg';
+                }
+                $filename = 'wr_photo_'.uniqid().'.'.$ext;
+                Storage::disk('public')->put('work_reports/photos/'.$filename, $decodedImage);
+
+                return Storage::url('work_reports/photos/'.$filename);
+            } catch (\Exception $e) {
+                // fallback if decode fails
+            }
+        }
+
+        return $path;
     }
 }

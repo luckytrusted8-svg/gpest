@@ -51,7 +51,7 @@ class ScheduleController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $customers = Customer::with(['sites:id,customer_id,site_name,address'])->select('id', 'company_name', 'customer_id', 'address', 'location')
             ->orderBy('company_name')
@@ -61,15 +61,29 @@ class ScheduleController extends Controller
             ->orderBy('contract_number')
             ->get();
 
-        $technicians = User::role('technician')->select('id', 'name', 'email')->orderBy('name')->get();
+        $technicians = User::role('karyawan')
+            ->with(['technician' => function ($q) {
+                $q->select('id', 'user_id', 'employee_id', 'nama', 'area_tugas', 'status', 'keahlian', 'telepon');
+            }])
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
         if ($technicians->isEmpty()) {
-            $technicians = User::whereHas('technician')->select('id', 'name', 'email')->orderBy('name')->get();
+            $technicians = User::whereHas('technician')
+                ->with(['technician' => function ($q) {
+                    $q->select('id', 'user_id', 'employee_id', 'nama', 'area_tugas', 'status', 'keahlian', 'telepon');
+                }])
+                ->select('id', 'name', 'email')
+                ->orderBy('name')
+                ->get();
         }
         if ($technicians->isEmpty()) {
-            $technicians = User::select('id', 'name', 'email')->orderBy('name')->get();
+            $technicians = User::with(['technician' => function ($q) {
+                $q->select('id', 'user_id', 'employee_id', 'nama', 'area_tugas', 'status', 'keahlian', 'telepon');
+            }])->select('id', 'name', 'email')->orderBy('name')->get();
         }
 
-        $supervisors = User::role(['supervisor', 'super_admin', 'admin'])->select('id', 'name', 'email')->orderBy('name')->get();
+        $supervisors = User::role(['admin', 'karyawan'])->select('id', 'name', 'email')->orderBy('name')->get();
         if ($supervisors->isEmpty()) {
             $supervisors = User::select('id', 'name', 'email')->orderBy('name')->get();
         }
@@ -84,6 +98,13 @@ class ScheduleController extends Controller
             'technicians' => $technicians,
             'supervisors' => $supervisors,
             'users' => $users,
+            'prefilled' => [
+                'customer_id' => $request->input('customer_id'),
+                'service' => $request->input('service'),
+                'priority' => $request->input('priority') ?? $request->input('prioritas'),
+                'notes' => $request->input('notes') ?? $request->input('catatan'),
+                'request_id' => $request->input('request_id'),
+            ],
         ]);
     }
 
@@ -139,15 +160,29 @@ class ScheduleController extends Controller
             ->orderBy('contract_number')
             ->get();
 
-        $technicians = User::role('technician')->select('id', 'name', 'email')->orderBy('name')->get();
+        $technicians = User::role('karyawan')
+            ->with(['technician' => function ($q) {
+                $q->select('id', 'user_id', 'employee_id', 'nama', 'area_tugas', 'status', 'keahlian', 'telepon');
+            }])
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
         if ($technicians->isEmpty()) {
-            $technicians = User::whereHas('technician')->select('id', 'name', 'email')->orderBy('name')->get();
+            $technicians = User::whereHas('technician')
+                ->with(['technician' => function ($q) {
+                    $q->select('id', 'user_id', 'employee_id', 'nama', 'area_tugas', 'status', 'keahlian', 'telepon');
+                }])
+                ->select('id', 'name', 'email')
+                ->orderBy('name')
+                ->get();
         }
         if ($technicians->isEmpty()) {
-            $technicians = User::select('id', 'name', 'email')->orderBy('name')->get();
+            $technicians = User::with(['technician' => function ($q) {
+                $q->select('id', 'user_id', 'employee_id', 'nama', 'area_tugas', 'status', 'keahlian', 'telepon');
+            }])->select('id', 'name', 'email')->orderBy('name')->get();
         }
 
-        $supervisors = User::role(['supervisor', 'super_admin', 'admin'])->select('id', 'name', 'email')->orderBy('name')->get();
+        $supervisors = User::role(['admin', 'karyawan'])->select('id', 'name', 'email')->orderBy('name')->get();
         if ($supervisors->isEmpty()) {
             $supervisors = User::select('id', 'name', 'email')->orderBy('name')->get();
         }
@@ -206,7 +241,7 @@ class ScheduleController extends Controller
 
         if ($validated['status'] === 'dalam_perjalanan') {
             $user = auth()->user();
-            if ($user && $user->roles->pluck('name')->contains('technician')) {
+            if ($user && ($user->roles->pluck('name')->contains('karyawan') || $user->roles->pluck('name')->contains('technician'))) {
                 $hasCheckedIn = Attendance::where('technician_id', $user->id)
                     ->whereDate('tanggal', now()->toDateString())
                     ->whereNotNull('jam_masuk')

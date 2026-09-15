@@ -35,7 +35,7 @@ class WorkOrderController extends Controller
 
         return Inertia::render('WorkOrders/Index', [
             'workOrders' => $workOrders,
-            'technicians' => User::role(['technician', 'supervisor'])->get(['id', 'name']),
+            'technicians' => User::role('karyawan')->get(['id', 'name']),
             'filters' => $request->only(['search', 'status', 'technician_id']),
             'statuses' => [
                 'DRAFT', 'ASSIGNED', 'ON_THE_WAY', 'ARRIVED',
@@ -53,7 +53,7 @@ class WorkOrderController extends Controller
             'sites' => Site::all(['id', 'customer_id', 'site_name']),
             'contracts' => Contract::all(['id', 'contract_number']),
             'schedules' => Schedule::where('status', 'scheduled')->get(['id', 'schedule_code', 'tanggal']),
-            'technicians' => User::role(['technician', 'supervisor'])->get(['id', 'name']),
+            'technicians' => User::role('karyawan')->get(['id', 'name']),
         ]);
     }
 
@@ -164,7 +164,7 @@ class WorkOrderController extends Controller
             'sites' => Site::all(['id', 'customer_id', 'site_name']),
             'contracts' => Contract::all(['id', 'contract_number']),
             'schedules' => Schedule::where('status', 'scheduled')->get(['id', 'schedule_code', 'tanggal']),
-            'technicians' => User::role(['technician', 'supervisor'])->get(['id', 'name']),
+            'technicians' => User::role('karyawan')->get(['id', 'name']),
             'statuses' => [
                 'DRAFT', 'ASSIGNED', 'ON_THE_WAY', 'ARRIVED',
                 'IN_PROGRESS', 'COMPLETED', 'PENDING_REVIEW',
@@ -204,7 +204,7 @@ class WorkOrderController extends Controller
 
         if (in_array($validated['status'], ['COMPLETED', 'PENDING_REVIEW'])) {
             $adminUserIds = User::whereHas('roles', function ($q) {
-                $q->whereIn('name', ['super_admin', 'admin', 'supervisor']);
+                $q->whereIn('name', ['admin', 'super_admin']);
             })->pluck('id')->unique();
 
             foreach ($adminUserIds as $adminId) {

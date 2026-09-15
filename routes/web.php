@@ -77,11 +77,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('leaves/{leave}', [LeaveController::class, 'destroy'])->name('leaves.destroy');
     Route::post('leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
 
-    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index')->middleware('role:super_admin|admin');
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index')->middleware('role:admin');
 
-    Route::resource('users', UserController::class)->middleware('role:super_admin');
+    Route::resource('users', UserController::class)->middleware('role:admin');
 
-    Route::get('master-data', [MasterDataController::class, 'index'])->name('master-data.index')->middleware('role:super_admin|admin');
+    Route::get('master-data', [MasterDataController::class, 'index'])->name('master-data.index')->middleware('role:admin');
     Route::get('app-builder', function () {
         return Inertia::render('AppBuilder/Index');
     })->name('app-builder.index');

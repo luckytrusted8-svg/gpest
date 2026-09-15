@@ -5,7 +5,7 @@ import { Button } from '@/Components/ui/button';
 import { 
     ArrowLeft, Calendar, Clock, MapPin, User, Activity, 
     ExternalLink, Camera, Building2, Globe, ShieldCheck, 
-    Sparkles, X, Image as ImageIcon 
+    Sparkles, X, Image as ImageIcon, LogIn, LogOut, Navigation
 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
@@ -324,8 +324,23 @@ export default function Show({ attendance, dailyRecords = [], tracks = [] }: Pro
 
                                             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
                                                 <div className="flex items-center justify-between text-body-xs font-semibold text-slate-900">
-                                                    <span>
-                                                        {isCheckIn ? '📍 Check-In Masuk' : isCheckOut ? '🏁 Check-Out Keluar' : `Titik Rute #${idx + 1}`}
+                                                    <span className="flex items-center gap-1.5">
+                                                        {isCheckIn ? (
+                                                            <>
+                                                                <LogIn className="w-3.5 h-3.5 text-emerald-600" />
+                                                                <span>Check-In Masuk</span>
+                                                            </>
+                                                        ) : isCheckOut ? (
+                                                            <>
+                                                                <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                                                                <span>Check-Out Keluar</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Navigation className="w-3.5 h-3.5 text-blue-600" />
+                                                                <span>Titik Rute #{idx + 1}</span>
+                                                            </>
+                                                        )}
                                                     </span>
                                                     <span className="text-slate-400 font-mono">{timeStr} WIB</span>
                                                 </div>

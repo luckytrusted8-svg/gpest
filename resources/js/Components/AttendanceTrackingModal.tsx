@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Button } from '@/Components/ui/button';
-import { X, Clock, MapPin, ExternalLink, Activity, User, Calendar, Camera, Globe, Building2 } from 'lucide-react';
+import { X, Clock, MapPin, ExternalLink, Activity, User, Calendar, Camera, Globe, Building2, LogIn, LogOut, Navigation } from 'lucide-react';
 import { router, Link } from '@inertiajs/react';
 import 'leaflet/dist/leaflet.css';
 
@@ -230,8 +230,23 @@ export default function AttendanceTrackingModal({ isOpen, onClose, attendanceId 
 
                                                     <div className="bg-canvas border border-hairline rounded-md p-2.5 shadow-2xs group-hover:border-primary/40 transition-colors">
                                                         <div className="flex items-center justify-between text-body-xs font-semibold text-ink">
-                                                            <span>
-                                                                {isCheckIn ? '📍 Check-In Masuk' : isCheckOut ? '🏁 Check-Out Keluar' : `Titik Rute #${idx + 1}`}
+                                                            <span className="flex items-center gap-1.5">
+                                                                {isCheckIn ? (
+                                                                    <>
+                                                                        <LogIn className="w-3.5 h-3.5 text-emerald-600" />
+                                                                        <span>Check-In Masuk</span>
+                                                                    </>
+                                                                ) : isCheckOut ? (
+                                                                    <>
+                                                                        <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                                                                        <span>Check-Out Keluar</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <Navigation className="w-3.5 h-3.5 text-blue-600" />
+                                                                        <span>Titik Rute #{idx + 1}</span>
+                                                                    </>
+                                                                )}
                                                             </span>
                                                             <span className="text-mute font-mono">{timeStr} WIB</span>
                                                         </div>

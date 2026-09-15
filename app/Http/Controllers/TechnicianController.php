@@ -29,11 +29,29 @@ class TechnicianController extends Controller
             $query->where('status', $request->status);
         }
 
-        $technicians = $query->orderBy('nama')->paginate(10);
+        if ($request->filled('area')) {
+            $query->where('area_tugas', 'like', '%'.$request->area.'%');
+        }
+
+        $technicians = $query->orderBy('nama')->paginate(10)->withQueryString();
+
+        // Count active technicians per key operational area
+        $areaStats = [
+            'Jakarta Pusat' => Technician::where('area_tugas', 'like', '%Jakarta Pusat%')->where('status', 'aktif')->count(),
+            'Jakarta Selatan' => Technician::where('area_tugas', 'like', '%Jakarta Selatan%')->where('status', 'aktif')->count(),
+            'Jakarta Barat' => Technician::where('area_tugas', 'like', '%Jakarta Barat%')->where('status', 'aktif')->count(),
+            'Jakarta Timur' => Technician::where('area_tugas', 'like', '%Jakarta Timur%')->where('status', 'aktif')->count(),
+            'Jakarta Utara' => Technician::where('area_tugas', 'like', '%Jakarta Utara%')->where('status', 'aktif')->count(),
+            'Depok' => Technician::where('area_tugas', 'like', '%Depok%')->where('status', 'aktif')->count(),
+            'Tangerang' => Technician::where('area_tugas', 'like', '%Tangerang%')->where('status', 'aktif')->count(),
+            'Bekasi' => Technician::where('area_tugas', 'like', '%Bekasi%')->where('status', 'aktif')->count(),
+            'Bogor' => Technician::where('area_tugas', 'like', '%Bogor%')->where('status', 'aktif')->count(),
+        ];
 
         return Inertia::render('Technicians/Index', [
             'technicians' => $technicians,
-            'filters' => $request->only(['search', 'status']),
+            'filters' => $request->only(['search', 'status', 'area']),
+            'areaStats' => $areaStats,
         ]);
     }
 

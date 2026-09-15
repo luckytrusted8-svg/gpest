@@ -119,12 +119,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     const userRoles = auth?.user?.roles || [];
     const userPermissions = auth?.user?.permissions || [];
-    const isSuperAdmin = userRoles.includes('super_admin');
-    const isTechnician = userRoles.includes('technician');
+    const isAdmin = userRoles.includes('admin') || userRoles.includes('super_admin');
+    const isTechnician = userRoles.includes('karyawan') || userRoles.includes('technician');
 
     const canAccess = (permission?: string) => {
         if (!permission) return true;
-        if (isSuperAdmin) return true;
+        if (isAdmin) return true;
         return userPermissions.includes(permission);
     };
 

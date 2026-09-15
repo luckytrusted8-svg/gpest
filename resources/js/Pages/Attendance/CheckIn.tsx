@@ -4,7 +4,7 @@ import {
     Clock, MapPin, LogIn, LogOut, CheckCircle, AlertCircle, 
     Calendar, User, ChevronLeft, ChevronRight, CheckCircle2, 
     X, Check, Building2, Globe, Eye, Navigation, ShieldCheck, ArrowLeft,
-    Camera, RefreshCw, Loader2, Sparkles, Image as ImageIcon
+    Camera, RefreshCw, Loader2, Sparkles, Image as ImageIcon, Info
 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import L from 'leaflet';
@@ -318,7 +318,10 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
     const hasCheckedIn = Boolean(todayAttendance?.jam_masuk);
     const hasCheckedOut = Boolean(todayAttendance?.jam_keluar);
 
-    // High-Precision Face Detection Scanner (Anti-False-Positive for plain walls/ceilings)
+    // Robust & Tolerant Face Detection Engine (Optimized for Webcams, Bangs/Hairstyles & Varied Lighting)
+    const consecutiveHits = useRef(0);
+    const consecutiveMisses = useRef(0);
+
     const scanForFace = useCallback(async () => {
         if (!videoRef.current) return;
         const video = videoRef.current;
@@ -326,32 +329,28 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
         if (video.readyState < 2 || video.paused || video.ended) return;
 
         try {
-            // Tier 1: Check native browser FaceDetector API (Hardware/OS-accelerated ML)
+            // Tier 1: Try Native Browser FaceDetector API (if supported)
             if (typeof (window as any).FaceDetector === 'function') {
                 try {
-                    const detector = new (window as any).FaceDetector({ fastMode: false, maxDetectedFaces: 2 });
+                    const detector = new (window as any).FaceDetector({ fastMode: true, maxDetectedFaces: 2 });
                     const faces = await detector.detect(video);
-                    if (Array.isArray(faces)) {
-                        if (faces.length > 0) {
-                            const face = faces[0].boundingBox;
-                            const vW = video.videoWidth || 640;
-                            const vH = video.videoHeight || 640;
-                            // Face must be reasonably sized (at least 18% width/height of frame)
-                            if (face.width >= vW * 0.18 && face.height >= vH * 0.18) {
-                                setIsFaceDetected(true);
-                                return;
-                            }
+                    if (Array.isArray(faces) && faces.length > 0) {
+                        const face = faces[0].boundingBox;
+                        const vW = video.videoWidth || 640;
+                        const vH = video.videoHeight || 640;
+                        if (face.width >= vW * 0.12 && face.height >= vH * 0.12) {
+                            consecutiveHits.current = Math.min(5, consecutiveHits.current + 1);
+                            consecutiveMisses.current = 0;
+                            setIsFaceDetected(true);
+                            return;
                         }
-                        // If native detector ran with 0 faces, definitively mark as not detected
-                        setIsFaceDetected(false);
-                        return;
                     }
                 } catch {
-                    // fallback to precision multi-feature vision engine
+                    // Fall through to heuristic engine
                 }
             }
 
-            // Tier 2: Precision Biometric & Facial Feature Vision Engine
+            // Tier 2: Biometric Vision Engine for Standard & Dim Webcams
             const offscreen = document.createElement('canvas');
             const size = 100;
             offscreen.width = size;
@@ -369,18 +368,16 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
             const imgData = ctx.getImageData(0, 0, size, size);
             const pixels = imgData.data;
 
-            // Oval guide region in 100x100: center (50, 50), rx = 30, ry = 42
+            // Oval guide region in 100x100: center (50, 50), rx = 32, ry = 42
             const cx = 50;
             const cy = 50;
-            const rx = 30;
+            const rx = 32;
             const ry = 42;
 
             let ovalPixels = 0;
             let skinPixels = 0;
-            let foreheadLumaSum = 0;
-            let foreheadCount = 0;
-            let eyeLumaSum = 0;
-            const eyeLumas: number[] = [];
+            let lumaSum = 0;
+            const ovalLumas: number[] = [];
             let edgeCount = 0;
 
             // Grayscale buffer for gradient / edge analysis
@@ -401,8 +398,10 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
 
                     if (inOval) {
                         ovalPixels++;
+                        lumaSum += Y;
+                        ovalLumas.push(Y);
 
-                        // Convert RGB to HSV
+                        // RGB to HSV
                         const max = Math.max(r, g, b);
                         const min = Math.min(r, g, b);
                         const delta = max - min;
@@ -426,71 +425,64 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                         const Cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
                         const Cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
 
-                        // Strict Human Skin Filter: Excludes white/cream walls, fluorescent bulbs, ceilings
-                        // Walls have saturation < 0.18 or value > 0.90, human skin is saturated (0.22 - 0.72) and warm
-                        const isHsvSkin = ((h >= 5 && h <= 46) || h >= 340) && (s >= 0.20 && s <= 0.75) && (v >= 0.22 && v <= 0.88);
-                        const isYcbcrSkin = Cb >= 78 && Cb <= 130 && Cr >= 132 && Cr <= 176;
-                        const isRgbSkin = (r > g) && (g > b) && ((r - g) >= 12) && ((r - b) >= 22) && (r >= 55);
+                        // Broad real-world webcam skin filter (Supports varied Asian complexions, dim lighting, webcam auto-WB)
+                        const isHsvSkin = ((h >= 0 && h <= 55) || h >= 335) && (s >= 0.10 && s <= 0.85) && (v >= 0.15 && v <= 0.96);
+                        const isYcbcrSkin = Cb >= 72 && Cb <= 142 && Cr >= 124 && Cr <= 186;
+                        const isRgbSkin = (r >= 35) && (r >= g - 6) && (r >= b - 15) && ((r + g + b) > 95);
 
-                        if (isHsvSkin && isYcbcrSkin && isRgbSkin) {
+                        if ((isHsvSkin && isYcbcrSkin) || (isRgbSkin && isHsvSkin) || (isYcbcrSkin && isRgbSkin)) {
                             skinPixels++;
-                        }
-
-                        // Forehead region (y: 20..35)
-                        if (y >= 20 && y <= 35 && x >= 30 && x <= 70) {
-                            foreheadLumaSum += Y;
-                            foreheadCount++;
-                        }
-
-                        // Eye region with contrast variance (y: 38..56, x: 25..75)
-                        if (y >= 38 && y <= 56 && x >= 25 && x <= 75) {
-                            eyeLumas.push(Y);
-                            eyeLumaSum += Y;
                         }
                     }
                 }
             }
 
-            // Simple Sobel edge filter across the face center to detect eyes, brows, nose, mouth contours
-            for (let y = 25; y < 75; y += 2) {
-                for (let x = 25; x < 75; x += 2) {
+            // Sobel edge filter across facial area to detect eyes, brows, nose, mouth contours
+            for (let y = 20; y < 80; y += 2) {
+                for (let x = 20; x < 80; x += 2) {
                     const gx = (gray[(y - 1) * size + (x + 1)] + 2 * gray[y * size + (x + 1)] + gray[(y + 1) * size + (x + 1)]) -
                                (gray[(y - 1) * size + (x - 1)] + 2 * gray[y * size + (x - 1)] + gray[(y + 1) * size + (x - 1)]);
                     const gy = (gray[(y + 1) * size + (x - 1)] + 2 * gray[(y + 1) * size + x] + gray[(y + 1) * size + (x + 1)]) -
                                (gray[(y - 1) * size + (x - 1)] + 2 * gray[(y - 1) * size + x] + gray[(y - 1) * size + (x + 1)]);
                     const mag = Math.abs(gx) + Math.abs(gy);
-                    if (mag > 65) {
+                    if (mag > 26) {
                         edgeCount++;
                     }
                 }
             }
 
             const skinRatio = ovalPixels > 0 ? (skinPixels / ovalPixels) : 0;
-            const avgForehead = foreheadCount > 0 ? (foreheadLumaSum / foreheadCount) : 0;
-            const avgEye = eyeLumas.length > 0 ? (eyeLumaSum / eyeLumas.length) : 0;
+            const avgLuma = ovalLumas.length > 0 ? (lumaSum / ovalLumas.length) : 0;
 
-            let eyeVariance = 0;
-            if (eyeLumas.length > 20) {
+            let lumaVariance = 0;
+            if (ovalLumas.length > 40) {
                 let sumSq = 0;
-                for (let i = 0; i < eyeLumas.length; i++) {
-                    const diff = eyeLumas[i] - avgEye;
+                for (let i = 0; i < ovalLumas.length; i++) {
+                    const diff = ovalLumas[i] - avgLuma;
                     sumSq += diff * diff;
                 }
-                eyeVariance = Math.sqrt(sumSq / eyeLumas.length);
+                lumaVariance = Math.sqrt(sumSq / ovalLumas.length);
             }
 
-            // Facial verification conditions:
-            // 1. Adequate human skin tone (26% - 85% of oval area, not plain wall or solid sheet)
-            // 2. Clear eye & brow texture variance (variance >= 14)
-            // 3. Eye zone is naturally darker than forehead (avgForehead >= avgEye + 3) OR significant eye texture (variance >= 20)
-            // 4. Presence of facial contour edges (edgeCount >= 28)
-            const hasSkinPresence = skinRatio >= 0.26 && skinRatio <= 0.88;
-            const hasEyeTexture = eyeVariance >= 14.0;
-            const hasFacialContrast = (avgForehead >= avgEye + 3) || (eyeVariance >= 20.0);
-            const hasFacialEdges = edgeCount >= 25;
+            // Real-world face detection validation:
+            // 1. A human face has texture & variance (luma variance >= 6, unlike a flat white wall or empty ceiling)
+            // 2. Has facial contours & edges (eyes, nose, mouth, hair boundary: edgeCount >= 7)
+            // 3. Has human skin presence (skinRatio >= 0.12, accounting for dark hair/bangs on top)
+            const isHumanFace = (skinRatio >= 0.12 && lumaVariance >= 6.0 && edgeCount >= 7) ||
+                                (skinRatio >= 0.22 && edgeCount >= 5) ||
+                                (lumaVariance >= 11.0 && edgeCount >= 14 && skinRatio >= 0.08);
 
-            const isVerifiedHumanFace = hasSkinPresence && hasEyeTexture && hasFacialContrast && hasFacialEdges;
-            setIsFaceDetected(Boolean(isVerifiedHumanFace));
+            if (isHumanFace) {
+                consecutiveHits.current = Math.min(5, consecutiveHits.current + 1);
+                consecutiveMisses.current = 0;
+            } else {
+                consecutiveMisses.current++;
+                if (consecutiveMisses.current > 2) {
+                    consecutiveHits.current = 0;
+                }
+            }
+
+            setIsFaceDetected(consecutiveHits.current >= 1);
         } catch {
             setIsFaceDetected(false);
         }
@@ -542,6 +534,8 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
         setCapturedSelfie(null);
         setIsFaceDetected(false);
         setIsDetectingFace(true);
+        consecutiveHits.current = 0;
+        consecutiveMisses.current = 0;
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -628,11 +622,6 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
 
     // Capture Frame from Live Video (Fixed Mirroring & Clean Typography)
     const handleCapturePhoto = () => {
-        if (!isFaceDetected) {
-            alert('Wajah belum terdeteksi. Silakan posisikan wajah Anda di dalam lingkaran sampai indikator berwarna hijau.');
-            return;
-        }
-
         if (!videoRef.current) return;
 
         const video = videoRef.current;
@@ -1202,9 +1191,9 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                                             <span>Wajah Terdeteksi</span>
                                                         </div>
                                                     ) : (
-                                                        <div className="px-3.5 py-1.5 rounded-full bg-rose-600/95 backdrop-blur-xs text-white text-xs font-bold flex items-center gap-1.5 shadow-lg border border-rose-400/50">
-                                                            <AlertCircle className="w-3.5 h-3.5 text-white" />
-                                                            <span>Wajah Belum Terdeteksi</span>
+                                                        <div className="px-3.5 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-xs text-white text-xs font-bold flex items-center gap-1.5 shadow-lg border border-slate-700/50">
+                                                            <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                                                            <span>Mengarahkan Wajah...</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -1214,12 +1203,12 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                                     className={`w-48 h-60 rounded-[50%] transition-all duration-300 flex items-center justify-center ${
                                                         isFaceDetected 
                                                             ? 'border-4 border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.8),0_0_0_9999px_rgba(15,23,42,0.45)]' 
-                                                            : 'border-4 border-dashed border-rose-500 shadow-[0_0_30px_rgba(244,63,94,0.8),0_0_0_9999px_rgba(15,23,42,0.45)]'
+                                                            : 'border-4 border-dashed border-amber-400/90 shadow-[0_0_25px_rgba(251,191,36,0.5),0_0_0_9999px_rgba(15,23,42,0.45)]'
                                                     }`}
                                                 >
                                                     <div 
                                                         className={`w-full h-0.5 animate-pulse ${
-                                                            isFaceDetected ? 'bg-emerald-400/90 shadow-[0_0_8px_#10b981]' : 'bg-rose-500/90 shadow-[0_0_8px_#f43f5e]'
+                                                            isFaceDetected ? 'bg-emerald-400/90 shadow-[0_0_8px_#10b981]' : 'bg-amber-400/90 shadow-[0_0_8px_#fbbf24]'
                                                         }`} 
                                                     />
                                                 </div>
@@ -1239,7 +1228,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                     <div className={`mt-3.5 w-full max-w-[320px] py-2 px-3 rounded-2xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                                         isFaceDetected 
                                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
-                                            : 'bg-rose-50 text-rose-800 border-rose-200'
+                                            : 'bg-amber-50 text-amber-900 border-amber-200'
                                     }`}>
                                         {isFaceDetected ? (
                                             <>
@@ -1248,8 +1237,8 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                             </>
                                         ) : (
                                             <>
-                                                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                                                <span>Arahkan wajah ke lingkaran (Wajib terlihat)</span>
+                                                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                                                <span>Posisikan wajah di dalam lingkaran panduan</span>
                                             </>
                                         )}
                                     </div>
@@ -1274,21 +1263,28 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                             {/* Action Buttons */}
                             <div className="p-5 border-t border-slate-100 space-y-3">
                                 {!capturedSelfie ? (
-                                    <button
-                                        type="button"
-                                        onClick={handleCapturePhoto}
-                                        disabled={!isFaceDetected}
-                                        className={`w-full py-4 min-h-[52px] rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2.5 shadow-sm ${
-                                            isFaceDetected
-                                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] text-white cursor-pointer shadow-blue-500/25'
-                                                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-80'
-                                        }`}
-                                    >
-                                        <Camera className="w-5 h-5" />
-                                        <span>
-                                            {isFaceDetected ? 'Ambil Foto Selfie' : 'Posisikan Wajah Terlebih Dahulu'}
-                                        </span>
-                                    </button>
+                                    <div className="space-y-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleCapturePhoto}
+                                            className={`w-full py-4 min-h-[52px] rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2.5 shadow-sm active:scale-[0.99] cursor-pointer ${
+                                                isFaceDetected
+                                                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-emerald-500/25'
+                                                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/25'
+                                            }`}
+                                        >
+                                            <Camera className="w-5 h-5" />
+                                            <span>
+                                                {isFaceDetected ? 'Ambil Foto Kehadiran' : 'Ambil Foto Sekarang'}
+                                            </span>
+                                        </button>
+                                        {!isFaceDetected && (
+                                            <p className="text-[11px] text-center text-slate-400 flex items-center justify-center gap-1">
+                                                <Info className="w-3 h-3 text-blue-500 shrink-0" />
+                                                <span>Tips: Jika pencahayaan ruangan redup, Anda tetap dapat langsung menekan tombol ambil foto.</span>
+                                            </p>
+                                        )}
+                                    </div>
                                 ) : (
                                     <>
                                         <button

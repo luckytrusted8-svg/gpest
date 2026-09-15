@@ -316,7 +316,7 @@ export default function TrackingIndex({ technicians = [], geofences = [], select
                                                     </span>
                                                     <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-colors flex items-center gap-1">
                                                         <Compass className="w-3 h-3" />
-                                                        Fokuskan Peta 🎯
+                                                        Fokuskan Peta
                                                     </span>
                                                 </div>
                                             </div>
@@ -331,7 +331,10 @@ export default function TrackingIndex({ technicians = [], geofences = [], select
                                                     <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Teknisi Bertugas di Area Ini:</div>
                                                     {insideTechs.map((it) => (
                                                         <div key={it.id} className="text-[11px] font-semibold text-slate-800 flex items-center justify-between bg-white px-2.5 py-1 rounded-lg border border-slate-200">
-                                                            <span>👤 {it.name}</span>
+                                                            <span className="flex items-center gap-1.5">
+                                                                <User className="w-3.5 h-3.5 text-slate-400" />
+                                                                {it.name}
+                                                            </span>
                                                             <span className="text-[10px] font-bold text-emerald-600 uppercase">{it.status_teknisi}</span>
                                                         </div>
                                                     ))}

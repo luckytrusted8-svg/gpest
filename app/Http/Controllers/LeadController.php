@@ -37,7 +37,7 @@ class LeadController extends Controller
         return Inertia::render('CRM/Index', [
             'leads' => $leads,
             'leadsByStatus' => $byStatus,
-            'salesUsers' => User::role(['admin', 'super_admin', 'management', 'supervisor'])->get(['id', 'name']),
+            'salesUsers' => User::role(['admin', 'karyawan'])->get(['id', 'name']),
             'filters' => $request->only(['search', 'status', 'sumber', 'sales_id']),
         ]);
     }
@@ -45,7 +45,7 @@ class LeadController extends Controller
     public function create()
     {
         return Inertia::render('CRM/Create', [
-            'salesUsers' => User::role(['admin', 'super_admin', 'management', 'supervisor'])->get(['id', 'name']),
+            'salesUsers' => User::role(['admin', 'karyawan'])->get(['id', 'name']),
         ]);
     }
 
@@ -92,7 +92,7 @@ class LeadController extends Controller
     {
         return Inertia::render('CRM/Edit', [
             'lead' => $lead,
-            'salesUsers' => User::role(['admin', 'super_admin', 'management', 'supervisor'])->get(['id', 'name']),
+            'salesUsers' => User::role(['admin', 'karyawan'])->get(['id', 'name']),
         ]);
     }
 

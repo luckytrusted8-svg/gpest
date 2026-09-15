@@ -19,13 +19,23 @@ export default function Create({ roles }: Props) {
         name: '',
         email: '',
         password: '',
-        role: roles[0]?.name || 'technician',
+        role: roles[0]?.name || 'karyawan',
         status: 'aktif',
     });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         post(route('users.store'));
+    };
+
+    const getRoleLabel = (roleName: string) => {
+        switch (roleName) {
+            case 'admin': return 'Admin (Akses Penuh)';
+            case 'karyawan': return 'Karyawan (Operasional & Lapangan)';
+            case 'customer':
+            case 'costumer': return 'Customer (Portal Pelanggan)';
+            default: return roleName;
+        }
     };
 
     return (
@@ -102,7 +112,7 @@ export default function Create({ roles }: Props) {
                                     <SelectContent>
                                         {roles.map((r) => (
                                             <SelectItem key={r.id} value={r.name}>
-                                                {r.name}
+                                                {getRoleLabel(r.name)}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

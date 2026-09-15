@@ -136,7 +136,7 @@ class CustomerPortalController extends Controller
 
         // 4. Send notification to admin users
         $adminUserIds = User::whereHas('roles', function ($q) {
-            $q->whereIn('name', ['super_admin', 'admin', 'supervisor']);
+            $q->whereIn('name', ['admin', 'super_admin']);
         })->pluck('id')->unique();
 
         if ($adminUserIds->isEmpty()) {
@@ -231,7 +231,7 @@ class CustomerPortalController extends Controller
 
             // Notify admin about new auto-registered customer
             $adminUserIds = User::whereHas('roles', function ($q) {
-                $q->whereIn('name', ['super_admin', 'admin', 'supervisor']);
+                $q->whereIn('name', ['admin', 'super_admin']);
             })->pluck('id')->unique();
 
             if ($adminUserIds->isEmpty()) {
@@ -281,6 +281,8 @@ class CustomerPortalController extends Controller
             'completed_schedules' => Schedule::where('customer_id', $customerId)->where('status', 'selesai')->count(),
             'work_reports_count' => WorkReport::where('customer_id', $customerId)->count(),
             'sites_count' => Site::where('customer_id', $customerId)->count(),
+            'requests_count' => CustomerRequest::where('customer_id', $customerId)->count(),
+            'invoices_count' => Invoice::where('customer_id', $customerId)->count(),
         ];
 
         $upcomingSchedules = Schedule::with('technician')
@@ -347,7 +349,7 @@ class CustomerPortalController extends Controller
 
         // Notify admins
         $adminUserIds = User::whereHas('roles', function ($q) {
-            $q->whereIn('name', ['super_admin', 'admin', 'supervisor']);
+            $q->whereIn('name', ['admin', 'super_admin']);
         })->pluck('id')->unique();
 
         if ($adminUserIds->isEmpty()) {
@@ -536,6 +538,7 @@ class CustomerPortalController extends Controller
     {
         $customerUser = Auth::guard('customer')->user();
         $workReports = WorkReport::where('customer_id', $customerUser->customer_id)
+            ->whereIn('status', ['disetujui', 'selesai'])
             ->orderBy('tanggal', 'desc')
             ->paginate(15);
 
@@ -549,8 +552,8 @@ class CustomerPortalController extends Controller
     {
         $customerUser = Auth::guard('customer')->user();
 
-        if ($workReport->customer_id !== $customerUser->customer_id) {
-            abort(403);
+        if ($workReport->customer_id !== $customerUser->customer_id || ! in_array($workReport->status, ['disetujui', 'selesai'])) {
+            abort(403, 'Laporan kerja ini belum disetujui atau tidak dapat diakses.');
         }
 
         $workReport->load(['customer', 'technician', 'photos']);
@@ -577,12 +580,20 @@ class CustomerPortalController extends Controller
     public function requests()
     {
         $customerUser = Auth::guard('customer')->user();
-        $requests = CustomerRequest::where('customer_id', $customerUser->customer_id)
+        $customer = $customerUser->customer;
+        $sites = Site::where('customer_id', $customerUser->customer_id)
+            ->orderBy('site_name')
+            ->get();
+
+        $requests = CustomerRequest::with('site')
+            ->where('customer_id', $customerUser->customer_id)
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
         return Inertia::render('CustomerPortal/Requests', [
             'customerUser' => $customerUser->load('customer'),
+            'customer' => $customer,
+            'sites' => $sites,
             'requests' => $requests,
         ]);
     }
@@ -593,24 +604,36 @@ class CustomerPortalController extends Controller
         $customer = $customerUser->customer;
 
         $validated = $request->validate([
+            'site_id' => 'nullable|exists:sites,id',
+            'lokasi' => 'required|string|max:255',
+            'alamat_detail' => 'nullable|string',
+            'pic_name' => 'nullable|string|max:255',
+            'pic_phone' => 'nullable|string|max:50',
             'jenis_layanan' => 'required|string|max:255',
             'prioritas' => 'required|in:rendah,sedang,tinggi,darurat',
             'deskripsi' => 'required|string',
             'tanggal_permintaan' => 'nullable|date',
+            'waktu_layanan' => 'nullable|string|max:100',
         ]);
 
         $req = CustomerRequest::create([
             'request_number' => '',
             'customer_id' => $customerUser->customer_id,
+            'site_id' => $validated['site_id'] ?? null,
+            'lokasi' => $validated['lokasi'],
+            'alamat_detail' => $validated['alamat_detail'] ?? null,
+            'pic_name' => $validated['pic_name'] ?? null,
+            'pic_phone' => $validated['pic_phone'] ?? null,
             'jenis_layanan' => $validated['jenis_layanan'],
             'prioritas' => $validated['prioritas'],
             'deskripsi' => $validated['deskripsi'],
             'tanggal_permintaan' => $validated['tanggal_permintaan'] ?? null,
+            'waktu_layanan' => $validated['waktu_layanan'] ?? null,
             'status' => 'baru',
         ]);
 
         $adminUserIds = User::whereHas('roles', function ($q) {
-            $q->whereIn('name', ['super_admin', 'admin', 'supervisor']);
+            $q->whereIn('name', ['admin', 'super_admin']);
         })->pluck('id')->unique();
 
         if ($adminUserIds->isEmpty()) {
@@ -621,13 +644,60 @@ class CustomerPortalController extends Controller
             Notification::create([
                 'user_id' => $adminId,
                 'judul' => 'Permintaan Layanan Baru ('.$req->request_number.')',
-                'pesan' => 'Pelanggan '.($customer->company_name ?? 'Klien').' mengirim request: '.$validated['jenis_layanan'],
+                'pesan' => 'Pelanggan '.($customer->company_name ?? 'Klien').' request '.$validated['jenis_layanan'].' untuk lokasi "'.$req->lokasi.'"',
                 'jenis' => 'info',
                 'modul' => 'customer-requests',
                 'url_tujuan' => '/customer-requests/'.$req->id,
             ]);
         }
 
-        return back()->with('success', 'Permintaan Anda berhasil dikirim ke tim kami.');
+        return back()->with('success', 'Permintaan Anda berhasil dikirim ke tim Admin G-PEST.');
+    }
+
+    public function notifications(Request $request)
+    {
+        $customerUser = Auth::guard('customer')->user();
+        if (! $customerUser) {
+            return response()->json([], 401);
+        }
+
+        $query = Notification::where('customer_user_id', $customerUser->id)
+            ->latest();
+
+        if ($request->filter === 'belum_dibaca') {
+            $query->whereNull('dibaca_pada');
+        }
+
+        $notifications = $query->take(20)->get();
+        $unreadCount = Notification::where('customer_user_id', $customerUser->id)
+            ->whereNull('dibaca_pada')
+            ->count();
+
+        return response()->json([
+            'data' => $notifications,
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
+    public function markNotificationRead(Notification $notification)
+    {
+        $customerUser = Auth::guard('customer')->user();
+        if ($customerUser && $notification->customer_user_id === $customerUser->id) {
+            $notification->update(['dibaca_pada' => now()]);
+        }
+
+        return back()->with('success', 'Notifikasi ditandai sudah dibaca.');
+    }
+
+    public function markAllNotificationsRead()
+    {
+        $customerUser = Auth::guard('customer')->user();
+        if ($customerUser) {
+            Notification::where('customer_user_id', $customerUser->id)
+                ->whereNull('dibaca_pada')
+                ->update(['dibaca_pada' => now()]);
+        }
+
+        return back()->with('success', 'Semua notifikasi ditandai sudah dibaca.');
     }
 }
