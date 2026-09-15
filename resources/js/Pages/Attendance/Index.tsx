@@ -198,9 +198,9 @@ export default function Index({ attendances, technicians, summaryStats, filters 
                 </div>
 
                 {/* Filter Form */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-5">
-                    <form onSubmit={(e) => { e.preventDefault(); applyFilters(); }} className="flex flex-col sm:flex-row flex-wrap items-center gap-3">
-                        <div className="relative flex-1 min-w-[200px] w-full">
+                <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs p-3.5 sm:p-5">
+                    <form onSubmit={(e) => { e.preventDefault(); applyFilters(); }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="relative">
                             <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
                             <Input
                                 type="date"
@@ -209,32 +209,42 @@ export default function Index({ attendances, technicians, summaryStats, filters 
                                 className="pl-9 rounded-xl"
                             />
                         </div>
-                        <select
-                            value={technicianId}
-                            onChange={(e) => { setTechnicianId(e.target.value); applyFilters({ technician_id: e.target.value }); }}
-                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-44"
-                        >
-                            <option value="">Semua Teknisi</option>
-                            {technicians.map((t) => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                            ))}
-                        </select>
-                        <select
-                            value={status}
-                            onChange={(e) => { setStatus(e.target.value); applyFilters({ status: e.target.value }); }}
-                            className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 w-full sm:w-36"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="hadir">Hadir</option>
-                            <option value="tidak_hadir">Tidak Hadir</option>
-                            <option value="izin">Izin</option>
-                            <option value="sakit">Sakit</option>
-                        </select>
-                        <Button type="submit" variant="outline" className="text-body-sm-strong rounded-xl">
-                            <Search className="w-4 h-4 mr-1.5" />
-                            Filter
-                        </Button>
-                        <Button type="button" variant="ghost" onClick={resetFilters} className="text-body-sm text-mute hover:text-ink rounded-xl">Reset</Button>
+                        <div>
+                            <select
+                                value={technicianId}
+                                onChange={(e) => { setTechnicianId(e.target.value); applyFilters({ technician_id: e.target.value }); }}
+                                className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 w-full"
+                            >
+                                <option value="">Semua Teknisi</option>
+                                {technicians.map((t) => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <select
+                                value={status}
+                                onChange={(e) => { setStatus(e.target.value); applyFilters({ status: e.target.value }); }}
+                                className="h-9 px-3 py-1 rounded-xl border border-slate-200 bg-white text-body-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 w-full"
+                            >
+                                <option value="">Semua Status</option>
+                                <option value="hadir">Hadir</option>
+                                <option value="tidak_hadir">Tidak Hadir</option>
+                                <option value="izin">Izin</option>
+                                <option value="sakit">Sakit</option>
+                            </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button type="submit" variant="outline" className="text-body-sm-strong w-full rounded-xl">
+                                <Search className="w-4 h-4 mr-1.5" />
+                                Filter
+                            </Button>
+                            {(tanggal || technicianId || status) && (
+                                <Button type="button" variant="ghost" onClick={resetFilters} className="text-body-sm text-mute hover:text-ink rounded-xl">
+                                    Reset
+                                </Button>
+                            )}
+                        </div>
                     </form>
                 </div>
 

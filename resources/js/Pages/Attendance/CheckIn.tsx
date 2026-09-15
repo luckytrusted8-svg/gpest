@@ -751,29 +751,13 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
         return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     };
 
+    const [showWorkHoursInfo, setShowWorkHoursInfo] = useState(false);
+
     return (
         <AppLayout>
             <Head title="Presensi Harian & Riwayat Bulanan - G-PEST" />
 
-            <div className="max-w-xl mx-auto space-y-6">
-                {/* Information Banner Shift Working Hours */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-slate-900 text-xs">
-                        <Clock className="w-4 h-4 text-blue-600 shrink-0" />
-                        <span>Ketentuan Jam Kerja Operasional:</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-500 text-xs pt-1">
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-                            <strong className="text-slate-900 font-semibold block text-xs">Teknisi Lapangan (WFA)</strong>
-                            <span className="text-[11px]">Fleksibel / Sesuai lokasi & rute penugasan</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-                            <strong className="text-slate-900 font-semibold block text-xs">Staff Kantor (WFO)</strong>
-                            <span className="text-[11px]">Senin - Jumat: 08:00 - 16:00 WIB</span>
-                        </div>
-                    </div>
-                </div>
-
+            <div className="max-w-xl mx-auto space-y-4 sm:space-y-6">
                 {flash?.success && (
                     <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl text-xs flex items-center gap-2 shadow-2xs">
                         <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
@@ -787,7 +771,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                     </div>
                 )}
 
-                {/* Main Card Check-In Hari Ini */}
+                {/* Main Hero Card Check-In Hari Ini */}
                 <div className="bg-white border border-slate-200/90 rounded-3xl shadow-sm overflow-hidden">
                     <div className="p-6 text-center space-y-2">
                         <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
@@ -817,15 +801,15 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                         </div>
                     </div>
 
-                    <div className="border-t border-slate-100 p-5 bg-slate-50/60">
+                    <div className="border-t border-slate-100 p-4 sm:p-5 bg-slate-50/60">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 text-center shadow-2xs">
                                 <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-1 font-mono font-semibold">Jam Masuk</div>
-                                <div className="text-base font-bold text-slate-900 font-mono">{todayAttendance?.jam_masuk ? todayAttendance.jam_masuk.slice(0, 5) : '-'}</div>
+                                <div className="text-base sm:text-lg font-bold text-slate-900 font-mono">{todayAttendance?.jam_masuk ? todayAttendance.jam_masuk.slice(0, 5) : '-'}</div>
                             </div>
                             <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 text-center shadow-2xs">
                                 <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-1 font-mono font-semibold">Jam Keluar</div>
-                                <div className="text-base font-bold text-slate-900 font-mono">{todayAttendance?.jam_keluar ? todayAttendance.jam_keluar.slice(0, 5) : '-'}</div>
+                                <div className="text-base sm:text-lg font-bold text-slate-900 font-mono">{todayAttendance?.jam_keluar ? todayAttendance.jam_keluar.slice(0, 5) : '-'}</div>
                             </div>
                         </div>
 
@@ -857,13 +841,13 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                         )}
                     </div>
 
-                    <div className="border-t border-slate-100 p-5 space-y-3">
+                    <div className="border-t border-slate-100 p-4 sm:p-5 space-y-3">
                         {!hasCheckedIn && (
                             <button
                                 type="button"
                                 onClick={() => setShowTypeSelectModal(true)}
                                 disabled={processing}
-                                className="w-full py-4 px-6 min-h-[56px] text-sm sm:text-base font-bold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl flex items-center justify-center gap-3 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-blue-500/25 cursor-pointer"
+                                className="w-full py-4 px-6 min-h-[58px] text-base font-bold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl flex items-center justify-center gap-3 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-blue-500/25 cursor-pointer"
                             >
                                 <LogIn className="w-5 h-5 shrink-0" />
                                 <span>{processing ? 'Memproses Presensi...' : 'CHECK IN PRESENSI'}</span>
@@ -874,18 +858,47 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                 type="button"
                                 onClick={handleCheckOut}
                                 disabled={processing}
-                                className="w-full py-4 px-6 min-h-[56px] text-sm sm:text-base font-bold tracking-wide bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white rounded-2xl flex items-center justify-center gap-3 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 shadow-md shadow-slate-900/20 cursor-pointer"
+                                className="w-full py-4 px-6 min-h-[58px] text-base font-bold tracking-wide bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white rounded-2xl flex items-center justify-center gap-3 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-slate-900/20 cursor-pointer"
                             >
                                 <LogOut className="w-5 h-5 shrink-0" />
                                 <span>{processing ? 'Memproses Presensi...' : 'CHECK OUT KELUAR'}</span>
                             </button>
                         )}
                         {hasCheckedOut && (
-                            <div className="text-center text-xs text-slate-500 py-3 font-medium bg-slate-50 rounded-2xl border border-slate-100">
+                            <div className="text-center text-xs text-slate-500 py-3.5 font-medium bg-slate-50 rounded-2xl border border-slate-100">
                                 Anda telah menyelesaikan presensi kerja hari ini.
                             </div>
                         )}
                     </div>
+                </div>
+
+                {/* Collapsible Info Ketentuan Jam Kerja Operasional */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+                    <button
+                        type="button"
+                        onClick={() => setShowWorkHoursInfo(!showWorkHoursInfo)}
+                        className="w-full flex items-center justify-between text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+                    >
+                        <span className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-blue-600 shrink-0" />
+                            <span>Info Ketentuan Jam Kerja Operasional</span>
+                        </span>
+                        <span className="text-[11px] text-blue-600 font-medium">
+                            {showWorkHoursInfo ? 'Sembunyikan ▲' : 'Lihat Rincian ▼'}
+                        </span>
+                    </button>
+                    {showWorkHoursInfo && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-500 text-xs pt-3 mt-2 border-t border-slate-100 animate-in fade-in duration-150">
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <strong className="text-slate-900 font-semibold block text-xs">Teknisi Lapangan (WFA)</strong>
+                                <span className="text-[11px]">Fleksibel / Sesuai lokasi & rute penugasan</span>
+                            </div>
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <strong className="text-slate-900 font-semibold block text-xs">Staff Kantor (WFO)</strong>
+                                <span className="text-[11px]">Senin - Jumat: 08:00 - 16:00 WIB</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* MONTH NAVIGATION HEADER */}
@@ -932,7 +945,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                         {/* Card Presensi */}
                                         <div 
                                             onClick={() => setSelectedDetail(att)}
-                                            className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-2xs space-y-4 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer group"
+                                            className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-2xs space-y-3 sm:space-y-4 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer group"
                                         >
                                             {/* Top Tag & Detail prompt */}
                                             <div className="flex items-center justify-between">
@@ -952,7 +965,7 @@ export default function CheckIn({ todayAttendance, monthlyAttendances = [], sele
                                                         <Eye className="w-3.5 h-3.5" /> Lihat Rincian & Peta
                                                     </span>
                                                 </div>
-                                                <span className={`px-3 py-0.5 rounded-full text-[11px] font-bold uppercase border ${
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
                                                     workTypeTag === 'WFA' 
                                                         ? 'bg-purple-50 text-purple-700 border-purple-200' 
                                                         : 'bg-blue-50 text-blue-700 border-blue-200'

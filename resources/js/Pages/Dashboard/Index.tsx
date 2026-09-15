@@ -185,29 +185,29 @@ export default function Dashboard({ kpiData, todaySchedules = [], technicianCoun
 
                 <div className="max-w-4xl mx-auto space-y-6">
                     {/* Banner Teknisi */}
-                    <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-sm border border-slate-800">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="bg-slate-900 rounded-2xl p-4 sm:p-6 text-white shadow-sm border border-slate-800">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3.5 sm:gap-4">
                             <div>
-                                <span className="text-xs font-mono font-medium text-slate-400 uppercase tracking-wider">
+                                <span className="text-[10px] sm:text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider">
                                     Teknisi Lapangan
                                 </span>
-                                <h1 className="text-2xl font-bold tracking-tight mt-1 text-white">
+                                <h1 className="text-xl sm:text-2xl font-bold tracking-tight mt-0.5 sm:mt-1 text-white">
                                     Halo, {userName}
                                 </h1>
-                                <p className="text-xs text-slate-400 mt-1">
+                                <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1">
                                     {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                                 </p>
                             </div>
-                            <div className="flex flex-wrap gap-2 w-full sm:w-auto shrink-0">
-                                <Link href="/attendance/check-in" className="flex-1 sm:flex-none">
-                                    <button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-colors">
-                                        <MapPin className="w-4 h-4" />
+                            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
+                                <Link href="/attendance/check-in" className="w-full sm:w-auto">
+                                    <button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-semibold px-4 py-3 sm:py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] cursor-pointer">
+                                        <MapPin className="w-4 h-4 text-slate-900 shrink-0" />
                                         <span>Presensi Masuk</span>
                                     </button>
                                 </Link>
-                                <Link href="/work-reports/create" className="flex-1 sm:flex-none">
-                                    <button className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-slate-700 transition-colors">
-                                        <PlusCircle className="w-4 h-4" />
+                                <Link href="/work-reports/create" className="w-full sm:w-auto">
+                                    <button className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-3 sm:py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all active:scale-[0.98] cursor-pointer">
+                                        <PlusCircle className="w-4 h-4 text-white shrink-0" />
                                         <span>Buat Laporan</span>
                                     </button>
                                 </Link>
@@ -215,19 +215,19 @@ export default function Dashboard({ kpiData, todaySchedules = [], technicianCoun
                         </div>
                     </div>
 
-                    {/* Quick Stats Grid */}
-                    <div className="grid grid-cols-3 gap-3 sm:gap-4">
-                        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-center">
-                            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Tugas Hari Ini</div>
-                            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">{todaySchedules.length}</div>
+                    {/* Quick Stats Grid - Compact 3 Columns */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                        <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:p-4 shadow-2xs text-center">
+                            <div className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Tugas Hari Ini</div>
+                            <div className="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1 font-mono">{todaySchedules.length}</div>
                         </div>
-                        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-center">
-                            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Perlu Dikerjakan</div>
-                            <div className="text-2xl font-bold text-amber-600 mt-1 font-mono">{pendingSchedulesCount}</div>
+                        <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:p-4 shadow-2xs text-center">
+                            <div className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Perlu Dikerjakan</div>
+                            <div className="text-xl sm:text-2xl font-bold text-amber-600 mt-0.5 sm:mt-1 font-mono">{pendingSchedulesCount}</div>
                         </div>
-                        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-center">
-                            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Tuntas</div>
-                            <div className="text-2xl font-bold text-emerald-600 mt-1 font-mono">{completedSchedulesCount}</div>
+                        <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:p-4 shadow-2xs text-center">
+                            <div className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">Tuntas</div>
+                            <div className="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5 sm:mt-1 font-mono">{completedSchedulesCount}</div>
                         </div>
                     </div>
 
