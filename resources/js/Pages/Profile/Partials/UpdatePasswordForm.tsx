@@ -113,8 +113,10 @@ export default function UpdatePasswordForm({
                     />
                 </div>
 
-                <div className="flex items-center gap-3 pt-2">
-                    <PrimaryButton disabled={processing}>Perbarui Kata Sandi</PrimaryButton>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                    <PrimaryButton disabled={processing} className="w-full sm:w-auto h-10 rounded-xl">
+                        Perbarui Kata Sandi
+                    </PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
@@ -123,7 +125,7 @@ export default function UpdatePasswordForm({
                         leave="transition ease-in-out duration-300"
                         leaveTo="opacity-0"
                     >
-                        <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                        <span className="inline-flex items-center justify-center gap-1.5 text-xs text-emerald-600 font-medium bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200">
                             <Check className="w-3.5 h-3.5" />
                             Tersimpan
                         </span>

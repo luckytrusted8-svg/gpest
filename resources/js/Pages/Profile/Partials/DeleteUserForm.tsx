@@ -54,9 +54,15 @@ export default function DeleteUserForm({
                 Setelah akun dihapus, seluruh data dan akses Anda di sistem akan dinonaktifkan secara permanen.
             </p>
 
-            <DangerButton onClick={confirmUserDeletion}>
-                Hapus Akun Pengguna
-            </DangerButton>
+            <div className="pt-1">
+                <button
+                    type="button"
+                    onClick={confirmUserDeletion}
+                    className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2.5 text-xs font-semibold text-white shadow-2xs transition-all duration-150 active:scale-[0.99] cursor-pointer"
+                >
+                    Hapus Akun Pengguna
+                </button>
+            </div>
 
             <Modal show={confirmingUserDeletion} onClose={closeModal}>
                 <form onSubmit={deleteUser} className="p-6">
