@@ -264,37 +264,37 @@ export default function LeafletLocationPicker({
     };
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
             {/* Toolbar Search & GPS (only in edit/picker mode) */}
             {!readonly && (
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 flex gap-2">
-                        <div className="relative flex-1">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Cari nama jalan / gedung / wilayah di peta..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={handleKeyDownSearch}
-                                className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-300 bg-white text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 font-medium"
-                            />
-                        </div>
+                    {/* Inline Search Input Group with embedded Search Button */}
+                    <div className="relative flex-1 flex items-center">
+                        <Search className="w-4 h-4 absolute left-3 text-slate-400 pointer-events-none" />
+                        <input
+                            type="text"
+                            placeholder="Cari nama jalan / gedung / wilayah di peta..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleKeyDownSearch}
+                            className="w-full h-10 pl-9 pr-24 rounded-xl border border-slate-300 bg-white text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 font-medium placeholder:text-slate-400"
+                        />
                         <button
                             type="button"
                             onClick={handleSearchAddress}
                             disabled={searching}
-                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold shrink-0 transition-colors disabled:opacity-50 cursor-pointer"
+                            className="absolute right-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 active:bg-black text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
                         >
                             {searching ? 'Mencari...' : 'Cari di Peta'}
                         </button>
                     </div>
 
+                    {/* Gunakan GPS Saya Button (Full width on mobile, inline on desktop) */}
                     <button
                         type="button"
                         onClick={handleGetCurrentLocation}
                         disabled={loadingGps || reverseGeocoding}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shrink-0 transition-colors shadow-xs cursor-pointer"
+                        className="w-full sm:w-auto h-10 px-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shrink-0 transition-colors shadow-xs cursor-pointer"
                     >
                         {loadingGps || reverseGeocoding ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -306,11 +306,14 @@ export default function LeafletLocationPicker({
                 </div>
             )}
 
-            {/* Pure Vanilla Leaflet Map Container */}
-            <div className="relative rounded-xl overflow-hidden border border-slate-300 shadow-xs z-10" style={{ height }}>
+            {/* Pure Vanilla Leaflet Map Container with Responsive Height */}
+            <div
+                className="relative rounded-xl overflow-hidden border border-slate-300 shadow-xs z-10 h-[230px] sm:h-[320px]"
+                style={height ? { height } : undefined}
+            >
                 <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
 
-                <div className="absolute bottom-2 left-2 z-[400] bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-300 text-[11px] font-mono text-slate-700 font-semibold shadow-xs flex items-center gap-1.5">
+                <div className="absolute bottom-2 left-2 z-[400] bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-slate-300 text-[11px] font-mono text-slate-800 font-semibold shadow-xs flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>Lat: {numLat.toFixed(6)}, Lng: {numLng.toFixed(6)}</span>
                 </div>
@@ -318,7 +321,7 @@ export default function LeafletLocationPicker({
 
             {!readonly && (
                 <p className="text-[11px] text-slate-500 italic">
-                    * Geser peta atau klik di mana saja pada peta untuk memperbarui titik koordinat dan mengisi alamat lengkap secara otomatis & presisi.
+                    * Geser peta atau klik di mana saja pada peta untuk memperbarui titik koordinat dan mengisi alamat lengkap secara otomatis &amp; presisi.
                 </p>
             )}
         </div>
