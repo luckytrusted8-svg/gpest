@@ -105,6 +105,27 @@ class NotificationService
         }
     }
 
+    public function laporanHasilRevisiDikirim(WorkReport $workReport): void
+    {
+        $admins = User::role('admin')->pluck('id')->unique();
+        if ($admins->isEmpty()) {
+            $admins = User::whereHas('roles', fn ($q) => $q->where('name', 'admin'))->pluck('id')->unique();
+        }
+
+        $techName = $workReport->technician?->name ?? (auth()->user()->name ?? 'Teknisi');
+
+        foreach ($admins as $adminId) {
+            $this->kirimKeUser(
+                userId: $adminId,
+                judul: 'Laporan Hasil Revisi Dikirim',
+                pesan: "Teknisi {$techName} telah memperbaiki laporan {$workReport->nomor_laporan} dan mengirimkannya untuk peninjauan.",
+                jenis: 'info',
+                modul: 'work-reports',
+                urlTujuan: "/work-reports/{$workReport->id}"
+            );
+        }
+    }
+
     public function laporanDisetujui(WorkReport $workReport): void
     {
         $this->kirimKeUser(

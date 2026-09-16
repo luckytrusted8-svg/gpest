@@ -268,20 +268,7 @@ class WorkReportController extends Controller
         }
 
         if ($wasRevisi && $workReport->status === 'dikirim') {
-            $adminUsers = User::whereHas('roles', function ($q) {
-                $q->where('name', 'admin');
-            })->get();
-
-            foreach ($adminUsers as $admin) {
-                Notification::create([
-                    'user_id' => $admin->id,
-                    'judul' => 'Laporan Hasil Revisi Dikirim',
-                    'pesan' => 'Teknisi '.(auth()->user()->name ?? 'Teknisi').' telah memperbaiki laporan '.$workReport->nomor_laporan.' dan mengirimkannya untuk peninjauan.',
-                    'jenis' => 'info',
-                    'modul' => 'work-reports',
-                    'url_tujuan' => '/work-reports/'.$workReport->id,
-                ]);
-            }
+            app(NotificationService::class)->laporanHasilRevisiDikirim($workReport);
 
             return redirect()->route('work-reports.show', $workReport)
                 ->with('success', 'Laporan berhasil diperbaiki dan dikirim ulang ke Admin untuk persetujuan.');
