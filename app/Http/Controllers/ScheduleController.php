@@ -15,7 +15,14 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+        $isTechnician = $user && $user->hasRole('karyawan') && ! $user->hasAnyRole(['admin', 'superadmin', 'manager']);
+
         $query = Schedule::with(['customer', 'contract', 'technician', 'supervisor']);
+
+        if ($isTechnician) {
+            $query->where('technician_id', $user->id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -42,7 +49,9 @@ class ScheduleController extends Controller
         }
 
         $schedules = $query->orderBy('tanggal', 'desc')->orderBy('jam_mulai', 'asc')->paginate(10);
-        $technicians = User::select('id', 'name')->orderBy('name')->get();
+        $technicians = $isTechnician
+            ? User::where('id', $user->id)->select('id', 'name')->get()
+            : User::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('Schedules/Index', [
             'schedules' => $schedules,

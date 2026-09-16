@@ -67,16 +67,40 @@ class NotificationService
 
     public function laporanDikirim(WorkReport $workReport): void
     {
-        $supervisors = User::role(['admin', 'karyawan'])->pluck('id')->unique();
+        $admins = User::role('admin')->pluck('id')->unique();
+        if ($admins->isEmpty()) {
+            $admins = User::whereHas('roles', fn ($q) => $q->where('name', 'admin'))->pluck('id')->unique();
+        }
 
-        foreach ($supervisors as $supervisorId) {
+        $techName = $workReport->technician?->name ?? 'Teknisi';
+
+        foreach ($admins as $adminId) {
             $this->kirimKeUser(
-                userId: $supervisorId,
+                userId: $adminId,
                 judul: 'Laporan Kerja Baru',
-                pesan: "Laporan kerja {$workReport->nomor_laporan} telah dikirim oleh teknisi dan menunggu persetujuan Anda.",
+                pesan: "Laporan kerja {$workReport->nomor_laporan} telah dikirim oleh {$techName} dan menunggu persetujuan Anda.",
                 jenis: 'info',
                 modul: 'work-reports',
                 urlTujuan: "/work-reports/{$workReport->id}"
+            );
+        }
+    }
+
+    public function laporanPerluRevisi(WorkReport $workReport, ?string $catatan = null): void
+    {
+        if ($workReport->technician_id) {
+            $pesan = "Admin meminta revisi untuk laporan kerja {$workReport->nomor_laporan}.";
+            if (! empty($catatan)) {
+                $pesan .= " Catatan: {$catatan}";
+            }
+
+            $this->kirimKeUser(
+                userId: $workReport->technician_id,
+                judul: 'Permintaan Revisi Laporan',
+                pesan: $pesan,
+                jenis: 'peringatan',
+                modul: 'work-reports',
+                urlTujuan: "/work-reports/{$workReport->id}/edit"
             );
         }
     }

@@ -17,7 +17,14 @@ class WorkReportController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+        $isTechnician = $user && $user->hasRole('karyawan') && ! $user->hasAnyRole(['admin', 'superadmin', 'manager']);
+
         $query = WorkReport::with(['customer', 'technician', 'contract']);
+
+        if ($isTechnician) {
+            $query->where('technician_id', $user->id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -42,7 +49,9 @@ class WorkReportController extends Controller
         }
 
         $workReports = $query->orderBy('tanggal', 'desc')->orderBy('jam_mulai', 'desc')->paginate(10);
-        $technicians = User::select('id', 'name')->orderBy('name')->get();
+        $technicians = $isTechnician
+            ? User::where('id', $user->id)->select('id', 'name')->get()
+            : User::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('WorkReports/Index', [
             'workReports' => $workReports,
@@ -53,16 +62,27 @@ class WorkReportController extends Controller
 
     public function create(Request $request)
     {
+        $user = $request->user();
+        $isTechnician = $user && $user->hasRole('karyawan') && ! $user->hasAnyRole(['admin', 'superadmin', 'manager']);
+
         $customers = Customer::select('id', 'customer_id', 'company_name')->orderBy('company_name')->get();
-        $technicians = User::role('karyawan')->select('id', 'name')->orderBy('name')->get();
+        $technicians = $isTechnician
+            ? User::where('id', $user->id)->select('id', 'name')->get()
+            : User::role('karyawan')->select('id', 'name')->orderBy('name')->get();
         if ($technicians->isEmpty()) {
             $technicians = User::select('id', 'name')->orderBy('name')->get();
         }
         $contracts = Contract::with('customer')->select('id', 'contract_number', 'customer_id', 'contract_type')->get();
-        $schedules = Schedule::with(['customer', 'technician', 'contract'])
+
+        $schedulesQuery = Schedule::with(['customer', 'technician', 'contract'])
             ->select('id', 'schedule_code', 'customer_id', 'technician_id', 'contract_id', 'tanggal', 'jenis_layanan', 'jam_mulai', 'jam_selesai')
-            ->orderBy('tanggal', 'desc')
-            ->get();
+            ->orderBy('tanggal', 'desc');
+
+        if ($isTechnician) {
+            $schedulesQuery->where('technician_id', $user->id);
+        }
+
+        $schedules = $schedulesQuery->get();
 
         $selectedSchedule = null;
         if ($request->filled('schedule_id')) {
@@ -306,8 +326,9 @@ class WorkReportController extends Controller
 
     public function requestRevision(Request $request, WorkReport $workReport)
     {
-        if (! $request->user()->hasRole('admin')) {
-            abort(403, 'Hanya Admin yang berhak meminta revisi laporan kerja.');
+        $user = $request->user();
+        if (! $user->hasRole('admin') && ! $user->hasAnyRole(['superadmin', 'manager', 'supervisor']) && ! $user->can('work-reports.approve')) {
+            abort(403, 'Hanya Admin / Supervisor yang berhak meminta revisi laporan kerja.');
         }
 
         $request->validate([
@@ -318,6 +339,8 @@ class WorkReportController extends Controller
             'status' => 'revisi',
             'catatan_supervisor' => $request->catatan_supervisor,
         ]);
+
+        app(NotificationService::class)->laporanPerluRevisi($workReport, $request->catatan_supervisor);
 
         return redirect()->route('work-reports.show', $workReport)
             ->with('success', 'Permintaan revisi berhasil dikirim ke teknisi.');

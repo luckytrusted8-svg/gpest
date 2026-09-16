@@ -16,7 +16,14 @@ class WorkOrderController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+        $isTechnician = $user && $user->hasRole('karyawan') && ! $user->hasAnyRole(['admin', 'superadmin', 'manager']);
+
         $query = WorkOrder::with(['customer', 'site', 'technician']);
+
+        if ($isTechnician) {
+            $query->where('technician_id', $user->id);
+        }
 
         if ($request->filled('search')) {
             $query->where('wo_number', 'like', '%'.$request->search.'%')
@@ -32,10 +39,13 @@ class WorkOrderController extends Controller
         }
 
         $workOrders = $query->latest()->paginate(10)->withQueryString();
+        $technicians = $isTechnician
+            ? User::where('id', $user->id)->get(['id', 'name'])
+            : User::role('karyawan')->get(['id', 'name']);
 
         return Inertia::render('WorkOrders/Index', [
             'workOrders' => $workOrders,
-            'technicians' => User::role('karyawan')->get(['id', 'name']),
+            'technicians' => $technicians,
             'filters' => $request->only(['search', 'status', 'technician_id']),
             'statuses' => [
                 'DRAFT', 'ASSIGNED', 'ON_THE_WAY', 'ARRIVED',
