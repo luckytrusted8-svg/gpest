@@ -1,58 +1,65 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# G-PEST — Multi-Tenant Pest Control Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Enterprise Field Service Management & ERP SaaS untuk industri pest control.
 
-## About Laravel
+## 🚀 Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Frontend**: Next.js 15 (App Router) + TypeScript + Tailwind CSS + Lucide Icons + TanStack Query + Zustand
+- **Backend**: NestJS 11 (TypeScript) + Socket.io (WebSocket) + Puppeteer (PDF Engine)
+- **Database & ORM**: MySQL 8 (Laragon) + Prisma ORM
+- **Real-Time Tracking**: Socket.io Gateway (`/tracking`) dengan geofencing detection
+- **Architecture**: Decoupled Monorepo (`apps/api` -> `backend/`, `apps/web` -> `frontend/`)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 📁 Struktur Direktori
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+gpest/
+├── backend/                   # NestJS Backend API & WebSocket Gateway
+│   ├── src/
+│   │   ├── prisma/            # Prisma service & global module
+│   │   ├── tracking/          # Socket.io live technician tracking & geofencing
+│   │   ├── app.module.ts
+│   │   └── main.ts            # Port 4000 (Prefix /api/v1)
+│   ├── prisma/
+│   │   ├── schema.prisma      # Schema 12 entitas multi-tenant MySQL 8
+│   │   └── seed.ts            # Seeder demo tenant, user, service catalog, tasks
+│   ├── .env                   # DATABASE_URL mysql://root:@localhost:3306/gpest_db
+│   └── package.json
+│
+├── frontend/                  # Next.js 15 App Router Frontend
+│   ├── src/
+│   │   ├── app/               # App Router pages
+│   │   └── components/
+│   └── package.json           # Port 3000
+│
+├── docs/                      # PRD, DESIGN, dan referensi bisnis (dipertahankan)
+├── package.json               # Root monorepo dev orchestrator
+└── README.md
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## 🛠️ Cara Menjalankan Project
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 1. Prasyarat
+Pastikan Laragon sudah menyalakan service **MySQL** pada port `3306`. Buat database bernama `gpest_db` (atau biarkan Prisma membuatkannya saat migrasi).
 
-## Code of Conduct
+### 2. Migrasi Database (Prisma)
+Masuk ke folder `backend`:
+```bash
+cd backend
+npx prisma migrate dev --name init
+npx tsx prisma/seed.ts
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. Menjalankan Server (Frontend + Backend Sekaligus)
+Dari root direktori `gpest/`:
+```bash
+npm run dev
+```
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+* **Frontend Dashboard**: [http://localhost:3000](http://localhost:3000)
+* **Backend API**: [http://localhost:4000/api/v1](http://localhost:4000/api/v1)
+* **WebSocket Gateway**: `ws://localhost:4000` (Namespace `/tracking`)
